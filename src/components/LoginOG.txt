@@ -1,0 +1,106 @@
+***file Login copy 2.jsx == OG***
+
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Form, Alert, Button } from 'react-bootstrap'
+import { useUserAuth } from '../context/UserAuthContext'
+
+function Login() {
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const { logIn } = useUserAuth();
+    const { googleSignIn } = useUserAuth();
+    const { sendEmailVerification } = useUserAuth();
+    
+    let navigate = useNavigate();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
+        try {
+          const userCredential = await logIn(email, password);
+          if (!userCredential.user.emailVerified) {
+            setError("Please verify your email before logging in.");
+            return;
+          }
+          navigate("/home");
+        } catch (err) {
+          setError(err.message);
+        }
+      };
+    const handleGoogleSignIn = async () => {
+        try {
+            await googleSignIn();
+            navigate("/home");
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+    const handleResendVerification = async () => {
+      try {
+        if (auth.currentUser) {
+          await sendEmailVerification(auth.currentUser);
+          setMessage("Verification email sent. Please check your inbox.");
+        }
+      } catch (err) {
+        setError("Error sending verification email.");
+      }
+    };
+
+  return (
+    <div>
+      <div className="row">
+        <div className="col-md-6 mx-auto">
+          <h2 className="mb-3">Login</h2>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3" controlId="formBasicEmail">
+              <Form.Control
+                type="email"
+                placeholder="Email address"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formBasicPassword">
+              <Form.Control
+                type="password"
+                placeholder="Password"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </Form.Group>
+
+            <div className="d-grid gap-2">
+              <Button variant="primary" type="submit">
+                Sign In
+              </Button>
+            </div>
+
+            <div className="d-grid gap-2">
+              <Button onClick={handleGoogleSignIn} variant="danger">
+                Sign in with Google
+              </Button>
+            </div>
+
+          </Form>
+
+          <div className="p-4 box mt-3 text-center">
+            Don't have an account? <Link to="/register">Sign up</Link><br />
+            Forgot Password?<Link to="/forgot-password">Click here</Link>
+          </div>
+          {error && error.includes("verify your email") && (
+            <div className="p-4 box mt-3 text-center">
+              <Button variant="link" onClick={handleResendVerification}>
+                Resend Verification Email
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Login

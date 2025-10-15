@@ -1,0 +1,221 @@
+@charset "UTF-8";
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+}
+
+:root {
+  /* Color Palette */
+  --primary-color: #349de3;
+  --hoverColor: #91c4e7;
+  --whiteColor: #ffff;
+  --blackColor: hsl();
+  --background-color: #f4f4f9;
+  --text-color: #333;
+  --greyText: #898989;
+  --inputColor: hsl(330, 12%, 97%);
+  --lightBlueColor:#ADD8E6;
+  --midnightBlueColor:#272757;
+  --darkRedColor:#950606;
+  /* Typography */
+  --biggestFontSize: 2.5rem;
+  --h1FontSize: 1.5rem;
+  --h2FontSize: 1.25rem;
+  --h3FontSize: 1rem;
+  --normalFontSize: 0.938rem;
+  --smallFontSize: 0.813rem;
+  --smallestFontSize: 0.75rem;
+}
+
+.welcome-container {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  margin-top: 30px;
+}
+
+.exercise-image {
+  width: 60%;
+  max-width: 500px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-container h2 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.highlight {
+  color: #00bfff; /* สีฟ้า */
+}
+
+.welcome-container p {
+  font-size: 14px;
+  color: gray;
+  margin-bottom: 20px;
+}
+
+.welcome-container .button-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.welcome-container .btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+}
+
+.button-container .btn-login {
+  background-color: #00bfff;
+}
+
+.button-container .btn-register {
+  background-color: #007bff;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.grid {
+  display: grid;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+html {
+  font-size: 90%;
+}
+
+a {
+  text-decoration: none;
+}
+
+li {
+  list-style: none;
+}
+
+.icon {
+  font-size: var(--h2FontSize);
+  cursor: pointer;
+}
+
+img,
+video {
+  height: auto;
+  width: 100%;
+}
+
+.message {
+  display: none;
+}
+
+.showMessage {
+  display: block;
+  color: var(--whiteColor);
+  background-color: rgb(255, 0, 0);
+  border-radius: 3px;
+  text-align: center;
+}
+
+.btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  color: var(--whiteColor);
+}
+
+.btn .icon {
+  margin-left: 0.5rem;
+}
+
+.btn:hover {
+  color: var(--primary-color);
+  background-color: var(--hoverColor);
+}
+
+@media screen and (max-width: 602px) {
+  .loginPage .containers, .loginPage .registercontainer, .registerPage .containers, .registerPage .registercontainer {
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+    padding: 1.5rem;
+  }
+  .loginPage .containers .videoDiv, .loginPage .registercontainer .videoDiv, .registerPage .containers .videoDiv, .registerPage .registercontainer .videoDiv {
+    width: 100%;
+  }
+  .loginPage .containers .videoDiv .textDiv .title, .loginPage .registercontainer .videoDiv .textDiv .title, .registerPage .containers .videoDiv .textDiv .title, .registerPage .registercontainer .videoDiv .textDiv .title {
+    font-size: 20px;
+  }
+  .loginPage .containers .videoDiv .textDiv p, .loginPage .registercontainer .videoDiv .textDiv p, .registerPage .containers .videoDiv .textDiv p, .registerPage .registercontainer .videoDiv .textDiv p {
+    padding: 1rem;
+  }
+  .loginPage .containers .videoDiv .footerDiv .text, .loginPage .registercontainer .videoDiv .footerDiv .text, .registerPage .containers .videoDiv .footerDiv .text, .registerPage .registercontainer .videoDiv .footerDiv .text {
+    font-size: 12px;
+  }
+  .loginPage .containers .videoDiv .footerDiv .btn, .loginPage .registercontainer .videoDiv .footerDiv .btn, .registerPage .containers .videoDiv .footerDiv .btn, .registerPage .registercontainer .videoDiv .footerDiv .btn {
+    padding: 0.4rem 1.5rem;
+  }
+  .loginPage .containers .formDiv, .loginPage .registercontainer .formDiv, .registerPage .containers .formDiv, .registerPage .registercontainer .formDiv {
+    gap: 1rem;
+    transform: translateY(-0.5rem);
+  }
+  .loginPage .containers .formDiv .headerDiv, .loginPage .registercontainer .formDiv .headerDiv, .registerPage .containers .formDiv .headerDiv, .registerPage .registercontainer .formDiv .headerDiv {
+    padding: 1rem 0;
+  }
+  .loginPage .containers .formDiv .headerDiv img, .loginPage .registercontainer .formDiv .headerDiv img, .registerPage .containers .formDiv .headerDiv img, .registerPage .registercontainer .formDiv .headerDiv img {
+    width: 40px;
+  }
+  .loginPage .containers .formDiv .headerDiv h3, .loginPage .registercontainer .formDiv .headerDiv h3, .registerPage .containers .formDiv .headerDiv h3, .registerPage .registercontainer .formDiv .headerDiv h3 {
+    font-size: 20px;
+  }
+  .loginPage .containers .formDiv .form, .loginPage .registercontainer .formDiv .form, .registerPage .containers .formDiv .form, .registerPage .registercontainer .formDiv .form {
+    gap: 0.5rem;
+  }
+  .loginPage .containers .formDiv .form .inputDiv input, .loginPage .registercontainer .formDiv .form .inputDiv input, .registerPage .containers .formDiv .form .inputDiv input, .registerPage .registercontainer .formDiv .form .inputDiv input {
+    width: 100%;
+  }
+}
+@media screen and (max-width: 678px) {
+  .loginPage .containers .videoDiv .textDiv .title, .loginPage .registercontainer .videoDiv .textDiv .title, .registerPage .containers .videoDiv .textDiv .title, .registerPage .registercontainer .videoDiv .textDiv .title {
+    font-size: 25px;
+  }
+  .loginPage .containers .videoDiv .textDiv p, .loginPage .registercontainer .videoDiv .textDiv p, .registerPage .containers .videoDiv .textDiv p, .registerPage .registercontainer .videoDiv .textDiv p {
+    padding: 1rem;
+  }
+  .loginPage .containers .videoDiv .footerDiv .text, .loginPage .registercontainer .videoDiv .footerDiv .text, .registerPage .containers .videoDiv .footerDiv .text, .registerPage .registercontainer .videoDiv .footerDiv .text {
+    font-size: 12px;
+  }
+  .loginPage .containers .videoDiv .footerDiv .btn, .loginPage .registercontainer .videoDiv .footerDiv .btn, .registerPage .containers .videoDiv .footerDiv .btn, .registerPage .registercontainer .videoDiv .footerDiv .btn {
+    padding: 0.8rem 1.5rem;
+  }
+  .loginPage .containers .formDiv .headerDiv, .loginPage .registercontainer .formDiv .headerDiv, .registerPage .containers .formDiv .headerDiv, .registerPage .registercontainer .formDiv .headerDiv {
+    padding: 1.5rem 0;
+  }
+  .loginPage .containers .formDiv .headerDiv h3, .loginPage .registercontainer .formDiv .headerDiv h3, .registerPage .containers .formDiv .headerDiv h3, .registerPage .registercontainer .formDiv .headerDiv h3 {
+    font-size: 20px;
+  }
+  .loginPage .containers .formDiv .form .inputDiv input, .loginPage .registercontainer .formDiv .form .inputDiv input, .registerPage .containers .formDiv .form .inputDiv input, .registerPage .registercontainer .formDiv .form .inputDiv input {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+@media screen and (max-width: 927px) {
+  .loginPage .containers, .loginPage .registercontainer, .registerPage .containers, .registerPage .registercontainer {
+    width: 85%;
+  }
+}/*# sourceMappingURL=App.css.map */

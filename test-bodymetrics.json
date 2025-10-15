@@ -1,0 +1,100 @@
+{
+  "testData": [
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 78.5,
+      "height": 175,
+      "fatPercentage": 22.1,
+      "muscleMass": 30.2,
+      "date": "2023-12-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 78.0,
+      "height": 175,
+      "fatPercentage": 21.8,
+      "muscleMass": 30.5,
+      "date": "2024-01-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 77.3,
+      "height": 175,
+      "fatPercentage": 21.2,
+      "muscleMass": 31.1,
+      "date": "2024-02-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 76.8,
+      "height": 175,
+      "fatPercentage": 20.7,
+      "muscleMass": 31.5,
+      "date": "2024-03-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 76.2,
+      "height": 175,
+      "fatPercentage": 20.1,
+      "muscleMass": 32.0,
+      "date": "2024-04-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 75.9,
+      "height": 175,
+      "fatPercentage": 19.8,
+      "muscleMass": 32.3,
+      "date": "2024-05-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 75.5,
+      "height": 175,
+      "fatPercentage": 19.4,
+      "muscleMass": 32.7,
+      "date": "2024-06-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 75.1,
+      "height": 175,
+      "fatPercentage": 19.0,
+      "muscleMass": 33.1,
+      "date": "2024-07-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 74.8,
+      "height": 175,
+      "fatPercentage": 18.6,
+      "muscleMass": 33.4,
+      "date": "2024-08-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 74.5,
+      "height": 175,
+      "fatPercentage": 18.2,
+      "muscleMass": 33.8,
+      "date": "2024-09-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 74.2,
+      "height": 175,
+      "fatPercentage": 17.9,
+      "muscleMass": 34.1,
+      "date": "2024-10-15T10:00:00.000Z"
+    },
+    {
+      "userId": "W9wHEQLdVaZ7S5LcclkB1DZ3pFP2",
+      "weight": 73.8,
+      "height": 175,
+      "fatPercentage": 17.5,
+      "muscleMass": 34.5,
+      "date": "2024-11-15T10:00:00.000Z"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+/* BodyMetricsChart.css */
+.chart-container {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.chart-time-filter {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chart-time-filter button {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.813rem;
+  font-weight: 500;
+  color: #718096;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chart-time-filter button:hover {
+  background: #edf2f7;
+  color: #2d3748;
+}
+
+.chart-time-filter button.active {
+  background: #349de3;
+  color: #ffffff;
+  border-color: #349de3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-container {
+    padding: 1rem;
+  }
+  .chart-wrapper {
+    height: 250px;
+  }
+  .chart-time-filter {
+    justify-content: center;
+  }
+}
+@media (max-width: 480px) {
+  .chart-wrapper {
+    height: 200px;
+  }
+  .chart-time-filter button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}/*# sourceMappingURL=BodyMetricsChart.css.map */

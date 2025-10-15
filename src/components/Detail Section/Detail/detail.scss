@@ -1,0 +1,668 @@
+//Root Variables for Global Styling */
+:root {
+  --primary-color: #349de3;
+  --hoverColor: #91c4e7;
+  --whiteColor: #fff;
+  --background-color: #f4f4f9;
+  --text-color: #222;
+  --greyText: #898989;
+  --card-radius: 24px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+body {
+  background: var(--background-color);
+}
+
+.training-card {
+  max-width: 480px;
+  margin: 2rem auto;
+  background: var(--whiteColor);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  padding: 2rem 1.5rem;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.video-container img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 18px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 12px rgba(52,157,227,0.08);
+}
+
+.info-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.info-container h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-align: left;
+}
+
+.info-container p {
+  margin: 0 0 1.2rem 0;
+  font-size: 1rem;
+  color: var(--greyText);
+  line-height: 1.6;
+}
+
+.details {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f7fafd;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+}
+
+.icon {
+  font-size: 1.3rem;
+  color: var(--primary-color);
+}
+
+.text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.value {
+  font-size: 0.85rem;
+  color: #333;
+  margin-left: 0.3rem;
+}
+
+/*----------------------------------*/
+/* Existing Styles (provided by user) */
+/*----------------------------------*/
+.workout-list-section {
+  margin-top: 2rem;
+}
+.modal-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 0.3rem;
+}
+.modal-description,
+.modal-tips {
+  color: #444;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  text-align: left;
+}
+.workout-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workout-list-section h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  /* ใช้สีดำหรือสีเข้มตามตัวอย่างในภาพ */
+  color: #000; 
+}
+
+.workout-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.modal-start-btn {
+  text-decoration: none;
+  text-align: center;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.modal-start-btn:hover {
+  background: var(--hoverColor);
+}
+/*----------------------------------*/
+/* New & Modified Styles for the list items */
+/*----------------------------------*/
+
+/* สไตล์สำหรับแต่ละรายการ (Card/Row) */
+.workout-list-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem; /* ระยะห่างระหว่างรายการ */
+  background: #fcfdfe; /* สีพื้นหลังของรายการ */
+  border-radius: 12px; /* ความโค้งมนของมุม */
+  padding: 0.5rem 0.8rem; /* Padding ภายใน */
+  /* เงาที่ดูนุ่มนวลและไม่เด่นมากนัก ตามตัวอย่าง */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s;
+}
+
+/* ภาชนะสำหรับรูปภาพ */
+.workout-image-container {
+  width: 60px; /* ขนาดของภาชนะรูปภาพ */
+  height: 60px; /* ทำให้เป็นสี่เหลี่ยมจตุรัส */
+  overflow: hidden;
+  border-radius: 10px; /* ความโค้งมนของรูปภาพ */
+  /* พื้นหลังสีเทาอ่อน (ถ้าไม่มีรูปภาพ) */
+  background-color: #e9e9e9;
+}
+
+
+/* รูปภาพ */
+.workout-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* ทำให้รูปภาพเต็มพื้นที่และไม่ผิดสัดส่วน */
+  display: block;
+}
+
+/* ข้อมูลชื่อและรายละเอียด (ด้านขวาของรูปภาพ) */
+.workout-details {
+  display: flex;
+  flex: 1; /* ทำให้ขยายเต็มพื้นที่ที่เหลือ */
+  justify-content: space-between; /* จัดชื่อและ value ให้อยู่คนละฝั่ง */
+  align-items: center;
+  margin-left: 1rem; /* ระยะห่างระหว่างรูปภาพกับข้อความ */
+}
+
+/* ชื่อ Workout */
+.workout-name {
+  font-weight: 600; /* ทำให้ตัวหนาขึ้น */
+  font-size: 1rem;
+  color: #333;
+}
+
+/* ค่า Reps หรือ Time */
+.workout-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666; /* สีข้อความให้จางลงเล็กน้อย */
+}
+
+.workout-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-right: 1.2rem;
+  background: #eaf4fb;
+}
+
+.workout-info {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Modal Overlay (ใช้สำหรับ background ทับซ้อน) */
+.modal-overlay {
+  width: 100%;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 41, 59, 0.55); // สีดำอมฟ้าโปร่งใส
+  backdrop-filter: blur(2.5px); // เพิ่ม blur ให้พื้นหลัง
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.25s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal-content{
+  width: auto;
+}
+.modal-container {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(52,157,227,0.18), 0 1.5px 8px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  animation: popIn 0.22s;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.95); opacity: 0.7; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.modal-media {
+  width: 100%;
+  background: linear-gradient(120deg, #eaf4fb 60%, #fff 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.2rem 0 0.5rem 0;
+}
+
+.modal-media img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(52,157,227,0.10);
+  background: #f4f4f9;
+}
+
+.modal-details {
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+}
+
+.workout-modal-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.7rem;
+  text-align: left;
+}
+
+.modal-duration {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+.modal-duration-item,
+.modal-calories-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+.modal-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 1.05rem;
+}
+
+.modal-value {
+  margin-left: auto;
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.modal-description {
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem 1.2rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #eaeaea;
+  background: #f7fafd;
+  border-radius: 0 0 22px 22px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-navigation {
+  display: flex;
+  align-items: center;
+}
+
+.nav-btn {
+  background: var(--whiteColor);
+  border: 1.5px solid var(--primary-color);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1.3rem;
+  color: var(--primary-color);
+  margin: 0 0.5rem;
+  transition: background 0.18s, color 0.18s;
+}
+.nav-btn:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.page-info {
+  margin: 0 10px;
+  font-weight: bold;
+  color: #222;
+}
+
+.modal-close-btn {
+  background: linear-gradient(90deg, #f36 0%, #349de3 100%);
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #fff;
+  font-size: 1.05rem;
+  box-shadow: 0 2px 8px rgba(52,157,227,0.10);
+  transition: background 0.18s;
+}
+.modal-close-btn:hover {
+  background: linear-gradient(90deg, #349de3 0%, #f36 100%);
+}
+.modal-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.modal-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.close-text {
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.modal-start-btn {
+  display: block;
+  margin: 0 auto;
+}
+
+/* หรือใช้กับ container ของ button */
+.button-container {
+  text-align: center;
+}
+
+
+.modal-close-btn.top-right {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  color: #888;
+  font-size: 1.5rem;
+  box-shadow: none;
+  padding: 0;
+}
+.modal-close-btn.top-right:hover {
+  color: var(--primary-color);
+  background: none;
+}
+
+/* เพิ่ม styles ให้ workout list items เป็น clickable */
+.workout-list-item {
+    cursor: pointer;
+    /* ... (CSS เดิม) */
+}
+.workout-list-item:hover {
+    background-color: #f8f8f8; /* เพิ่ม effect เมื่อ hover */
+}
+
+.nav-btn:hover,
+.modal-close-btn:hover {
+  background-color: var(--hoverColor);
+  color: #fff;
+  transition: 0.2s ease-in-out;
+}
+button:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+/* ==== Media in modal ==== */
+.modal-media {
+  width: 100%;
+  background: linear-gradient(120deg, #eaf4fb 60%, #fff 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.2rem 0 0.5rem 0;
+}
+
+.modal-image,
+.modal-video {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: #f4f4f9;
+  box-shadow: 0 2px 12px rgba(52,157,227,0.10);
+}
+
+/* ==== Workout list thumb & video badge ==== */
+.workout-image-container {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: #e9e9e9;
+}
+
+.workout-image-container .workout-image,
+.workout-image-container .workout-thumb-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.workout-image-container .placeholder {
+  width: 100%;
+  height: 100%;
+  background: #eaeaea;
+}
+
+.video-badge {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 4px 6px;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  border-radius: 6px;
+}
+
+  /* ========== BASE (Mobile-first: < 600px) ========== */
+/* ใช้สไตล์เดิมของคุณเป็นค่าเริ่มต้น (mobile) ได้เลย
+   เช่น .training-card, .content-container, .video-container img ฯลฯ */
+
+
+/* ========== TABLET: 600px–1023px ========== */
+@media (min-width: 600px) and (max-width: 1023px) {
+  /* Card ใหญ่ขึ้นนิดหน่อย */
+  .training-card {
+    max-width: 960px;
+    padding: 2rem 2.5rem;
+  }
+
+  /* ใช้ Grid แยกซ้าย/ขวา */
+  .content-container {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr; /* ซ้ายกว้างกว่าขวานิดนึง */
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* ซ้าย: รูป/วิดีโอ + ข้อมูล */
+  .video-container {
+    width: 100%;
+    margin-bottom: 1.25rem;
+  }
+  .video-container img {
+    width: 100%;
+    height: 260px;
+    border-radius: 18px;
+  }
+
+  .info-container {
+    align-items: flex-start;
+  }
+  .info-container h2 {
+    text-align: left;
+    font-size: 2.1rem;
+  }
+
+  .details {
+    gap: 1rem;
+  }
+
+  /* ขวา: workout list */
+  .workout-list-section {
+    margin-top: 0;     /* ไม่ต้องดันลง */
+  }
+  .workout-list-item {
+    padding: 0.75rem 1rem;
+  }
+
+  /* Modal ขยายขึ้นเล็กน้อย */
+  .modal-container {
+    max-width: 520px;
+  }
+  .modal-media .modal-image,
+  .modal-media .modal-video {
+    max-height: 300px;
+  }
+}
+
+
+/* ========== DESKTOP: ≥ 1024px ========== */
+@media (min-width: 1024px) {
+  .training-card {
+    max-width: 1280px;     /* หรือ 1400px ตามต้องการ */
+    padding: 2.5rem 3rem;
+  }
+
+  .content-container {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;  /* ซ้ายกว้างขึ้นอีก */
+    gap: 40px;
+    align-items: start;
+  }
+
+  .video-container {
+    width: 100%;
+    margin-bottom: 1.75rem;
+  }
+  .video-container img {
+    width: 100%;
+    height: 320px;
+    border-radius: 20px;
+  }
+
+  .info-container h2 {
+    font-size: 2.25rem;
+  }
+  .info-container p {
+    font-size: 1.05rem;
+  }
+  .details .text,
+  .details .value {
+    font-size: 0.95rem;
+  }
+
+  .workout-list-section {
+    margin-top: 0;
+    /* อยากให้ลิสต์ “ลอยค้าง” ตอนเลื่อนก็ทำ sticky ได้ */
+    position: sticky;
+    top: 24px;
+  }
+  .workout-list-item {
+    padding: 0.9rem 1.1rem;
+  }
+
+  .modal-container {
+    max-width: 640px;
+  }
+  .modal-media .modal-image,
+  .modal-media .modal-video {
+    max-height: 360px;
+  }
+}
+@media (max-width: 600px) {
+  /* รูป/วิดีโอหลักบนหัวการ์ดโปรแกรม */
+  .video-container img,
+  .video-container video {
+    width: 100%;
+    height: auto;            /* ให้ปรับสัดส่วนอัตโนมัติ */
+    aspect-ratio: 16 / 9;    /* คุมให้เป็น 16:9 (ลบได้ถ้าไม่ต้องการ) */
+    object-fit: cover;       /* เติมเต็มกรอบแบบครอป */
+    border-radius: 14px;
+  }
+.workout-image-container {
+    width: 56px;             /* เดิม 60px -> ลดลงเล็กน้อย */
+    height: 56px;
+    border-radius: 10px;
+  }
+  .workout-image-container .workout-image,
+  .workout-image-container .workout-thumb-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* รูป/วิดีโอใน Modal */
+  .modal-media .modal-image,
+  .modal-media .modal-video {
+    width: 100%;
+    max-height: 200px;       /* เดิม 260px -> เตี้ยลงบนมือถือ */
+    object-fit: contain;     /* เน้นเห็นเต็มภาพ/วิดีโอ */
+    border-radius: 12px;
+  }
+}
+/* ========== ตัวช่วย (ถ้าต้องการโชว์/ซ่อน element ตามขนาด) ========== */
+.only-mobile  { display: block; }
+.only-tablet  { display: none; }
+.only-desktop { display: none; }
+
+@media (min-width: 600px) and (max-width: 1023px) {
+  .only-mobile  { display: none; }
+  .only-tablet  { display: block; }
+}
+
+@media (min-width: 1024px) {
+  .only-mobile  { display: none; }
+  .only-tablet  { display: none; }
+  .only-desktop { display: block; }
+}
