@@ -1,11 +1,11 @@
 @charset "UTF-8";
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
-/* ตัวแปรสีที่ใช้ตรงกับ login.css */
-:root {
-  --primary-color: #27BAF9;
+/* ============ Theme Vars ============ */
+:where(.scoped-landing-vars) {
+  /* เพิ่มตัวแปรฟอนต์ให้ชัดเจน */
+  --primary-color: #27baf9;
   --primary-dark: #1da8e7;
   --primary-light: #4fc7fa;
-  --primary-custom: #E9EFEC;
+  --primary-custom: #e9efec;
   --secondary-color: #6c757d;
   --success-color: #28a745;
   --danger-color: #dc3545;
@@ -29,36 +29,32 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ฟอนต์ให้ทั้งแอปเคลียร์ */
 * {
+  box-sizing: border-box;
+}
+
+html,
+body {
   padding: 0;
   margin: 0;
-  box-sizing: border-box;
   font-family: var(--font-primary);
 }
 
-body {
-  padding: 0 !important;
-  margin: 0 !important;
+/* ตัวช่วยให้การเรนเดอร์ตัวอักษรสม่ำเสมอขึ้น */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .container {
   height: auto;
 }
 
-.features .row {
-  display: flex;
-  flex-direction: row;
-}
-
-/* Landing Page Styles */
-.landing-page {
-  font-family: "Montserrat", sans-serif;
-}
-
-/* Hero Section */
+/* Hero */
 .hero {
   position: relative;
-  /* เปลี่ยนเป็นโทนสีเดียวกับ login.css */
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   min-height: 100vh;
 }
@@ -71,15 +67,14 @@ body {
 }
 
 .hero-overlay {
-  background: rgba(0, 0, 0, 0.2); /* ลดความเข้มของ overlay เพื่อให้สีฟ้าเด่นชัดขึ้น */
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .text-gradient {
-  /* ปรับ gradient ให้เป็นโทนสีเดียวกับ primary color */
   background: linear-gradient(45deg, #ffffff, #ffffff);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .hero-content p {
@@ -129,7 +124,7 @@ body {
 }
 @keyframes float {
   0%, 100% {
-    transform: translateY(0px);
+    transform: translateY(0);
   }
   50% {
     transform: translateY(-20px);
@@ -156,6 +151,8 @@ body {
 }
 /* Feature Cards */
 .feature-card {
+  /* แก้คอมเมนต์ให้ถูกต้อง และเปิดใช้ทรานซิชันได้ */
+  /* transition: var(--transition); */
   border: none;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-sm);
@@ -172,21 +169,22 @@ body {
   margin: 0 auto;
 }
 
-/* ปรับสีให้ตรงกับ theme */
-.bg-blue-500 {
-  background-color: var(--primary-color) !important;
+/* หลีกเลี่ยงการ override Tailwind utility โดยตรง (ถ้าจำเป็น ให้สร้างคลาสใหม่ของตัวเอง) */
+/* .bg-blue-500 { background-color: var(--primary-color); } */
+/* .bg-blue-600 { background-color: var(--primary-dark); } */
+/* .bg-blue-700 { background-color: var(--primary-dark); } */
+/* .text-blue-600 { color: var(--primary-color); } */
+/* แนะนำ: ใช้คลาสเฉพาะของคุณเองแทน */
+.bg-brand-primary {
+  background-color: var(--primary-color);
 }
 
-.bg-blue-600 {
-  background-color: var(--primary-dark) !important;
+.bg-brand-primary-dark {
+  background-color: var(--primary-dark);
 }
 
-.bg-blue-700 {
-  background-color: var(--primary-dark) !important;
-}
-
-.text-blue-600 {
-  color: var(--primary-color) !important;
+.text-brand-primary {
+  color: var(--primary-color);
 }
 
 /* Mockup Section */
@@ -201,8 +199,9 @@ body {
   overflow: hidden;
   max-width: 400px;
   margin: 0 auto;
-  max-height: -moz-fit-content;
-  max-height: fit-content;
+  /* ถ้าต้องการให้สูงเท่ากับเนื้อหา ใช้ height: fit-content; หรือปล่อยอัตโนมัติ */
+  height: -moz-fit-content;
+  height: fit-content;
 }
 
 .mockup-shadow {
@@ -215,6 +214,7 @@ body {
   border-radius: var(--border-radius-lg);
   filter: blur(20px);
   z-index: -1;
+  /* ระวัง stacking context */
 }
 
 .mockup-device {
@@ -222,20 +222,22 @@ body {
   z-index: 1;
 }
 
-/* Button Styles */
-.btn-primary {
+/* Buttons */
+.landing-page .btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
   border: none;
   transition: var(--transition);
   border-radius: var(--border-radius);
+  color: #fff;
 }
 
-.btn-primary:hover {
+.landing-page .btn-primary:hover {
   background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(39, 186, 249, 0.3);
 }
 
-/* CTA Section */
+/* CTA */
 .cta-section {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   position: relative;
@@ -245,13 +247,8 @@ body {
 .cta-section::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,90.7C672,85,768,107,864,122.7C960,139,1056,149,1152,138.7C1248,128,1344,96,1392,80L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>');
-  background-size: cover;
-  background-position: top;
+  inset: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,90.7C672,85,768,107,864,122.7C960,139,1056,149,1152,138.7C1248,128,1344,96,1392,80L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>') no-repeat center/cover;
 }
 
 /* Footer */
@@ -299,30 +296,24 @@ footer a:hover {
   padding-left: 1rem;
 }
 
-/* Responsive Design */
-/* สำหรับหน้าจอขนาดเล็กถึงกลาง เช่น แท็บเล็ต หรือมือถือแนวนอน (≤ 768px) */
+/* Responsive */
 @media (max-width: 983px) {
-  /* ขนาดตัวอักษรของหัวข้อหลักใน Hero Section เล็กลงเพื่อไม่ให้ล้น */
   .hero-title {
     font-size: 2.5rem;
   }
-  /* ขนาดหัวข้อระดับรอง ปรับเล็กลงให้เหมาะกับหน้าจอมือถือ/แท็บเล็ต */
   .display-4 {
     font-size: 2rem;
   }
   .display-5 {
     font-size: 1.8rem;
   }
-  /* จำกัดความกว้างของภาพ mockup ให้พอดีกับหน้าจอ */
   .mockup-frame {
     max-width: 300px;
   }
-  /* ปรับขนาดปุ่มไอคอนโซเชียลให้เล็กลง */
   .social-btn {
     width: 40px;
     height: 40px;
   }
-  /* ปรับขนาดปุ่ม back-to-top ให้เหมาะกับจอเล็ก */
   .back-to-top {
     width: 45px;
     height: 45px;
@@ -335,42 +326,34 @@ footer a:hover {
     margin-left: 20px;
   }
 }
-/* สำหรับหน้าจอขนาดเล็กมาก เช่น มือถือแนวตั้ง (≤ 576px) */
 @media (max-width: 576px) {
   .hero-bg {
-    height: 50vh !important; /* 50% ของ viewport */
-    background-color: rgba(0, 0, 0, 0.3); /* หากต้องการ overlay สีดำโปร่ง */
+    height: 50vh !important;
+    background-color: rgba(0, 0, 0, 0.3);
   }
-  /* ลดขนาด font ของ hero-title เพื่อไม่ให้ใหญ่เกินไปบนมือถือ */
   .hero-title {
     font-size: 2rem;
   }
-  /* ปรับขนาด subtitle ให้เล็กลงอ่านง่ายในจอแคบ */
   .hero-subtitle {
     font-size: 1.1rem;
   }
-  /* ปรับปุ่มขนาดใหญ่ให้กระชับขึ้นบนมือถือ */
   .btn-lg {
     padding: 0.75rem 2rem;
     font-size: 1rem;
   }
-  /* ขนาดหัวข้อ display รองลงมา ลดลงตามลำดับ */
   .display-4 {
     font-size: 1.75rem;
   }
   .display-5 {
     font-size: 1.5rem;
   }
-  /* ลด padding ภายในการ์ดฟีเจอร์ ให้เหมาะกับพื้นที่แสดงผลจำกัด */
   .feature-card {
     padding: 1.5rem;
   }
-  /* ลดขนาดไอคอนในการ์ดฟีเจอร์ */
   .feature-icon {
     width: 60px;
     height: 60px;
   }
-  /* จำกัดขนาด mockup ให้เล็กลงตามขนาดจอ */
   .mockup-frame {
     max-width: 280px;
   }
@@ -382,16 +365,12 @@ footer a:hover {
     margin-left: 20px;
   }
 }
-/* สำหรับหน้าจอขนาดใหญ่ขึ้น เช่น Desktop ปกติ (≥ 992px) */
 @media (min-width: 992px) {
-  /* ขยายขนาดหัวข้อหลักให้ใหญ่ขึ้นบนจอใหญ่เพื่อความโดดเด่น */
   .hero-title {
     font-size: 3.5rem;
   }
 }
-/* สำหรับหน้าจอขนาดใหญ่มาก เช่น 4K หรือจอ Desktop กว้างมาก (≥ 1200px) */
 @media (min-width: 1200px) {
-  /* เพิ่มขนาด hero-title ให้โดดเด่นบนจอขนาดใหญ่ */
   .hero-title {
     font-size: 4rem;
   }
@@ -413,7 +392,7 @@ footer a:hover {
   box-shadow: none;
 }
 
-/* เพิ่มเติมเพื่อให้แน่ใจว่า component ทั้งหมดใช้สีจาก theme เดียวกัน */
+/* Utilities themed */
 .badge-primary {
   background-color: var(--primary-color);
 }
@@ -430,7 +409,6 @@ footer a:hover {
   border-color: var(--primary-color) !important;
 }
 
-/* ปรับปรุงสีสำหรับองค์ประกอบอื่นๆ */
 .btn-outline-primary {
   color: var(--primary-color);
   border-color: var(--primary-color);
@@ -441,7 +419,6 @@ footer a:hover {
   color: white;
 }
 
-/* เพิ่มเอฟเฟกต์การเปลี่ยนสีที่สวยงามเมื่อ hover องค์ประกอบ */
 .feature-title {
   color: var(--gray-800);
   transition: var(--transition);
@@ -451,7 +428,6 @@ footer a:hover {
   color: var(--primary-color);
 }
 
-/* ปรับแต่งสีของ progress bar ถ้ามี */
 .progress-bar {
   background-color: var(--primary-color);
 }/*# sourceMappingURL=LandingPage.css.map */

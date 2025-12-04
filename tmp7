@@ -1,0 +1,88 @@
+        </div>
+      </header>
+
+      {/* Intro */}
+      {isIntro && (
+        <main className="wp-main">
+          <div className="wp-exercise-header">
+            <h2 className="wp-current-exercise-name">เตรียมตัวท่าแรก: {exercises[0]?.name}</h2>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 8 }}>
+              <button className="wp-btn wp-btn-primary" onClick={() => addIntroSeconds(10)}>เพิ่มเวลา +10 วิ</button>
+            </div>
+            <div className="wp-exercise-stats">
+              <div className="wp-time-remaining">
+                <span className="wp-time-number">{introRemaining}</span>
+                <span className="wp-time-unit">วินาที</span>
+              </div>
+              <ProgressRing progress={introProgress} />
+            </div>
+          </div>
+
+          <div className="wp-media-container">
+            <video
+              key={exercises[0]?.video || exercises[0]?.imageUrl}
+              className="wp-media"
+              src={exercises[0]?.video || undefined}
+              poster={exercises[0]?.imageUrl || undefined}
+              autoPlay
+              muted
+              playsInline
+              loop
+              preload="metadata"
+            />
+            <div className="wp-overlay-hint">
+              <small>ตัวอย่างท่า: {exercises[0]?.name}</small>
+            </div>
+          </div>
+
+
+          {isPaused && isResting && !showGuide && (
+            <div
+              className="wp-overlay wp-overlay--dark"
+              role="button"
+              tabIndex={0}
+              onClick={safeResumeFromOverlay}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); safeResumeFromOverlay(); }
+              }}
+            >
+              <div className="wp-overlay-card">
+                <div className="wp-overlay-name">หยุดชั่วคราว</div>
+                <div className="wp-overlay-hint" style={{ position: "static" }}>กด “เล่น” เพื่อทำต่อ</div>
+              </div>
+            </div>
+          )}
+
+        </main>
+      )}
+
+      {/* Countdown */}
+      {isCounting && (
+        <div className="wp-countdown-overlay">
+          <div className="wp-countdown-content">
+            <h2 className="wp-exercise-name">{current?.name}</h2>
+            <div className="wp-countdown-circle">
+              <div key={countdown} className="wp-countdown-number">{countdown}</div>
+            </div>
+            <p className="wp-countdown-text">เตรียมพร้อม...</p>
+            <div className="wp-countdown-dots"><div className="wp-dot"></div><div className="wp-dot"></div><div className="wp-dot"></div></div>
+          </div>
+        </div>
+      )}
+
+      {/* Workout (เปิดกล้อง) */}
+      {isPlaying && (
+        <main className="wp-main">
+          <div className="wp-media-container">
+            {/* Move wp-exercise-header to the top inside wp-media-container */}
+            <div className="wp-exercise-header">
+              <h2 className="wp-current-exercise-name">{current?.name}</h2>
+              <div className="wp-exercise-stats">
+                <div className="wp-time-remaining">
+                  <span className="wp-time-number">{timeRemaining}</span>
+                  <span className="wp-time-unit">วินาที</span>
+                </div>
+                <ProgressRing progress={exerciseProgress} />
+              </div>
+            </div>
+            <video ref={videoRef} className="hidden" playsInline muted />

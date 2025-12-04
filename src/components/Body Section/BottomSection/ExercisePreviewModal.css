@@ -279,8 +279,8 @@
   justify-content: flex-end;
 }
 
-.btn-primary,
-.btn-secondary {
+.exercise-modal-actions .btn-primary,
+.exercise-modal-actions .btn-secondary {
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
@@ -295,24 +295,24 @@
   justify-content: center;
 }
 
-.btn-primary {
+.exercise-modal-actions .btn-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.btn-primary:hover {
+.exercise-modal-actions .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
-.btn-secondary {
+.exercise-modal-actions .btn-secondary {
   background: #fff;
   color: #6c757d;
   border: 2px solid #e9ecef;
 }
 
-.btn-secondary:hover {
+.exercise-modal-actions .btn-secondary:hover {
   background: #f8f9fa;
   border-color: #dee2e6;
   transform: translateY(-1px);
@@ -375,8 +375,8 @@
     padding: 16px 20px;
     flex-direction: column;
   }
-  .btn-primary,
-  .btn-secondary {
+  .exercise-modal-actions .btn-primary,
+  .exercise-modal-actions .btn-secondary {
     width: 100%;
     min-width: unset;
   }

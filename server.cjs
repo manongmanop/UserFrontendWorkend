@@ -492,12 +492,9 @@ const upload = multer({
 });
 
 // เชื่อมต่อกับ MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/fitness_app', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB Connected'))
-.catch(err => console.log('MongoDB Connection Error:', err));
+mongoose.connect('mongodb://127.0.0.1:27017/fitness_app')
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log('MongoDB Connection Error:', err));
 
 // --- เพิ่มส่วน User Schema และ Routes ---
 const userSchema = new mongoose.Schema({
@@ -1418,6 +1415,31 @@ const WorkoutPlan = mongoose.model('WorkoutPlan', workoutPlanSchema);
 
 // seedData();
 // =============== Workout Session ===============
+// Sub-schemas must be declared before usage in workoutSessionSchema
+if (false) {
+const __ignored_workoutSessionExerciseSchema = new mongoose.Schema({
+  exercise: { type: String },
+  name: String,
+  type: { type: String, enum: ['reps','time'] },
+  value: mongoose.Schema.Types.Mixed,
+  order: Number
+}, { _id: false });
+
+const __ignored_workoutSessionLogSchema = new mongoose.Schema({
+  order: Number,
+  exerciseId: String,
+  name: String,
+  target: {
+    type: { type: String },
+    value: String
+  },
+  performed: {
+    seconds: { type: Number, default: 0 },
+    reps: { type: Number, default: 0 }
+  },
+  calories: { type: Number, default: 0 },
+  at: { type: Date, default: Date.now }
+}, { _id: false });
 const workoutSessionSchema = new mongoose.Schema({
   uid: { type: String, required: true, index: true },
   origin: {
@@ -1615,6 +1637,7 @@ const workoutSessionLogSchema = new mongoose.Schema({
   calories: { type: Number, default: 0 },
   at: { type: Date, default: Date.now }
 }, { _id: false });
+}
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

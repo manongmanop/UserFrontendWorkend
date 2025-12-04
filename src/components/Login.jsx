@@ -7,7 +7,6 @@ import { auth, db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import "./Login.css";
 import "../app.css";
-import video from "../LoginAssets/video.mp4";
 import { 
   MdEmail, 
   MdLock, 

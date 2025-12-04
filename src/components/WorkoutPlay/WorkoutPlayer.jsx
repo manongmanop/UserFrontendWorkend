@@ -5,8 +5,9 @@ import "./WorkoutPlayer.css";
 import guideImg from "../assets/Infographic.png";
 import guideImg2 from "../assets/Infographic2.png";
 
-
-/* ========= Helpers ========= */
+/* =========================================
+   SECTION 1: Helpers & Utilities
+   ========================================= */
 function normalizeUrl(p) {
   if (!p) return "";
   const s = String(p).replace(/\\/g, "/");
@@ -36,8 +37,9 @@ function parseDurationMs(ex) {
   return 0;
 }
 
-
-/* ========= Progress Ring ========= */
+/* =========================================
+   SECTION 2: UI Sub-Components
+   ========================================= */
 const ProgressRing = ({ progress, size = 80, strokeWidth = 6 }) => {
   const center = size / 2, radius = center - strokeWidth, C = 2 * Math.PI * radius;
   const dashoffset = C - (progress / 100) * C;
@@ -50,11 +52,9 @@ const ProgressRing = ({ progress, size = 80, strokeWidth = 6 }) => {
   );
 };
 
-/* ========= CameraGuide (ใช้คลาสจาก CSS) ========= */
 function CameraGuide({ mode = "gate", images = [], onAccept, onClose }) {
   const safeImages = (images || []).filter(Boolean);
   const hasMany = safeImages.length > 1;
-
   const [idx, setIdx] = React.useState(0);
   const [preview, setPreview] = React.useState(null);
 
@@ -82,162 +82,149 @@ function CameraGuide({ mode = "gate", images = [], onAccept, onClose }) {
 
   return (
     <>
-      <div className="guide-overlay" role="dialog" aria-modal="true" aria-label="คำแนะนำการตั้งกล้อง">
+      <div className="guide-overlay" role="dialog" aria-modal="true">
         <div className="guide-card">
           <div className="guide-header">
             <h2 className="guide-title">คำแนะนำในการตั้งกล้องก่อนเริ่ม</h2>
-            <p className="guide-subtitle">วางกล้องระดับเอว–หน้าอก มุมมองด้านข้าง ให้เห็นเต็มตัว แสงเพียงพอ ฉากหลังโล่ง</p>
-
-            {/* โหมด peek ให้ปุ่มกากบาทปิด */}
-            {mode === "peek" && (
-              <button type="button" className="guide-close-btn" aria-label="ปิดไกด์" onClick={onClose}>×</button>
-            )}
+            <p className="guide-subtitle">วางกล้องระดับเอว–หน้าอก มุมมองด้านข้าง ให้เห็นเต็มตัว</p>
+            {mode === "peek" && <button type="button" className="guide-close-btn" onClick={onClose}>×</button>}
           </div>
-
           <div className="guide-body">
             {safeImages.length > 0 && (
               <div className="guide-gallery">
                 <div className="guide-main">
-                  <img
-                    className="guide-image"
-                    src={safeImages[idx]}
-                    alt={`Infographic ${idx + 1}`}
-                    loading="lazy"
-                    onClick={() => setPreview(idx)}
-                    onError={(e) => { e.currentTarget.style.display = "none"; }}
-                  />
-                  {hasMany && (
-                    <>
-                      <button type="button" className="guide-nav guide-nav--left" aria-label="ภาพก่อนหน้า" onClick={() => go(-1)}>‹</button>
-                      <button type="button" className="guide-nav guide-nav--right" aria-label="ภาพถัดไป" onClick={() => go(1)}>›</button>
-                    </>
-                  )}
+                  <img className="guide-image" src={safeImages[idx]} alt={`Guide ${idx + 1}`} onClick={() => setPreview(idx)} onError={(e) => e.currentTarget.style.display = "none"} />
+                  {hasMany && <><button className="guide-nav guide-nav--left" onClick={() => go(-1)}>‹</button><button className="guide-nav guide-nav--right" onClick={() => go(1)}>›</button></>}
                 </div>
-
-                {hasMany && (
-                  <div className="guide-thumbs" role="tablist" aria-label="เลือกภาพ">
-                    {safeImages.map((src, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        className={`guide-thumb ${i === idx ? "is-active" : ""}`}
-                        role="tab"
-                        aria-selected={i === idx}
-                        onClick={() => setIdx(i)}
-                        title={`ภาพที่ ${i + 1}`}
-                      >
-                        <img src={src} alt={`Thumb ${i + 1}`} loading="lazy" />
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {hasMany && <div className="guide-thumbs">{safeImages.map((src, i) => (<button key={i} className={`guide-thumb ${i === idx ? "is-active" : ""}`} onClick={() => setIdx(i)}><img src={src} alt="" /></button>))}</div>}
               </div>
             )}
-
             <div className="guide-checklist">
-              <div className="guide-item">
-                <div className="guide-icon">📷</div>
-                <div><div className="guide-text"><b>ตั้งกล้องกึ่งกลางลำตัวด้านข้าง</b></div><div className="guide-sub">ห่าง 2–3 เมตร เพื่อเก็บเต็มตัว</div></div>
-              </div>
-              <div className="guide-item">
-                <div className="guide-icon">💡</div>
-                <div><div className="guide-text">แสงสว่างพอ</div><div className="guide-sub">ฉากหลังโล่ง เสื้อผ้าตัดกับฉากหลัง</div></div>
-              </div>
+              <div className="guide-item"><div className="guide-icon">📷</div><div><div className="guide-text"><b>ตั้งกล้องกึ่งกลางลำตัวด้านข้าง</b></div><div className="guide-sub">ห่าง 2–3 เมตร เพื่อเก็บเต็มตัว</div></div></div>
+              <div className="guide-item"><div className="guide-icon">💡</div><div><div className="guide-text">แสงสว่างพอ</div><div className="guide-sub">ฉากหลังโล่ง เสื้อผ้าตัดกับฉากหลัง</div></div></div>
             </div>
           </div>
-
-          {/* gate เท่านั้นที่มีปุ่ม “เริ่มเลย” */}
-          {mode === "gate" && (
-            <div className="guide-actions">
-              <button type="button" className="guide-accept-btn" onClick={onAccept}>ฉันเข้าใจแล้ว เริ่มเลย</button>
-            </div>
-          )}
+          {mode === "gate" && <div className="guide-actions"><button type="button" className="guide-accept-btn" onClick={onAccept}>ฉันเข้าใจแล้ว เริ่มเลย</button></div>}
         </div>
       </div>
-
       {preview != null && (
-        <div className="lightbox" onClick={() => setPreview(null)} aria-label="ตัวอย่างภาพแบบขยาย">
-          <img src={safeImages[preview]} alt={`Preview ${preview + 1}`} className="lightbox-img" />
-          {hasMany && (
-            <>
-              <button type="button" className="guide-nav guide-nav--left"
-                onClick={(e) => { e.stopPropagation(); setPreview((p) => (p - 1 + safeImages.length) % safeImages.length); }}
-                aria-label="ภาพก่อนหน้า">‹</button>
-              <button type="button" className="guide-nav guide-nav--right"
-                onClick={(e) => { e.stopPropagation(); setPreview((p) => (p + 1) % safeImages.length); }}
-                aria-label="ภาพถัดไป">›</button>
-            </>
-          )}
+        <div className="lightbox" onClick={() => setPreview(null)}>
+          <img src={safeImages[preview]} alt="" className="lightbox-img" />
         </div>
       )}
     </>
   );
 }
 
-
-
-/* ========= Main ========= */
+/* =========================================
+   SECTION 3: Main Component
+   ========================================= */
 export default function WorkoutPlayer() {
   const { programId } = useParams();
-  //   const guideKey = React.useMemo(() => `hasSeenGuide:${programId}`, [programId]);
-  /* Data & UI State */
+
+  // --- Constants ---
+  const REST_BASE_SEC = 20;
+  const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
+
+  // --- State: Data & Status ---
   const [program, setProgram] = useState(null);
   const [exercises, setExercises] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+
+  // --- State: Guide & Flow ---
   const [showGuide, setShowGuide] = useState(true);
-  const [guideMode, setGuideMode] = useState("gate"); // 'gate' | 'peek'
-  const [wasPausedByGuide, setWasPausedByGuide] = useState(false);
-  // เก็บ phase ที่ถูก pause ตอนเปิดไกด์
-  const pausedPhaseRef = useRef(null); // 'intro' | 'rest' | 'play' | 'countdown' | null
-  /* Flow flags */
+  const [guideMode, setGuideMode] = useState("gate");
+  const pausedPhaseRef = useRef(null);
+  const overlayResumeArmedRef = useRef(false);
+
+  // --- State: Workout Progress ---
   const [currentExercise, setCurrentExercise] = useState(0);
-  const [isIntro, setIsIntro] = useState(false);
-  const [introProgress, setIntroProgress] = useState(0);
-  const [introRemaining, setIntroRemaining] = useState(0);
-  const introIntervalRef = useRef(null);
-  const introTimerRef = useRef(null);
-  const introTotalMsRef = useRef(0);
-  const introRemainingMsRef = useRef(0);
-  const introLastStartTsRef = useRef(0);
-  const INTRO_BASE_SEC = 30;
+  const [isPaused, setIsPaused] = useState(false);
 
+  // Phase Flags
   const [isCounting, setIsCounting] = useState(false);
-  const [countdown, setCountdown] = useState(3);
-
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isResting, setIsResting] = useState(false);
+
+  // --- State: Timers (Progress & Countdown) ---
+  const [countdown, setCountdown] = useState(3);
   const [exerciseProgress, setExerciseProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [restProgress, setRestProgress] = useState(0);
+  const [restRemaining, setRestRemaining] = useState(0);
+
+  // --- State: Camera ---
+  const [cameraStatus, setCameraStatus] = useState("idle");
+  const [cameraError, setCameraError] = useState("");
+
+  // --- Refs ---
   const progressIntervalRef = useRef(null);
   const autoNextTimerRef = useRef(null);
   const currentDurationMsRef = useRef(0);
   const remainingMsRef = useRef(0);
   const lastStartTsRef = useRef(0);
 
-  const [isResting, setIsResting] = useState(false);
-  const [restProgress, setRestProgress] = useState(0);
-  const [restRemaining, setRestRemaining] = useState(0);
   const restIntervalRef = useRef(null);
   const restTimerRef = useRef(null);
   const restTotalMsRef = useRef(0);
   const restRemainingMsRef = useRef(0);
   const restLastStartTsRef = useRef(0);
-  const REST_BASE_SEC = 20;
   const nextIndexRef = useRef(null);
 
-  const [isPaused, setIsPaused] = useState(false);
-
-  /* Camera */
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const rafRef = useRef(null);
-  const [cameraStatus, setCameraStatus] = useState("idle");
-  const [cameraError, setCameraError] = useState("");
+  const sessionIdRef = useRef(null);
+  const exerciseVideoRef = useRef(null);
 
+  // --- Auth ---
+  const { user } = (typeof useUserAuth === 'function' ? useUserAuth() : { user: null });
+  const uid = user?.uid || "t8Enu17J6PSZUG5BC2M21UtinH52";
 
-  // ⬆️ บนสุดของ component
-  const overlayResumeArmedRef = useRef(false);
+  /* =========================================
+     SECTION 4: Effects (Data, Camera, Resume)
+     ========================================= */
+
+  // Load Program Data
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      try {
+        setIsLoading(true); setLoadError(null);
+        const res = await axios.get(`/api/workout_programs/${programId}`);
+        if (ignore) return;
+
+        setProgram(res.data);
+        const list = Array.isArray(res.data?.workoutList) ? res.data.workoutList : [];
+        setExercises(list.map((it) => ({
+          ...it,
+          imageUrl: normalizeUrl(it.imageUrl || it.image),
+          video: normalizeUrl(it.videoUrl || it.video),
+        })));
+        // Initial Reset
+        setCurrentExercise(0);
+        stopCamera();
+        resetAllTimers();
+        setIsPaused(false); setIsResting(false); setIsPlaying(false); setIsCounting(false);
+        // --- Do NOT start rest phase or session here ---
+        // Wait for user to click "ฉันเข้าใจแล้ว เริ่มเลย"
+      } catch (e) {
+        if (ignore) return;
+        setLoadError({ where: "program", message: e?.message || "Failed to load" });
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    })();
+    return () => {
+      ignore = true;
+      stopCamera();
+      resetAllTimers();
+    };
+  }, [programId]);
+
+  // Prevent accidental resume on overlay click
   useEffect(() => {
     if (isPaused && isResting && !showGuide) {
       overlayResumeArmedRef.current = false;
@@ -246,122 +233,10 @@ export default function WorkoutPlayer() {
     }
   }, [isPaused, isResting, showGuide]);
 
-  const safeResumeFromOverlay = () => {
-    if (!overlayResumeArmedRef.current) return;
-    togglePause();
-  };
-
-  /* Load program */
-  useEffect(() => {
-  let ignore = false;
-  (async () => {
-    try {
-      setIsLoading(true); setLoadError(null);
-      const res = await axios.get(`/api/workout_programs/${programId}`);
-      if (ignore) return;
-
-      setProgram(res.data);
-      const list = Array.isArray(res.data?.workoutList) ? res.data.workoutList : [];
-      setExercises(list.map((it) => ({
-        ...it,
-        imageUrl: normalizeUrl(it.imageUrl || it.image),
-        video: normalizeUrl(it.videoUrl || it.video),
-      })));
-      setCurrentExercise(0);
-
-      stopCamera(); 
-      resetWorkoutTimers(); 
-      resetRestTimers(); 
-      resetIntroTimers();
-      setIsPaused(false); 
-      setIsResting(false); 
-      setIsPlaying(false); 
-      setIsCounting(false);
-    } catch (e) {
-      if (ignore) return;
-      setLoadError({ where: "program", message: e?.message || "program fetch failed" });
-      setProgram(null); setExercises([]);
-    } finally {
-      if (!ignore) setIsLoading(false);
-    }
-  })();
-  return () => {
-    ignore = true;
-    stopCamera(); 
-    resetWorkoutTimers(); 
-    resetRestTimers(); 
-    resetIntroTimers();
-  };
-}, [programId]);
-
-  // เปิดไกด์แบบ peek และ "หยุดทุกอย่าง" เหมือนปุ่มหยุด
-  const openGuidePeek = () => {
-    setShowGuide(true);
-    setGuideMode("peek");
-    pausedPhaseRef.current = null;
-
-    if (isIntro && !isPaused) {
-      pauseIntroTimers(); setIsPaused(true); pausedPhaseRef.current = "intro";
-    } else if (isResting && !isPaused) {
-      pauseRestTimers(); setIsPaused(true); pausedPhaseRef.current = "rest";
-    } else if (isPlaying && !isPaused) {
-      pauseWorkoutTimers(); setIsPaused(true); pausedPhaseRef.current = "play";
-    } else if (isCounting) {
-      // หยุด countdown ชั่วคราว
-      setIsCounting(false);
-      pausedPhaseRef.current = "countdown";
-    }
-  };
-
-  // ปิดไกด์ (เฉพาะโหมด peek) แล้ว resume กลับไปที่เดิม
-  const handleCloseGuide = () => {
-    setShowGuide(false);
-    if (guideMode !== "peek") return;
-
-    const phase = pausedPhaseRef.current;
-    pausedPhaseRef.current = null;
-
-    switch (phase) {
-      case "intro":
-        setIsPaused(false);
-        setTimeout(() => resumeIntroTimers(), 50);
-        break;
-      case "rest":
-        setIsPaused(false);
-        setTimeout(() => resumeRestTimers(), 50);
-        break;
-      case "play":
-        setIsPaused(false);
-        setTimeout(() => resumeWorkoutTimers(), 50);
-        break;
-      case "countdown":
-        // กลับไปนับต่อ
-        setIsCounting(true);
-        break;
-      default:
-        // ไม่ได้ pause อะไรไว้
-        break;
-    }
-  };
-  /* Countdown */
- useEffect(() => {
-  if (!isCounting) return;
-  if (countdown > 0) {
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  } else {
-    setIsCounting(false);
-    setIsPlaying(true);
-    setIsPaused(false);
-    startWorkoutTimersForCurrent(); // เริ่มจับเวลาเล่นท่า
-  }
-}, [isCounting, countdown]);
-
-
-  /* Camera open/close */
+  // Camera Management
   useEffect(() => {
     let mounted = true;
-    const open = async () => {
+    const openCamera = async () => {
       try {
         setCameraStatus("loading"); setCameraError("");
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
@@ -370,53 +245,55 @@ export default function WorkoutPlayer() {
         if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
         startDrawLoop(); setCameraStatus("active");
       } catch (err) {
-        console.error("camera error:", err);
-        if (mounted) { setCameraStatus("error"); setCameraError(err?.message || "ไม่สามารถเปิดกล้องได้"); }
+        if (mounted) { setCameraStatus("error"); setCameraError(err?.message || "Camera failed"); }
       }
     };
-    if (isPlaying && !isPaused) open(); else stopCamera();
+
+    if (isPlaying && !isPaused) openCamera();
+    else stopCamera();
+
     return () => { mounted = false; };
   }, [isPlaying, isPaused]);
 
-  const startDrawLoop = () => {
-    const video = videoRef.current, canvas = canvasRef.current;
-    if (!video || !canvas) return;
-    const ctx = canvas.getContext("2d");
-    const draw = () => {
-      if (!video || !canvas) return;
-      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-      }
-      ctx.save(); ctx.scale(-1, 1);
-      ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-      ctx.restore();
-      rafRef.current = requestAnimationFrame(draw);
-    };
-    cancelAnimationFrame(rafRef.current || 0); rafRef.current = requestAnimationFrame(draw);
+  // Countdown Logic
+  useEffect(() => {
+    if (!isCounting) return;
+    if (countdown > 0) {
+      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+      return () => clearTimeout(t);
+    } else {
+      setIsCounting(false);
+      setIsPlaying(true);
+      setIsPaused(false);
+      startWorkoutTimersForCurrent();
+    }
+  }, [isCounting, countdown]);
+
+  useEffect(() => {
+    const videoEl = exerciseVideoRef.current;
+    if (!videoEl) return;
+
+    if (isPaused) {
+      videoEl.pause(); // สั่งหยุด
+    } else {
+      // สั่งเล่นต่อ (ใช้ catch เพื่อกัน Error กรณีเปลี่ยนท่าเร็วๆ)
+      videoEl.play().catch(() => { });
+    }
+  }, [isPaused]);
+
+  /* =========================================
+     SECTION 5: Logic & Timers
+     ========================================= */
+
+  const resetAllTimers = () => {
+    resetWorkoutTimers();
+    resetRestTimers();
   };
-  const stopCamera = () => {
-    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
-    const s = streamRef.current;
-    if (s) { s.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
-    if (videoRef.current) videoRef.current.srcObject = null;
-    setCameraStatus("idle"); setCameraError("");
-  };
-  // === [ADD] Config API base ===
-  const API_BASE = import.meta.env?.VITE_API_BASE_URL || ""; // ถ้า dev ใช้ proxy ไว้แล้ว ใช้ "" ได้
 
-  // === [ADD] Session state ===
-  const sessionIdRef = useRef(null);
-
-  // === [ADD] ดึง uid ผู้ใช้ (ถ้าคุณมี Firebase Auth) ===
-  // - ถ้าไฟล์นี้ยังไม่ได้ import ก็เพิ่ม: import { useUserAuth } from '../context/UserAuthContext';
-  const { user } = (typeof useUserAuth === 'function' ? useUserAuth() : { user: null });
-  const uid = user?.uid || "t8Enu17J6PSZUG5BC2M21UtinH52";
-
-  // === [ADD] แปลง exercises ปัจจุบันเป็น snapshot ใช้ตอน start session ===
+  // --- Session & API ---
   function buildSnapshotFromExercises(list) {
     return (list || []).map((it, i) => ({
-      exercise: it.exercise?._id || it._id || it.exercise, // รองรับหลายรูปแบบที่คุณเก็บ
+      exercise: it.exercise?._id || it._id || it.exercise,
       name: it.name,
       type: it.type,
       value: it.value ?? it.time ?? it.duration,
@@ -424,700 +301,499 @@ export default function WorkoutPlayer() {
     }));
   }
 
-  // === [ADD] เริ่ม session ถ้ายังไม่มี (รองรับ 'program' | 'daily') ===
   async function startSessionIfNeeded(kind = "program") {
     if (sessionIdRef.current) return sessionIdRef.current;
-
     const snapshotExercises = buildSnapshotFromExercises(exercises);
     const body = {
       uid,
-      origin: kind === "program" ? { kind: "program", programId } : { kind: "daily" },
-      snapshot: {
-        programName: program?.name,
-        exercises: snapshotExercises
-      },
+      origin: { kind: "program", programId },
+      snapshot: { programName: program?.name, exercises: snapshotExercises.map(x => String(x.exercise)) },
       totalExercises: snapshotExercises.length
     };
-
     const res = await axios.post(`${API_BASE}/api/workout_sessions/start`, body);
     sessionIdRef.current = res.data?._id;
     return sessionIdRef.current;
   }
 
-  // === [ADD] บันทึกผลของ “ท่าหนึ่ง” ===
-  async function logExerciseResult({
-    order,
-    exerciseDoc,
-    performedSeconds = 0,
-    performedReps = 0,
-    calories = 0,
-    kind = "program" // หรือ 'daily' ถ้าหน้านี้คือโหมดรายวัน
-  }) {
-    const sessionId = await startSessionIfNeeded(kind);
-
+  async function logExerciseResult({ order, exerciseDoc, performedSeconds = 0 }) {
+    const sessionId = await startSessionIfNeeded("program");
     const targetType = exerciseDoc?.type;
     const targetValue = exerciseDoc?.value ?? exerciseDoc?.time ?? exerciseDoc?.duration;
 
     await axios.post(`${API_BASE}/api/workout_sessions/${sessionId}/log-exercise`, {
-      uid,
-      order,
+      uid, order,
       exerciseId: exerciseDoc?._id || exerciseDoc?.exercise,
       name: exerciseDoc?.name,
       target: { type: targetType, value: String(targetValue ?? "") },
-      performed: { seconds: performedSeconds, reps: performedReps },
-      calories
+      performed: { seconds: performedSeconds, reps: 0 },
+      calories: 0
     });
   }
 
-  // === [ADD] ปิด session (เมื่อครบโปรแกรม/จบการเล่น) ===
   async function finishSession() {
-    if (!sessionIdRef.current) return null;
-    const { data } = await axios.patch(
-      `${API_BASE}/api/workout_sessions/${sessionIdRef.current}/finish`,
-      {}
-    );
-    return data;
+    if (!sessionIdRef.current) return;
+    await axios.patch(`${API_BASE}/api/workout_sessions/${sessionIdRef.current}/finish`, {});
   }
 
-  /* Workout timers */
-  const clearProgressInterval = () => { if (progressIntervalRef.current) { clearInterval(progressIntervalRef.current); progressIntervalRef.current = null; } };
-  const clearAutoNextTimer = () => { if (autoNextTimerRef.current) { clearTimeout(autoNextTimerRef.current); autoNextTimerRef.current = null; } };
-  const resetWorkoutTimers = () => { clearProgressInterval(); clearAutoNextTimer(); currentDurationMsRef.current = 0; remainingMsRef.current = 0; lastStartTsRef.current = 0; setExerciseProgress(0); setTimeRemaining(0); };
+  // --- Workout Logic ---
+  const resetWorkoutTimers = () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    if (autoNextTimerRef.current) clearTimeout(autoNextTimerRef.current);
+    progressIntervalRef.current = null; autoNextTimerRef.current = null;
+    currentDurationMsRef.current = 0; remainingMsRef.current = 0;
+    setExerciseProgress(0); setTimeRemaining(0);
+  };
 
   const startWorkoutTimersForCurrent = () => {
     const cur = exercises[currentExercise]; if (!cur) return;
-    const durationMs = parseDurationMs(cur); if (durationMs <= 0) return;
-    currentDurationMsRef.current = durationMs; remainingMsRef.current = durationMs; lastStartTsRef.current = Date.now();
+    const durationMs = parseDurationMs(cur);
+    if (durationMs <= 0) { onWorkoutEnded(); return; }
 
-    clearProgressInterval();
-    progressIntervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - lastStartTsRef.current;
-      const rem = Math.max(0, currentDurationMsRef.current - elapsed);
-      remainingMsRef.current = rem;
-      const progress = 100 - (rem / currentDurationMsRef.current) * 100;
-      setExerciseProgress(progress); setTimeRemaining(Math.ceil(rem / 1000));
-      if (rem <= 0) { clearProgressInterval(); onWorkoutEnded(); }
-    }, 100);
-
-    clearAutoNextTimer();
-    autoNextTimerRef.current = setTimeout(() => { clearProgressInterval(); onWorkoutEnded(); }, remainingMsRef.current);
+    currentDurationMsRef.current = durationMs;
+    remainingMsRef.current = durationMs;
+    resumeWorkoutTimers();
   };
 
-  const pauseWorkoutTimers = () => { if (lastStartTsRef.current) { const elapsed = Date.now() - lastStartTsRef.current; remainingMsRef.current = Math.max(0, remainingMsRef.current - elapsed); } clearProgressInterval(); clearAutoNextTimer(); };
+  const pauseWorkoutTimers = () => {
+    // 1. หยุด Loop การนับเวลา
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    if (autoNextTimerRef.current) clearTimeout(autoNextTimerRef.current);
+    progressIntervalRef.current = null; autoNextTimerRef.current = null;
+
+    // if (lastStartTsRef.current) {
+    //   const elapsed = Date.now() - lastStartTsRef.current;
+    //   remainingMsRef.current = Math.max(0, remainingMsRef.current - elapsed);
+    //   updateWorkoutUI(remainingMsRef.current);
+    // }
+    stopCamera();
+  };
+
   const resumeWorkoutTimers = () => {
-    if (remainingMsRef.current <= 0 || currentDurationMsRef.current <= 0) return;
+    if (remainingMsRef.current <= 0) return;
     lastStartTsRef.current = Date.now();
-    clearProgressInterval();
+    const resumeFromMs = remainingMsRef.current;
+
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     progressIntervalRef.current = setInterval(() => {
       const elapsed = Date.now() - lastStartTsRef.current;
-      const rem = Math.max(0, remainingMsRef.current - elapsed);
-      const total = currentDurationMsRef.current;
-      setExerciseProgress(100 - (rem / total) * 100);
-      setTimeRemaining(Math.ceil(rem / 1000));
-      if (rem <= 0) { clearProgressInterval(); onWorkoutEnded(); }
-    }, 100);
-    clearAutoNextTimer();
-    autoNextTimerRef.current = setTimeout(() => { clearProgressInterval(); onWorkoutEnded(); }, remainingMsRef.current);
-  };
-
-  /* Rest timers */
-  const resetRestTimers = () => {
-    if (restIntervalRef.current) { clearInterval(restIntervalRef.current); restIntervalRef.current = null; }
-    if (restTimerRef.current) { clearTimeout(restTimerRef.current); restTimerRef.current = null; }
-    restTotalMsRef.current = 0; restRemainingMsRef.current = 0; restLastStartTsRef.current = 0;
-    setRestProgress(0); setRestRemaining(0);
-  };
-  const startRest = (nextIndex, baseSec = REST_BASE_SEC) => {
-    setIsResting(true); setIsIntro(false); setIsCounting(false); setIsPlaying(false); setIsPaused(false);
-    nextIndexRef.current = nextIndex;
-    restTotalMsRef.current = Math.max(1, baseSec) * 1000;
-    restRemainingMsRef.current = restTotalMsRef.current;
-    restLastStartTsRef.current = Date.now();
-    setRestProgress(0); setRestRemaining(Math.ceil(restRemainingMsRef.current / 1000));
-
-    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
-    restIntervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - restLastStartTsRef.current;
-      const rem = Math.max(0, restTotalMsRef.current - elapsed);
-      restRemainingMsRef.current = rem;
-      setRestProgress(100 - (rem / restTotalMsRef.current) * 100);
-      setRestRemaining(Math.ceil(rem / 1000));
-      if (rem <= 0) { clearInterval(restIntervalRef.current); endRest(); }
+      const rem = Math.max(0, resumeFromMs - elapsed);
+      remainingMsRef.current = rem;
+      updateWorkoutUI(rem);
+      if (rem <= 0) { clearInterval(progressIntervalRef.current); onWorkoutEnded(); }
     }, 100);
 
-    if (restTimerRef.current) clearTimeout(restTimerRef.current);
-    restTimerRef.current = setTimeout(() => { if (restIntervalRef.current) clearInterval(restIntervalRef.current); endRest(); }, restRemainingMsRef.current);
+    if (autoNextTimerRef.current) clearTimeout(autoNextTimerRef.current);
+    autoNextTimerRef.current = setTimeout(() => {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      remainingMsRef.current = 0;
+      onWorkoutEnded();
+    }, resumeFromMs);
   };
-const pauseRestTimers = () => {
-  if (restLastStartTsRef.current) {
-    const elapsed = Date.now() - restLastStartTsRef.current;
-    restRemainingMsRef.current = Math.max(0, restRemainingMsRef.current - elapsed);
-  }
-  if (restIntervalRef.current) { clearInterval(restIntervalRef.current); restIntervalRef.current = null; }
-  if (restTimerRef.current) { clearTimeout(restTimerRef.current); restTimerRef.current = null; }
-};
-  const resumeRestTimers = () => {
-  if (restRemainingMsRef.current <= 0) return;
-  if (restRemainingMsRef.current < 2000) {
-    restRemainingMsRef.current = 2000;
-    setRestRemaining(Math.ceil(restRemainingMsRef.current / 1000));
-  }
-  restLastStartTsRef.current = Date.now();
 
-  if (restIntervalRef.current) clearInterval(restIntervalRef.current);
-  restIntervalRef.current = setInterval(() => {
-    const elapsed = Date.now() - restLastStartTsRef.current;
-    const rem = Math.max(0, restRemainingMsRef.current - elapsed);
-    restRemainingMsRef.current = rem;
-    setRestProgress(100 - (rem / restTotalMsRef.current) * 100);
-    setRestRemaining(Math.ceil(rem / 1000));
-    if (rem <= 0) { clearInterval(restIntervalRef.current); endRest(); }
-  }, 100);
-
-  if (restTimerRef.current) clearTimeout(restTimerRef.current);
-  restTimerRef.current = setTimeout(() => {
-    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
-    endRest();
-  }, restRemainingMsRef.current);
-};
-
-  const addRestSeconds = (sec = 10) => { restRemainingMsRef.current += sec * 1000; restTotalMsRef.current += sec * 1000; setRestRemaining(Math.ceil(restRemainingMsRef.current / 1000)); };
-  const endRest = () => {
-  resetRestTimers();
-  setIsResting(false);
-  setCurrentExercise(nextIndexRef.current ?? currentExercise + 1);
-  setIsCounting(true);
-  setCountdown(3);
-};
-
-
-  /* Intro timers */
-  const resetIntroTimers = () => {
-    if (introIntervalRef.current) { clearInterval(introIntervalRef.current); introIntervalRef.current = null; }
-    if (introTimerRef.current) { clearTimeout(introTimerRef.current); introTimerRef.current = null; }
-    introTotalMsRef.current = 0; introRemainingMsRef.current = 0; introLastStartTsRef.current = 0;
-    setIntroProgress(0); setIntroRemaining(0);
+  const updateWorkoutUI = (ms) => {
+    setExerciseProgress(100 - (ms / currentDurationMsRef.current) * 100);
+    setTimeRemaining(Math.ceil(ms / 1000));
   };
-  const startIntro = (baseSec = INTRO_BASE_SEC) => {
-  setIsIntro(true); setIsCounting(false); setIsPlaying(false); setIsResting(false); setIsPaused(false);
-  stopCamera();
 
-  introTotalMsRef.current = Math.max(1, baseSec) * 1000;
-  introRemainingMsRef.current = introTotalMsRef.current;
-  introLastStartTsRef.current = Date.now();
-  setIntroProgress(0); 
-  setIntroRemaining(Math.ceil(introRemainingMsRef.current / 1000));
-
-  introIntervalRef.current = setInterval(() => {
-    const elapsed = Date.now() - introLastStartTsRef.current;
-    const rem = Math.max(0, introTotalMsRef.current - elapsed);
-    introRemainingMsRef.current = rem;
-    setIntroProgress(100 - (rem / introTotalMsRef.current) * 100);
-    setIntroRemaining(Math.ceil(rem / 1000));
-    if (rem <= 0) { clearInterval(introIntervalRef.current); endIntro(); }
-  }, 100);
-
-  introTimerRef.current = setTimeout(() => {
-    if (introIntervalRef.current) clearInterval(introIntervalRef.current);
-    endIntro();
-  }, introRemainingMsRef.current);
-};
-
- const pauseIntroTimers = () => {
-  if (introLastStartTsRef.current) {
-    const elapsed = Date.now() - introLastStartTsRef.current;
-    introRemainingMsRef.current = Math.max(0, introRemainingMsRef.current - elapsed);
-  }
-  if (introIntervalRef.current) { clearInterval(introIntervalRef.current); introIntervalRef.current = null; }
-  if (introTimerRef.current) { clearTimeout(introTimerRef.current); introTimerRef.current = null; }
-};
-
-  const resumeIntroTimers = () => {
-  if (introRemainingMsRef.current <= 0) return;
-  introLastStartTsRef.current = Date.now();
-  if (introIntervalRef.current) clearInterval(introIntervalRef.current);
-  introIntervalRef.current = setInterval(() => {
-    const elapsed = Date.now() - introLastStartTsRef.current;
-    const rem = Math.max(0, introRemainingMsRef.current - elapsed);
-    introRemainingMsRef.current = rem;
-    setIntroProgress(100 - (rem / introTotalMsRef.current) * 100);
-    setIntroRemaining(Math.ceil(rem / 1000));
-    if (rem <= 0) { clearInterval(introIntervalRef.current); endIntro(); }
-  }, 100);
-  if (introTimerRef.current) clearTimeout(introTimerRef.current);
-  introTimerRef.current = setTimeout(() => {
-    if (introIntervalRef.current) clearInterval(introIntervalRef.current);
-    endIntro();
-  }, introRemainingMsRef.current);
-};
-  const addIntroSeconds = (sec = 10) => { introRemainingMsRef.current += sec * 1000; introTotalMsRef.current += sec * 1000; setIntroRemaining(Math.ceil(introRemainingMsRef.current / 1000)); };
-  const endIntro = () => {
-  resetIntroTimers();
-  setIsIntro(false);
-  setIsCounting(true);
-  setCountdown(3);
-};
-
-  /* End of one exercise */
   const onWorkoutEnded = async () => {
-    //  1) บันทึกผลของท่าปัจจุบัน
     try {
       const cur = exercises[currentExercise];
-
-      // คำนวณเวลาที่ทำจริง (วินาที) จากตัวจับเวลาใน component
       const totalMs = currentDurationMsRef.current || parseDurationMs(cur);
       const remainMs = Math.max(0, remainingMsRef.current || 0);
-      const elapsedMs = Math.max(0, totalMs - remainMs);
-      const performedSeconds = Math.round(elapsedMs / 1000);
+      const performedSeconds = Math.round((totalMs - remainMs) / 1000);
 
-      await logExerciseResult({
-        order: currentExercise,
-        exerciseDoc: cur,
-        performedSeconds,
-        performedReps: 0,   // ถ้ามีระบบนับ reps จริง ค่อยเสียบค่าจริง
-        calories: 0,        // ถ้ามีสูตรคำนวณ สามารถใส่ได้
-        kind: "program"     // หรือ 'daily' ถ้าหน้านี้เป็นรายวัน
-      });
-    } catch (e) {
-      console.warn("logExercise failed", e);
-    }
+      await logExerciseResult({ order: currentExercise, exerciseDoc: cur, performedSeconds });
+    } catch (e) { console.warn("Log failed", e); }
 
-    //  2) ลอจิกเดิมของคุณ
     resetWorkoutTimers();
     stopCamera();
-    setIsPlaying(false);
-    setIsPaused(false);
+    setIsPlaying(false); setIsPaused(false);
 
-    //  3) ไปท่าถัดไป หรือ ปิด session แล้วเด้งหน้า Result
     if (currentExercise < exercises.length - 1) {
       startRest(currentExercise + 1, REST_BASE_SEC);
     } else {
       setIsCounting(false);
       alert("🎉 เสร็จสิ้นการออกกำลังกายแล้ว!");
-
-      try { await finishSession(); } catch (e) { console.warn("finishSession failed", e); }
-
-      // ✅ ไปหน้า Summary หน้าเดียวหลังจากออกกำลังกายเสร็จ
-      // WorkoutPlayer ใช้กับโปรแกรม -> ใช้ workoutType = 'program'
-      // ถ้าในอนาคตมีหน้าเล่นแบบรายวัน ให้ส่ง 'daily' แทน
-      const workoutType = 'program';
-      window.location.assign(`/summary/${workoutType}/${uid}`);
+      try { await finishSession(); } catch (e) { }
+      window.location.assign(`/summary/program/${uid}`);
     }
-
   };
 
+  // --- Rest Logic ---
+  const resetRestTimers = () => {
+    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
+    if (restTimerRef.current) clearTimeout(restTimerRef.current);
+    restIntervalRef.current = null; restTimerRef.current = null;
+    restTotalMsRef.current = 0; restRemainingMsRef.current = 0;
+    setRestProgress(0); setRestRemaining(0);
+  };
 
-  /* Navigation */
-  const handleNext = () => {
-    if (isIntro) {
-      endIntro();
-      return;
+  const startRest = (nextIndex, baseSec = REST_BASE_SEC) => {
+    setIsResting(true); setIsCounting(false); setIsPlaying(false); setIsPaused(false);
+    nextIndexRef.current = nextIndex;
+    restTotalMsRef.current = Math.max(1, baseSec) * 1000;
+    restRemainingMsRef.current = restTotalMsRef.current;
+    resumeRestTimers();
+  };
+
+  const pauseRestTimers = () => {
+    // 1. หยุด Loop การนับเวลา
+    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
+    if (restTimerRef.current) clearTimeout(restTimerRef.current);
+    restIntervalRef.current = null; restTimerRef.current = null;
+
+    // if (restLastStartTsRef.current) {
+    //   const elapsed = Date.now() - restLastStartTsRef.current;
+    //   restRemainingMsRef.current = Math.max(0, restRemainingMsRef.current - elapsed);
+    //   updateRestUI(restRemainingMsRef.current);
+    // }
+    stopCamera();
+  };
+
+  const resumeRestTimers = () => {
+    if (restRemainingMsRef.current <= 0) return;
+    if (restRemainingMsRef.current < 2000) {
+      restRemainingMsRef.current = 2000;
+      setRestRemaining(2);
     }
-    if (isResting) {
+
+    restLastStartTsRef.current = Date.now();
+    const resumeFromMs = restRemainingMsRef.current;
+
+    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
+    restIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - restLastStartTsRef.current;
+      const rem = Math.max(0, resumeFromMs - elapsed);
+      restRemainingMsRef.current = rem;
+      updateRestUI(rem);
+      if (rem <= 0) { clearInterval(restIntervalRef.current); endRest(); }
+    }, 100);
+
+    if (restTimerRef.current) clearTimeout(restTimerRef.current);
+    restTimerRef.current = setTimeout(() => {
+      if (restIntervalRef.current) clearInterval(restIntervalRef.current);
       endRest();
-      return;
-    }
+    }, resumeFromMs);
+  };
 
-    // กรณีผู้ใช้กด "ถัดไป" ตอนกำลังเล่นอยู่ => นับเป็น "ข้ามท่า"
+  const updateRestUI = (ms) => {
+    setRestProgress(100 - (ms / restTotalMsRef.current) * 100);
+    setRestRemaining(Math.ceil(ms / 1000));
+  };
+
+  const addRestSeconds = (sec = 10) => {
+    restRemainingMsRef.current += sec * 1000;
+    restTotalMsRef.current += sec * 1000;
+    setRestRemaining(Math.ceil(restRemainingMsRef.current / 1000));
+  };
+
+  const endRest = () => {
+    resetRestTimers();
+    setIsResting(false); setIsPaused(false);
+    const nextIdx = nextIndexRef.current;
+    if (nextIdx != null && nextIdx < exercises.length) {
+      setCurrentExercise(nextIdx);
+      setIsCounting(true); setCountdown(3);
+    } else {
+      onWorkoutEnded();
+    }
+  };
+
+  // --- Interaction Handlers ---
+  const togglePause = () => {
+    if (isResting) { isPaused ? resumeRestTimers() : pauseRestTimers(); }
+    else if (isPlaying) { isPaused ? resumeWorkoutTimers() : pauseWorkoutTimers(); }
+    setIsPaused(!isPaused);
+  };
+
+  const safeResumeFromOverlay = () => {
+    if (overlayResumeArmedRef.current) togglePause();
+  };
+
+  const handleNext = () => {
+    if (isResting) { endRest(); return; }
     if (isPlaying) {
-      try {
-        const cur = exercises[currentExercise];
-        // บังคับให้ elapsed = 0 โดยตั้ง remaining = total
-        const totalMs = currentDurationMsRef.current || parseDurationMs(cur);
-        currentDurationMsRef.current = totalMs;
-        remainingMsRef.current = totalMs; // ทำให้ onWorkoutEnded() log performedSeconds = 0
-      } catch (e) {
-        // เงียบไว้ ไม่ให้กระทบ flow หลัก
-      }
+      // Force finish current
+      currentDurationMsRef.current = currentDurationMsRef.current || 1;
+      remainingMsRef.current = currentDurationMsRef.current; // Force 0 elapsed for logic consistency
       onWorkoutEnded();
       return;
     }
-
     if (isCounting) {
-  setIsCounting(false);
-  setIsPlaying(true);
-  startWorkoutTimersForCurrent();
-  return;
-}
-  };
- const handlePrev = () => {
-  stopCamera(); resetWorkoutTimers(); resetRestTimers(); resetIntroTimers();
-  const prev = Math.max(0, currentExercise - 1);
-  setCurrentExercise(prev);
-  setIsPaused(false); setIsResting(false); setIsPlaying(false); setIsCounting(false);
-  if (prev === 0) { setIsIntro(true); startIntro(INTRO_BASE_SEC); }
-  else { setIsCounting(true); setCountdown(3); }
-};
-  const togglePause = () => {
-    if (isIntro) { if (!isPaused) { pauseIntroTimers(); setIsPaused(true); } else { setIsPaused(false); setTimeout(() => resumeIntroTimers(), 50); } return; }
-    if (isResting) { if (!isPaused) { pauseRestTimers(); setIsPaused(true); } else { setIsPaused(false); setTimeout(() => resumeRestTimers(), 50); } return; }
-    if (isPlaying) { if (!isPaused) { pauseWorkoutTimers(); setIsPaused(true); } else { setIsPaused(false); setTimeout(() => resumeWorkoutTimers(), 50); } }
-  };
-
-  const guideKey = React.useMemo(() => `hasSeenGuide:${programId}`, [programId]);
-
-  const handleAcceptGuide = async () => {
-    localStorage.setItem(guideKey, "true");
-    setShowGuide(false);
-    setGuideMode("peek");
-
-    // ✅ เริ่ม session ตั้งแต่ผู้ใช้กดเริ่ม
-    try { await startSessionIfNeeded("program"); } catch (e) { console.warn("startSession failed", e); }
-
-    if (!isIntro && !isCounting && !isPlaying && !isResting) {
-      setIsIntro(true);
-      startIntro(INTRO_BASE_SEC);
+      setIsCounting(false);
+      setIsPlaying(true);
+      startWorkoutTimersForCurrent();
     }
   };
 
-  // useEffect(() => {
-  //   const seen = !!localStorage.getItem(guideKey);
-  //   setShowGuide(!seen);
-  //   setGuideMode(seen ? "peek" : "gate");
-  // }, [guideKey]);
+  const handlePrev = () => {
+    stopCamera(); resetAllTimers();
+    const prev = Math.max(0, currentExercise - 1);
+    setCurrentExercise(prev);
+    setIsPaused(false); setIsResting(false); setIsPlaying(false); setIsCounting(false);
+    if (prev === 0) {
+      setIsResting(true);
+      startRest(0, REST_BASE_SEC);
+    } else {
+      setIsCounting(true); setCountdown(3);
+    }
+  };
 
-  /* Render */
-  if (isLoading) {
-    return (
-      <div className="wp-loading-screen">
-        <div className="wp-loading-content">
-          <div className="wp-spinner">
-            <div className="wp-spinner-ring"></div>
-            <div className="wp-spinner-ring"></div>
-            <div className="wp-spinner-ring"></div>
-          </div>
-          <div className="wp-loading-title">กำลังโหลดโปรแกรม...</div>
-          <div className="wp-loading-subtitle">เตรียมกล้องและพื้นที่ให้พร้อมนะครับ</div>
-        </div>
-        <div className="wp-loading-bg">
-          <div className="wp-loading-shape wp-loading-shape-1"></div>
-          <div className="wp-loading-shape wp-loading-shape-2"></div>
-          <div className="wp-loading-shape wp-loading-shape-3"></div>
-        </div>
-      </div>
-    );
-  }
+  const handleAcceptGuide = async () => {
+    const key = `hasSeenGuide:${programId}`;
+    localStorage.setItem(key, "true");
+    setShowGuide(false); setGuideMode("peek");
+    try { await startSessionIfNeeded("program"); } catch (e) { }
+    // Start initial rest phase ONLY after user confirms
+    if (exercises.length > 0) {
+      setCurrentExercise(0);
+      setIsResting(true);
+      setIsPlaying(false);
+      setIsCounting(false);
+      setIsPaused(false);
+      startRest(0, REST_BASE_SEC);
+    }
+  };
 
-  if (!program || exercises.length === 0) {
-    return (
-      <div className="wp-error-screen">
-        <div className="wp-error-content">
-          <div className="wp-error-icon">⚠️</div>
-          <h2>ไม่พบข้อมูลโปรแกรมหรือท่าออกกำลังกาย</h2>
-          {loadError && <p>{String(loadError.message || "")}</p>}
-        </div>
-      </div>
-    );
-  }
+  const handleCloseGuide = () => {
+    setShowGuide(false);
+    if (guideMode !== "peek") return;
+    const phase = pausedPhaseRef.current;
+    pausedPhaseRef.current = null;
+    setIsPaused(false);
+    if (phase === "rest") resumeRestTimers();
+    if (phase === "play") resumeWorkoutTimers();
+    if (phase === "countdown") setIsCounting(true);
+  };
+
+  const openGuidePeek = () => {
+    setShowGuide(true); setGuideMode("peek"); pausedPhaseRef.current = null;
+    if (isResting && !isPaused) { pauseRestTimers(); setIsPaused(true); pausedPhaseRef.current = "rest"; }
+    else if (isPlaying && !isPaused) { pauseWorkoutTimers(); setIsPaused(true); pausedPhaseRef.current = "play"; }
+    else if (isCounting) { setIsCounting(false); pausedPhaseRef.current = "countdown"; }
+  };
+
+  const startDrawLoop = () => {
+    const video = videoRef.current, canvas = canvasRef.current;
+    if (!video || !canvas) return; // Note: Canvas ref is unused in render currently but kept for future logic
+    // ... logic for drawing ...
+  };
+
+  const stopCamera = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    if (videoRef.current) videoRef.current.srcObject = null;
+    setCameraStatus("idle");
+  };
+
+  /* =========================================
+     SECTION 6: Render Components (In-file)
+     ========================================= */
+
+  if (isLoading) return <LoadingScreen />;
+  if (!program || exercises.length === 0) return <ErrorScreen error={loadError} />;
 
   const current = exercises[currentExercise];
   const nextEx = currentExercise < exercises.length - 1 ? exercises[currentExercise + 1] : null;
   const overallProgress = ((currentExercise + exerciseProgress / 100) / exercises.length) * 100;
 
+  // -- Render Helpers --
+  const renderOverlay = () => (
+    isPaused && isResting && !showGuide && (
+      <div
+        className="wp-overlay wp-overlay--dark"
+        role="button"
+        tabIndex={0}
+        onClick={safeResumeFromOverlay} // คลิกพื้นที่ว่างก็เล่นต่อได้
+      >
+        <div className="wp-overlay-card" onClick={(e) => e.stopPropagation()}>
+          {/* ^ e.stopPropagation() เพื่อไม่ให้คลิกที่การ์ดแล้วไปซ้อนกับคลิกพื้นหลัง */}
+          <div className="wp-overlay-name">หยุดชั่วคราว</div>
+          <button
+            className="wp-overlay-play-btn"
+            onClick={togglePause}
+          >
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginLeft: 4 }}>
+              <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
+            </svg>
+          </button>
+          <div className="wp-overlay-hint">กดปุ่มเพื่อเล่นต่อ</div>
+        </div>
+      </div>
+    )
+  );
+
   return (
     <div className="wp-container">
-      {/* Guide Overlay */}
-      {showGuide && (
-        <CameraGuide
-          mode={guideMode}                  // 'gate' | 'peek'
-          images={[guideImg, guideImg2]}
-          onAccept={handleAcceptGuide}      // ปุ่ม “ฉันเข้าใจแล้ว เริ่มเลย” ใช้เฉพาะ gate
-          onClose={handleCloseGuide}        // กากบาทในโหมด peek
-        />
-      )}
+      {showGuide && <CameraGuide mode={guideMode} images={[guideImg, guideImg2]} onAccept={handleAcceptGuide} onClose={handleCloseGuide} />}
 
+      <Header
+        title={program.name}
+        current={currentExercise + 1}
+        total={exercises.length}
+        progress={overallProgress}
+        onBack={() => window.history.back()}
+        onGuide={openGuidePeek}
+      />
 
-      {/* Header */}
-      <header className="wp-header">
-        <div className="wp-header-content">
-          <button className="wp-back-btn" onClick={() => window.history.back()} aria-label="ย้อนกลับ">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <div className="wp-header-info">
-            <h1 className="wp-program-title">{program.name}</h1>
-            <div className="wp-progress-info">
-              <span className="wp-exercise-counter">{currentExercise + 1}/{exercises.length}</span>
-              <div className="wp-overall-progress">
-                <div className="wp-overall-progress-fill" style={{ width: `${overallProgress}%` }} />
-              </div>
-            </div>
-          </div>
-          {/* <button
-            className={`wp-sound-btn ${voiceEnabled ? "active" : ""}`}
-            onClick={() => { setVoiceEnabled((v) => { const nv = !v; if (!nv) cancelSpeech(); return nv; }); }}
-            title={voiceEnabled ? "ปิดเสียง" : "เปิดเสียง"}
-            aria-label={voiceEnabled ? "ปิดเสียง" : "เปิดเสียง"}
-          >
-            {voiceEnabled ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </button> */}
-          <button
-            className="wp-sound-btn"
-            onClick={openGuidePeek}
-            title="เปิดไกด์การตั้งกล้อง"
-            aria-label="เปิดไกด์การตั้งกล้อง"
-          >
-            {/* help-circle icon */}
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-              <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.236c-.9.41-1.5 1.08-1.5 1.764V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="12" cy="17" r="1" fill="currentColor" />
-            </svg>
-          </button>
-
-        </div>
-      </header>
-
-      {/* Intro */}
-      {isIntro && (
-        <main className="wp-main">
-          <div className="wp-exercise-header">
-            <h2 className="wp-current-exercise-name">เตรียมตัวท่าแรก: {exercises[0]?.name}</h2>
-            <div className="wp-exercise-stats">
-              <div className="wp-time-remaining">
-                <span className="wp-time-number">{introRemaining}</span>
-                <span className="wp-time-unit">วินาที</span>
-              </div>
-              <ProgressRing progress={introProgress} />
-            </div>
-          </div>
-
-          <div className="wp-media-container">
-            <video
-              key={exercises[0]?.video || exercises[0]?.imageUrl}
-              className="wp-media"
-              src={exercises[0]?.video || undefined}
-              poster={exercises[0]?.imageUrl || undefined}
-              autoPlay
-              muted
-              playsInline
-              loop
-              preload="metadata"
-            />
-            <div className="wp-overlay-hint">
-              <small>ตัวอย่างท่า: {exercises[0]?.name}</small>
-            </div>
-          </div>
-
-
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 8 }}>
-            <button className="wp-btn wp-btn-primary" onClick={() => addIntroSeconds(10)}>เพิ่มเวลา +10 วิ</button>
-          </div>
-
-          {isPaused && isResting && !showGuide && (
-            <div
-              className="wp-overlay wp-overlay--dark"
-              role="button"
-              tabIndex={0}
-              onClick={safeResumeFromOverlay}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); safeResumeFromOverlay(); }
-              }}
-            >
-              <div className="wp-overlay-card">
-                <div className="wp-overlay-name">หยุดชั่วคราว</div>
-                <div className="wp-overlay-hint" style={{ position: "static" }}>กด “เล่น” เพื่อทำต่อ</div>
-              </div>
-            </div>
-          )}
-
-        </main>
-      )}
-
-      {/* Countdown */}
       {isCounting && (
         <div className="wp-countdown-overlay">
           <div className="wp-countdown-content">
             <h2 className="wp-exercise-name">{current?.name}</h2>
-            <div className="wp-countdown-circle">
-              <div key={countdown} className="wp-countdown-number">{countdown}</div>
-            </div>
+            <div className="wp-countdown-circle"><div key={countdown} className="wp-countdown-number">{countdown}</div></div>
             <p className="wp-countdown-text">เตรียมพร้อม...</p>
-            <div className="wp-countdown-dots"><div className="wp-dot"></div><div className="wp-dot"></div><div className="wp-dot"></div></div>
           </div>
         </div>
       )}
 
-      {/* Workout (เปิดกล้อง) */}
       {isPlaying && (
         <main className="wp-main">
-          <div className="wp-exercise-header">
+          <div className="wp-exercise-header" style={{ marginTop: 32 }}>
             <h2 className="wp-current-exercise-name">{current?.name}</h2>
             <div className="wp-exercise-stats">
-              <div className="wp-time-remaining">
-                <span className="wp-time-number">{timeRemaining}</span>
-                <span className="wp-time-unit">วินาที</span>
-              </div>
+              <div className="wp-time-remaining"><span className="wp-time-number">{timeRemaining}</span><span className="wp-time-unit">วินาที</span></div>
               <ProgressRing progress={exerciseProgress} />
             </div>
           </div>
+          <div className="wp-media-container" style={{ display: 'flex', gap: '32px', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {current?.video || current?.imageUrl ?
+                <video className="wp-exercise-video" src={current?.video} poster={current?.imageUrl} autoPlay muted playsInline loop style={{ width: '100%', maxWidth: 400, borderRadius: 12 }} /> :
+                <div style={{ width: 400, height: 240, background: '#eee', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span>ไม่มีวีดีโอ</span></div>
+              }
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <video ref={exerciseVideoRef} className="hidden" playsInline muted width="640" height="480" />
+            </div>
+            {cameraStatus === "loading" && <div className="wp-overlay wp-overlay--muted"><div className="wp-overlay-card">กำลังเปิดกล้อง…</div></div>}
+            {cameraStatus === "error" && <div className="wp-overlay wp-overlay--error"><div className="wp-overlay-card">ไม่สามารถเปิดกล้องได้</div></div>}
+            {renderOverlay()}
+          </div>
+        </main>
+      )}
 
-          <div className="wp-media-container">
-            <video ref={videoRef} className="hidden" playsInline muted />
-            <canvas ref={canvasRef} className="wp-media" />
-
-            {cameraStatus === "loading" && (
-              <div className="wp-overlay wp-overlay--muted">
-                <div className="wp-overlay-card"><div className="wp-overlay-name">กำลังเปิดกล้อง…</div></div>
-              </div>
-            )}
-            {cameraStatus === "error" && (
-              <div className="wp-overlay wp-overlay--error">
-                <div className="wp-overlay-card">
-                  <div className="wp-overlay-name">ไม่สามารถเปิดกล้องได้</div>
-                  <div className="wp-overlay-hint" style={{ position: "static" }}>
-                    {cameraError || "กรุณาอนุญาตการใช้กล้อง และเปิดผ่าน HTTPS หรือ localhost"}
-                  </div>
+      {isResting && exercises[nextIndexRef.current ?? 0] && (
+        <main className="wp-main">
+          <div className="wp-scroll-area">
+            <div className="wp-exercise-header">
+              <h2 className="wp-current-exercise-name">{exercises[nextIndexRef.current]?.name}</h2>
+              <div className="wp-exercise-stats">
+                <div className="wp-time-remaining">
+                  <span className="wp-time-number">{restRemaining}</span>
+                  <span className="wp-time-unit">วินาที</span>
                 </div>
+                <ProgressRing progress={restProgress} />
               </div>
-            )}
+            </div>
 
-            {isPaused && isResting && !showGuide && (
-              <div
-                className="wp-overlay wp-overlay--dark"
+            <div className="wp-media-container">
+              {/* ✅ จุดที่แก้: เปลี่ยน nextEx เป็น exercises[nextIndexRef.current] */}
+              <video
+                className="wp-media"
+                src={exercises[nextIndexRef.current]?.video}
+                poster={exercises[nextIndexRef.current]?.imageUrl}
+                autoPlay muted playsInline loop
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 8 }}>
+              <button className="wp-btn wp-btn-primary" onClick={() => addRestSeconds(10)}>เพิ่มเวลาพัก +10 วิ</button>
+            </div>
+            {isPaused && !showGuide && (
+              <div className="wp-overlay wp-overlay--dark"
                 role="button"
                 tabIndex={0}
                 onClick={safeResumeFromOverlay}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); safeResumeFromOverlay(); }
-                }}
               >
-                <div className="wp-overlay-card">
+                <div className="wp-overlay-card" onClick={(e) => e.stopPropagation()}>
                   <div className="wp-overlay-name">หยุดชั่วคราว</div>
-                  <div className="wp-overlay-hint" style={{ position: "static" }}>กด “เล่น” เพื่อทำต่อ</div>
+                  <button
+                    className="wp-overlay-play-btn"
+                    onClick={togglePause}
+                  >
+                    {/* fill="currentColor" จะทำให้สีไอคอนเป็นสีเดียวกับ color ของปุ่ม (สีขาว) */}
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
+                    </svg>
+                    <span>เล่นต่อ</span>
+                  </button>
+
                 </div>
               </div>
             )}
-
           </div>
         </main>
       )}
 
-      {/* Rest */}
-      {isResting && nextEx && (
-        <main className="wp-main">
-          <div className="wp-exercise-header">
-            <h2 className="wp-current-exercise-name">พักระหว่างท่า</h2>
-            <div className="wp-exercise-stats">
-              <div className="wp-time-remaining">
-                <span className="wp-time-number">{restRemaining}</span>
-                <span className="wp-time-unit">วินาที</span>
-              </div>
-              <ProgressRing progress={restProgress} />
-            </div>
-          </div>
-
-          <div className="wp-media-container">
-            <video
-              key={nextEx?.video || nextEx?.imageUrl}
-              className="wp-media"
-              src={nextEx?.video || undefined}
-              poster={nextEx?.imageUrl || undefined}
-              autoPlay
-              muted
-              playsInline
-              loop
-              preload="metadata"
-            />
-            <div className="wp-overlay-hint">
-              <small>ตัวอย่างท่าถัดไป: {nextEx?.name}</small>
-            </div>
-          </div>
-
-
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 8 }}>
-            <button className="wp-btn wp-btn-primary" onClick={() => addRestSeconds(10)}>เพิ่มเวลาพัก +10 วิ</button>
-          </div>
-
-          {isPaused && !showGuide && (
-            <div className="wp-overlay wp-overlay--dark">
-              <div className="wp-overlay-card">
-                <div className="wp-overlay-name">หยุดชั่วคราว</div>
-                <div className="wp-overlay-hint" style={{ position: "static" }}>กด “เล่น” เพื่อทำต่อ</div>
-              </div>
-            </div>
-          )}
-        </main>
-      )}
-
-      {/* Controls */}
-      <footer className="wp-controls">
-        <button className="wp-control-btn wp-control-btn-secondary" onClick={handlePrev} disabled={currentExercise === 0 && !isIntro}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <polygon points="19 20 9 12 19 4 19 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>ก่อนหน้า</span>
-        </button>
-
-        {(isIntro || isResting || isPlaying) && (
-          <button
-            className={`wp-control-btn ${isPaused ? "wp-control-btn-play" : "wp-control-btn-pause"}`}
-            onMouseDown={(e) => e.stopPropagation()}   // กันคลิก bubble ตอนกดเมาส์
-            onClick={(e) => {
-              e.stopPropagation();                     // กัน bubble ตอน click ด้วย
-              togglePause();
-            }}
-          >
-            {isPaused ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <polygon
-                  points="5 3 19 12 5 21 5 3"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <rect
-                  x="6"
-                  y="4"
-                  width="4"
-                  height="16"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <rect
-                  x="14"
-                  y="4"
-                  width="4"
-                  height="16"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-            <span>{isPaused ? "เล่น" : "หยุด"}</span>
-          </button>
-
-        )}
-
-        <button className="wp-control-btn wp-control-btn-primary" onClick={handleNext}>
-          <span>{isIntro ? "ข้าม Intro" : isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านี้" : "ถัดไป"}</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <polygon points="5 4 15 12 5 20 5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </footer>
+      <Controls
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onTogglePause={togglePause}
+        isPaused={isPaused}
+        canPrev={currentExercise > 0}
+        mainButtonLabel={isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านนี้" : "ถัดไป"}
+        showPlayPause={isResting || isPlaying}
+      />
     </div>
   );
 }
+
+// --- Render Helper Components ---
+const LoadingScreen = () => (
+  <div className="wp-loading-screen">
+    <div className="wp-loading-content">
+      <div className="wp-spinner"><div className="wp-spinner-ring"></div><div className="wp-spinner-ring"></div><div className="wp-spinner-ring"></div></div>
+      <div className="wp-loading-title">กำลังโหลดโปรแกรม...</div>
+    </div>
+  </div>
+);
+
+const ErrorScreen = ({ error }) => (
+  <div className="wp-error-screen">
+    <div className="wp-error-content">
+      <div className="wp-error-icon">⚠️</div>
+      <h2>ไม่พบข้อมูลโปรแกรม</h2>
+      {error && <p>{error.message}</p>}
+    </div>
+  </div>
+);
+
+const Header = ({ title, current, total, progress, onBack, onGuide }) => (
+  <header className="wp-header">
+    <div className="wp-header-content">
+      <button className="wp-back-btn" onClick={onBack}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+      <div className="wp-header-info">
+        <h1 className="wp-program-title">{title}</h1>
+        <div className="wp-progress-info">
+          <span className="wp-exercise-counter">{current}/{total}</span>
+          <div className="wp-overall-progress"><div className="wp-overall-progress-fill" style={{ width: `${progress}%` }} /></div>
+        </div>
+      </div>
+      <button className="wp-sound-btn" onClick={onGuide} title="เปิดไกด์">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" /><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.236c-.9.41-1.5 1.08-1.5 1.764V14" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="17" r="1" fill="currentColor" /></svg>
+      </button>
+    </div>
+  </header>
+);
+
+const Controls = ({ onPrev, onNext, onTogglePause, isPaused, canPrev, mainButtonLabel, showPlayPause }) => (
+  <footer className="wp-controls">
+    <button className="wp-control-btn wp-control-btn-secondary" onClick={onPrev} disabled={!canPrev}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="19 20 9 12 19 4 19 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <span>ก่อนหน้า</span>
+    </button>
+    {showPlayPause && (
+      <button className={`wp-control-btn ${isPaused ? "wp-control-btn-play" : "wp-control-btn-pause"}`} onClick={(e) => { e.stopPropagation(); onTogglePause(); }}>
+        {isPaused ?
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg> :
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="6" y="4" width="4" height="16" stroke="currentColor" strokeWidth="2" /><rect x="14" y="4" width="4" height="16" stroke="currentColor" strokeWidth="2" /></svg>
+        }
+        <span>{isPaused ? "เล่น" : "หยุด"}</span>
+      </button>
+    )}
+    <button className="wp-control-btn wp-control-btn-primary" onClick={onNext}>
+      <span>{mainButtonLabel}</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="5 4 15 12 5 20 5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </button>
+  </footer>
+);

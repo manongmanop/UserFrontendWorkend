@@ -1,5 +1,5 @@
 /* Modern Login Styles */
-:root {
+:where(.scoped-login-vars) {
   --primary-color: #27BAF9;
   --primary-dark: #1da8e7;
   --primary-light: #4fc7fa;
@@ -198,6 +198,7 @@
 }
 
 .form-section {
+  background: var(--bg);
   flex: 1;
   padding: 3rem 2.5rem;
   display: flex;

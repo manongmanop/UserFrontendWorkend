@@ -1,0 +1,59 @@
+    const latest = await WorkoutSession
+      .findOne({ uid, 'origin.kind': 'program' })
+      .sort({ finishedAt: -1, startedAt: -1 })
+      .lean();
+
+    if (!latest) {
+      return res.status(404).json({ error: 'no finished session found for this uid' });
+    }
+
+    const totals = latest.logs?.reduce((acc, l) => {
+      acc.seconds  += Number(l?.performed?.seconds || 0);
+      acc.reps     += Number(l?.performed?.reps || 0);
+      acc.calories += Number(l?.calories || 0);
+      return acc;
+    }, { seconds: 0, reps: 0, calories: 0 }) || { seconds: 0, reps: 0, calories: 0 };
+
+    return res.json({
+      uid,
+      sessionId: String(latest._id),
+      programName: latest.snapshot?.programName || null,
+      totalExercises: latest.totalExercises || (latest.snapshot?.exercises?.length || 0),
+      doneExercises: latest.logs?.length || 0,
+      totals,
+      logs: latest.logs || [],
+      startedAt: latest.startedAt,
+      finishedAt: latest.finishedAt
+    });
+  } catch (e) {
+    console.error('summary endpoint error:', e);
+    return res.status(500).json({ error: 'failed to build summary' });
+  }
+});
+const workoutSessionExerciseSchema = new mongoose.Schema({
+  exercise: { type: String },            // เก็บเป็น String ก็พอ (จะเป็น ObjectId string)
+  name: String,
+  type: { type: String, enum: ['reps','time'] },
+  value: mongoose.Schema.Types.Mixed,    // seconds / reps / string
+  order: Number
+}, { _id: false });
+
+const workoutSessionLogSchema = new mongoose.Schema({
+  order: Number,
+  exerciseId: String,
+  name: String,
+  target: {
+    type: { type: String },              // 'time' | 'reps'
+    value: String
+  },
+  performed: {
+    seconds: { type: Number, default: 0 },
+    reps: { type: Number, default: 0 }
+  },
+  calories: { type: Number, default: 0 },
+  at: { type: Date, default: Date.now }
+}, { _id: false });
+}
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

@@ -1,0 +1,61 @@
+      {isResting && nextEx && (
+        <main className="wp-main">
+          <div className="wp-exercise-header">
+            <h2 className="wp-current-exercise-name">พักระหว่างท่า</h2>
+            <div className="wp-exercise-stats">
+              <div className="wp-time-remaining">
+                <span className="wp-time-number">{restRemaining}</span>
+                <span className="wp-time-unit">วินาที</span>
+              </div>
+              <ProgressRing progress={restProgress} />
+            </div>
+          </div>
+
+          <div className="wp-media-container">
+            <video
+              key={nextEx?.video || nextEx?.imageUrl}
+              className="wp-media"
+              src={nextEx?.video || undefined}
+              poster={nextEx?.imageUrl || undefined}
+              autoPlay
+              muted
+              playsInline
+              loop
+              preload="metadata"
+            />
+            <div className="wp-overlay-hint">
+              <small>ตัวอย่างท่าถัดไป: {nextEx?.name}</small>
+            </div>
+          </div>
+
+
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 8 }}>
+            <button className="wp-btn wp-btn-primary" onClick={() => addRestSeconds(10)}>เพิ่มเวลาพัก +10 วิ</button>
+          </div>
+
+          {isPaused && !showGuide && (isIntro || isPlaying || isResting) && (
+            <div className="wp-overlay wp-overlay--dark">
+              <div className="wp-overlay-card">
+                <div className="wp-overlay-name">หยุดชั่วคราว</div>
+                <div className="wp-overlay-hint" style={{ position: "static" }}>กด “เล่น” เพื่อทำต่อ</div>
+              </div>
+            </div>
+          )}
+        </main>
+      )}
+
+      {/* Controls */}
+      <footer className="wp-controls">
+        <button className="wp-control-btn wp-control-btn-secondary" onClick={handlePrev} disabled={currentExercise === 0 && !isIntro}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <polygon points="19 20 9 12 19 4 19 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>ก่อนหน้า</span>
+        </button>
+
+        {(isIntro || isResting || isPlaying) && (
+          <button
+            className={`wp-control-btn ${isPaused ? "wp-control-btn-play" : "wp-control-btn-pause"}`}
+            onMouseDown={(e) => e.stopPropagation()}   // กันคลิก bubble ตอนกดเมาส์
+            onClick={(e) => {

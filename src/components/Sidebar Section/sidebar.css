@@ -290,4 +290,8 @@
   .logout-button {
     margin: 0.75rem;
   }
+}
+
+body, html, .sidebar, .sidebar-menu, .sidebar-link {
+  font-family: var(--font-primary) !important;
 }/*# sourceMappingURL=sidebar.css.map */

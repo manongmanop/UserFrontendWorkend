@@ -7,7 +7,7 @@ import { useUserAuth } from "../../../context/UserAuthContext";
 import { doc, getDoc } from 'firebase/firestore'; // เพิ่ม import สำหรับ Firestore
 import { db } from '../../../../firebase'; // ต้องเพิ่ม import ตัวนี้ด้วย
 import "./top.css";
-
+import "../../style/global.css";
 export const Top = () => {
   const { user } = useUserAuth();
 

@@ -1,0 +1,91 @@
+      performed: {
+        reps: { type: Number, default: 0 },
+        seconds: { type: Number, default: 0 }
+      }
+    }]
+  }],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+const WorkoutPlan = mongoose.model('WorkoutPlan', workoutPlanSchema);
+
+// async function seedData() {
+//     try {
+//         // ลบข้อมูลเดิม (ถ้าต้องการ)
+//         await BodyMetric.deleteMany({ userId: 'W9wHEQLdVaZ7S5LcclkB1DZ3pFP2' });
+        
+//         // เพิ่มข้อมูลใหม่
+//         for (const item of bodyMetricsData.testData) {
+//             const heightInMeters = item.height / 100;
+//             const bmi = (item.weight / (heightInMeters * heightInMeters)).toFixed(2);
+            
+//             const metric = new BodyMetric({
+//                 ...item,
+//                 bmi: parseFloat(bmi),
+//                 date: new Date(item.date)
+//             });
+            
+//             await metric.save();
+//             console.log(`Added: ${item.date} - Weight: ${item.weight}kg`);
+//         }
+        
+//         console.log('✅ ข้อมูลทดสอบถูกเพิ่มเรียบร้อยแล้ว!');
+//         process.exit(0);
+//     } catch (error) {
+//         console.error('❌ Error:', error);
+//         process.exit(1);
+//     }
+// }
+
+// seedData();
+// =============== Workout Session ===============
+const workoutSessionSchema = new mongoose.Schema({
+  uid: { type: String, required: true, index: true },
+  origin: {
+    kind: { type: String, enum: ['program','daily'], required: true },
+    programId: { type: String, default: null }
+  },
+  snapshot: {
+    programName: { type: String, default: null },
+    exercises: [workoutSessionExerciseSchema]   // <<<< สำคัญ: เป็นอาเรย์ของอ็อบเจ็กต์
+  },
+  totalExercises: { type: Number, default: 0 },
+  startedAt: { type: Date, default: Date.now },
+  finishedAt: { type: Date, default: null },
+  logs: [workoutSessionLogSchema]
+}, { timestamps: true });
+
+const WorkoutSession = mongoose.model('WorkoutSession', workoutSessionSchema);
+
+// เริ่ม session
+app.post('/api/workout_sessions/start', async (req, res) => {
+  try {
+    let { uid, origin, snapshot, totalExercises } = req.body || {};
+    if (!uid) return res.status(400).json({ error: 'uid is required' });
+    if (!origin?.kind) return res.status(400).json({ error: 'origin.kind is required' });
+
+    // ---- ปรับรูปแบบถ้าถูกส่งมาเป็นสตริง ----
+    if (typeof snapshot === 'string') {
+      try { snapshot = JSON.parse(snapshot); } catch (_) {}
+    }
+    if (snapshot && typeof snapshot.exercises === 'string') {
+      try { snapshot.exercises = JSON.parse(snapshot.exercises); } catch (_) {}
+    }
+    if (!Array.isArray(snapshot?.exercises)) snapshot = { ...(snapshot||{}), exercises: [] };
+
+    const doc = await WorkoutSession.create({
+      uid,
+      origin,
+      snapshot,
+      totalExercises: Number(totalExercises) || (snapshot.exercises.length || 0),
+    });
+
+    return res.status(201).json(doc);
+  } catch (e) {
+    console.error('start session error:', e);
+    return res.status(500).json({ error: 'failed to start session' });
+  }
+});
+
+// บันทึกผลของ “ท่าหนึ่ง”
+app.post('/api/workout_sessions/:id/log-exercise', async (req, res) => {

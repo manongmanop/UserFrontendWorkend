@@ -21,8 +21,14 @@ import RecentMenu from './components/History Section/RecentCard.jsx'
 import WorkoutPlayer from './components/WorkoutPlay/WorkoutPlayer.jsx'
 import Summary from './components/Program/Summary.jsx'
 import PoseDetector from './PoseDetector.jsx'
+import Dumbbell from './Dumbbell.jsx'
+import Hipe_Raise from './Hipe_Raise.jsx'
+import Leg_Raises from './Leg_Raises.jsx'
+import Plank from './Plank.jsx'
+import Push_ups from './Push_ups.jsx'
+import Squat from './Squat.jsx'
 
-import './index.css'
+import '/index.css'
 import { UserAuthContextProvider } from './context/UserAuthContext.jsx'
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import LandingPage from './components/LandingPage/LandingPage.jsx'
@@ -48,6 +54,12 @@ const router = createBrowserRouter([
   { path: "/recent/:userId", element: <ProtectedRoute><RecentMenu /></ProtectedRoute> },
 
   { path: "/PoseDetector", element: <ProtectedRoute><PoseDetector /></ProtectedRoute> },
+  { path: "/Dumbbell", element: <ProtectedRoute><Dumbbell /></ProtectedRoute> },
+  { path: "/Hipe_Raise", element: <ProtectedRoute><Hipe_Raise /></ProtectedRoute> },
+  { path: "/Leg_Raises", element: <ProtectedRoute><Leg_Raises /></ProtectedRoute> },
+  { path: "/Plank", element: <ProtectedRoute><Plank /></ProtectedRoute> },
+  { path: "/Push_ups", element: <ProtectedRoute><Push_ups /></ProtectedRoute> },
+  { path: "/Squat", element: <ProtectedRoute><Squat /></ProtectedRoute> },
   { path: "/WorkoutPlayer/:programId", element: <ProtectedRoute><WorkoutPlayer /></ProtectedRoute> },
 
   // ✅ (ตัวเลือก) เพื่อให้ flow จบจาก WorkoutPlayer → Result → History ได้ครบ

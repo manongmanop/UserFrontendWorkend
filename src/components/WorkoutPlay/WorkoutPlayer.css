@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /* ==================== CSS Variables ==================== */
-:root {
+:where(.scoped-workout-vars) {
   /* Colors */
   --primary: #6366f1;
   --primary-dark: #4f46e5;
@@ -63,10 +63,15 @@
   --z-modal: 1050;
   --z-popover: 1060;
   --z-tooltip: 1070;
+  --wp-media-ratio: 1/1; /* สัดส่วนเริ่มต้น (ปรับได้เป็น 4/3, 1/1 ฯลฯ) */
+  --wp-media-max-w: 1800px; /* จำกัดความกว้างสูงสุด */
+  --wp-media-max-h: 80svh; /* จำกัดความสูงตาม viewport */
 }
 
 /* ==================== Global Reset ==================== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -201,7 +206,8 @@ body {
   flex-shrink: 0;
 }
 
-.wp-sound-btn:hover, .wp-sound-btn.active {
+.wp-sound-btn:hover,
+.wp-sound-btn.active {
   background: var(--primary);
   color: var(--text-white);
 }
@@ -452,19 +458,21 @@ body {
 }
 /* ==================== Main Exercise Area ==================== */
 .wp-main {
-  flex: 1;
-  padding: var(--space-lg);
+  padding: 0 20px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .wp-exercise-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--space-lg);
-  gap: var(--space-lg);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 32px;
+  margin-bottom: 24px;
+  gap: 16px;
 }
 
 .wp-current-exercise-name {
@@ -473,18 +481,16 @@ body {
   color: var(--text-primary);
   line-height: 1.2;
   margin: 0;
-  flex: 1;
 }
 
 .wp-exercise-stats {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
-  flex-shrink: 0;
+  gap: 16px;
 }
 
 .wp-time-remaining {
-  text-align: center;
+  text-align: right;
 }
 
 .wp-time-number {
@@ -492,7 +498,7 @@ body {
   font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: var(--font-weight-bold);
   color: var(--primary);
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .wp-time-unit {
@@ -525,22 +531,77 @@ body {
 }
 
 .wp-media-container {
-  position: relative;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  aspect-ratio: 16/9;
-  margin-bottom: var(--space-lg);
+  display: grid;
+  /* แบ่งเป็น 2 คอลัมน์เท่ากัน (1fr 1fr) เมื่อจอเล็กให้ยุบเหลือ 1 คอลัมน์ */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  justify-content: center;
+  align-items: start;
 }
 
+/* --- Video Card Wrapper --- */
+.wp-video-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.wp-video-title {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #555;
+  font-weight: 500;
+}
+
+/* --- The Frame (กรอบวิดีโอ) --- */
+.wp-video-frame {
+  width: 100%;
+  /* กุญแจสำคัญ: บังคับสัดส่วน 4:3 ให้เท่ากันทั้งซ้ายขวา */
+  aspect-ratio: 4/3;
+  background-color: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  position: relative; /* เพื่อให้ overlay อยู่ข้างในได้ */
+}
+
+.wp-exercise-video,
 .wp-media {
   width: 100%;
+  max-width: 750px !important;
   height: 100%;
   -o-object-fit: cover;
      object-fit: cover;
   display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+video.hidden {
+  transform: scaleX(-1);
+}
+
+.wp-overlay-centered {
+  position: absolute;
+  inset: 0; /* top, right, bottom, left = 0 */
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 10;
+}
+
+.wp-no-video {
+  width: 100%;
+  height: 100%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
 }
 
 .wp-description {
@@ -718,14 +779,14 @@ canvas.wp-media {
 .wp-completion-subtitle {
   font-size: clamp(1rem, 4vw, 1.25rem);
   opacity: 0.9;
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-md);
 }
 
 .wp-completion-stats {
   display: flex;
   gap: var(--space-xl);
   justify-content: center;
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-md);
 }
 
 .wp-stat {
@@ -812,6 +873,40 @@ canvas.wp-media {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.wp-overlay-play-btn {
+  /* การจัดวาง (Layout) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* ระยะห่างระหว่างไอคอนกับตัวหนังสือ */
+  /* ขนาดและรูปร่าง */
+  padding: 12px 32px; /* เพิ่มความกว้างให้ดูเป็นสี่เหลี่ยมสวยงาม */
+  border-radius: 7px; /* ✅ ตามที่ขอ: มุมมน 7px */
+  border: none;
+  /* สี */
+  background-color: #ff6d00; /* ✅ สีส้มสด (Orange) */
+  color: #ffffff; /* ✅ สีขาว (White) */
+  /* ตัวอักษร */
+  font-size: 18px;
+  font-weight: 600; /* ตัวหนานิดหน่อยให้อ่านง่าย */
+  font-family: inherit;
+  /* Interaction */
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* เงาเล็กน้อยให้ปุ่มดูลอย */
+  transition: all 0.2s ease;
+}
+
+.wp-overlay-play-btn:hover {
+  background-color: #e65100; /* สีส้มเข้มขึ้นเล็กน้อย */
+  transform: translateY(-2px); /* ขยับขึ้นนิดนึง */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.wp-overlay-play-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 /* ==================== Camera Guide Overlay (Blue/White) ==================== */
 .guide-overlay {
   position: fixed;
@@ -821,14 +916,17 @@ canvas.wp-media {
   display: grid;
   place-items: center;
   padding: max(var(--space-md), env(safe-area-inset-top)) max(var(--space-md), env(safe-area-inset-right)) max(var(--space-md), env(safe-area-inset-bottom)) max(var(--space-md), env(safe-area-inset-left));
-  overflow-y: auto; /* ✅ ให้เลื่อน overlay ได้ */
-  -webkit-overflow-scrolling: touch; /* ✅ ลื่นบน iOS */
-  overscroll-behavior: contain; /* กันเด้งทะลุหน้า */
+  overflow-y: auto;
+  /* ✅ ให้เลื่อน overlay ได้ */
+  -webkit-overflow-scrolling: touch;
+  /* ✅ ลื่นบน iOS */
+  overscroll-behavior: contain;
+  /* กันเด้งทะลุหน้า */
 }
 
 .guide-card {
   width: 100%;
-  max-width: 960px;
+  max-width: 560px;
   background: var(--bg-primary);
   color: var(--text-primary);
   border-radius: var(--radius-xl);
@@ -837,7 +935,8 @@ canvas.wp-media {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  max-height: 92vh; /* ✅ จำกัดความสูงหลัก */
+  max-height: 92vh;
+  /* ✅ จำกัดความสูงหลัก */
 }
 
 .guide-header {
@@ -862,7 +961,8 @@ canvas.wp-media {
   padding: var(--space-md);
   display: grid;
   gap: var(--space-md);
-  overflow: auto; /* ✅ เนื้อหาการ์ดเลื่อนได้เอง */
+  overflow: auto;
+  /* ✅ เนื้อหาการ์ดเลื่อนได้เอง */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -872,13 +972,15 @@ canvas.wp-media {
 
 .guide-image {
   width: 100%;
+  max-width: 550px;
   height: auto;
   display: block;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   cursor: zoom-in;
-  max-height: 70vh; /* ✅ กันภาพสูงเกินในจอเตี้ย */
+  max-height: 70vh;
+  /* ✅ กันภาพสูงเกินในจอเตี้ย */
   -o-object-fit: contain;
      object-fit: contain;
 }
@@ -956,7 +1058,8 @@ canvas.wp-media {
   place-items: center;
   cursor: zoom-out;
   padding: var(--space-md);
-  overflow: auto; /* ✅ ถ้ารูปสูงมาก ให้เลื่อน */
+  overflow: auto;
+  /* ✅ ถ้ารูปสูงมาก ให้เลื่อน */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1144,7 +1247,8 @@ canvas.wp-media {
 @media (orientation: landscape) and (max-height: 500px) {
   .guide-image {
     max-height: 55vh;
-  } /* ลดความสูงรูปหลักลงอีกนิด */
+  }
+  /* ลดความสูงรูปหลักลงอีกนิด */
   .guide-thumb img {
     width: 64px;
     height: 44px;
@@ -1203,17 +1307,19 @@ canvas.wp-media {
 }
 /* Large devices (≥992px) */
 @media (min-width: 992px) {
+  /*
   .wp-media-container {
     aspect-ratio: 21/9;
   }
+  */
   .wp-exercise-header {
-    margin-bottom: var(--space-2xl);
+    margin-bottom: var(--space-md);
   }
 }
 /* Extra large (≥1200px) */
 @media (min-width: 1200px) {
   .wp-main {
-    padding: var(--space-2xl);
+    padding: var(--space-md);
   }
 }
 /* ===== Landscape / Low-height fixes (สำคัญ) ===== */
@@ -1242,7 +1348,9 @@ canvas.wp-media {
 }
 /* ==================== Accessibility ==================== */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -1274,5 +1382,81 @@ canvas.wp-media {
   :root {
     --border: #000000;
     --text-secondary: var(--text-primary);
+  }
+}
+/* ==================== Viewport Fit Overrides ==================== */
+/* Keep the whole player within the viewport without page scroll */
+.wp-container {
+  height: 100svh;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.wp-container > main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.wp-header {
+  padding: clamp(8px, 1.8vh, var(--space-md));
+}
+
+.wp-header-content {
+  gap: clamp(6px, 1.4vh, var(--space-md));
+}
+
+.wp-controls {
+  padding: clamp(8px, 1.8vh, var(--space-md));
+  gap: clamp(6px, 1.6vh, var(--space-md));
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+}
+
+.wp-control-btn {
+  padding: clamp(8px, 1.6vh, var(--space-md)) clamp(12px, 2.4vh, var(--space-lg));
+  min-height: 44px;
+}
+
+.wp-control-btn-pause {
+  min-width: clamp(80px, 20vw, 120px);
+}
+
+/*
+.wp-media-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(6px, 1.5vh, var(--space-md));
+}
+*/
+.wp-media,
+canvas.wp-canvas,
+.wp-stage-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .wp-container {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+  .wp-controls {
+    gap: var(--space-sm);
+  }
+  .wp-control-btn span {
+    display: none;
+  }
+  .wp-control-btn svg {
+    margin: 0 auto;
   }
 }/*# sourceMappingURL=WorkoutPlayer.css.map */

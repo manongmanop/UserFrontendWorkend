@@ -19,7 +19,6 @@
   --normalFontSize: 0.938rem;
   --smallFontSize: 0.813rem;
   --smallestFontSize: 0.75rem;
-  --font-primary: "Noto Sans Thai", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .main-container {
@@ -32,7 +31,6 @@
 
 .body {
   width: 100%;
-  font-family: var(--font-primary);
 }
 
 .container {

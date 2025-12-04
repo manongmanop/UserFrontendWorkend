@@ -1,7 +1,6 @@
 import React from "react";
 import "./LandingPage.css";
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import '../style/global.css'
+import "../style/global.css";
 function LandingPage() {
   return (
     <div className="landing-page">
@@ -63,8 +62,8 @@ function LandingPage() {
                     />
                   </div>
                 </div>
-                <h5 className="text-white fw-bold mb-3">วิเคราะห์ท่าทาง</h5>
-                <p className="text-white-50">
+                <h5 className="text-dark fw-bold mb-3">วิเคราะห์ท่าทาง</h5>
+                <p className="text-dark-50">
                   จับการเคลื่อนไหวอย่างแม่นยำ ด้วยเทคโนโลยี MediaPipe
                 </p>
               </div>
@@ -80,8 +79,8 @@ function LandingPage() {
                     />
                   </div>
                 </div>
-                <h5 className="text-white fw-bold mb-3">แนะนำโปรแกรม</h5>
-                <p className="text-white-50">
+                <h5 className="text-dark fw-bold mb-3">แนะนำโปรแกรม</h5>
+                <p className="text-dark-50">
                   มีโปรแกรมออกกำลังกายที่คัดสรรโดย Trainer ที่มีประสบการณ์
                 </p>
               </div>
@@ -97,8 +96,8 @@ function LandingPage() {
                     />
                   </div>
                 </div>
-                <h5 className="text-white fw-bold mb-3">วิเคราะห์ผล</h5>
-                <p className="text-white-50">
+                <h5 className="text-dark fw-bold mb-3">วิเคราะห์ผล</h5>
+                <p className="text-dark-50">
                   ติดตามพัฒนาการและปรับปรุงการออกกำลังกายรายสัปดาห์
                 </p>
               </div>
@@ -176,16 +175,15 @@ function LandingPage() {
       </section>
 
       {/* CTA SECTION */}
-      <section className="cta-section bg-blue-600 bg-gradient text-white py-5">
+      <section className="cta-section bg-blue-600 bg-gradient text-dark py-5">
         <div className="container text-center">
           <div className="row justify-content-center">
             <div className="col-lg-8">
               <h2 className="display-5 fw-bold mb-4">
-                พร้อมเริ่มต้นแล้วหรือยัง?
+                ปรับปรุงระบบด้วยเทรนเนอร์ตัวจริง
+                <br />
+                <span className="text-white">เริ่มต้นการเดินทางของคุณวันนี้!</span>
               </h2>
-              <p className="lead mb-4">
-                เข้าร่วมกับผู้ใช้งานหลายพันคนที่เลือกใช้ระบบของเรา
-              </p>
               <a
             href="/login"
             className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg animate-bounce-in"

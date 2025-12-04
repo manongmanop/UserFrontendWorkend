@@ -21,7 +21,6 @@
   --shadow-medium: 0 8px 30px rgba(59, 130, 246, 0.15);
   --shadow-heavy: 0 20px 60px rgba(59, 130, 246, 0.2);
   /* Typography */
-  --font-primary: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --biggestFontSize: 5rem;
   --h1FontSize: 4rem;
   --h2FontSize: 3rem;
@@ -42,7 +41,6 @@
 }
 
 body {
-  font-family: var(--font-primary);
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   color: var(--text-primary);
   line-height: 1.6;

@@ -1,0 +1,27 @@
+﻿:root {
+  --font-primary: 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light only;
+
+  /* à¹‚à¸—à¸™à¸ªà¸µà¸«à¸¥à¸±à¸à¸‚à¸­à¸‡à¸˜à¸µà¸¡à¸ªà¸§à¹ˆà¸²à¸‡ */
+  --font-primary: 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --bg: #ffffff;
+  --text: #0f172a;        /* slate-900 */
+  --muted: #f8fafc;       /* slate-50 */
+  --border: #e2e8f0;      /* slate-200 */
+  --link: #2563eb;        /* blue-600 */
+}
+
+/* à¹ƒà¸«à¹‰à¸—à¸±à¹‰à¸‡à¹€à¸§à¹‡à¸šà¹ƒà¸Šà¹‰à¸Ÿà¸­à¸™à¸•à¹Œà¸™à¸µà¹‰à¹‚à¸”à¸¢à¸­à¹‰à¸²à¸‡à¸•à¸±à¸§à¹à¸›à¸£à¹€à¸”à¸µà¸¢à¸§ */
+body {
+  font-family: var(--font-primary) !important;
+  background: var(--bg);
+  color: var(--text);
+}
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  background: var(--bg);
+  color: var(--text);
+}
+
