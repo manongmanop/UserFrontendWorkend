@@ -566,20 +566,13 @@ body {
   position: relative; /* เพื่อให้ overlay อยู่ข้างในได้ */
 }
 
-.wp-exercise-video,
-.wp-media {
+.wp-exercise-video, .wp-media {
   width: 100%;
   max-width: 750px !important;
   height: 100%;
   -o-object-fit: cover;
      object-fit: cover;
   display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-video.hidden {
-  transform: scaleX(-1);
 }
 
 .wp-overlay-centered {
@@ -871,40 +864,6 @@ canvas.wp-media {
 .wp-btn-secondary:hover {
   border-color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.1);
-}
-
-.wp-overlay-play-btn {
-  /* การจัดวาง (Layout) */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px; /* ระยะห่างระหว่างไอคอนกับตัวหนังสือ */
-  /* ขนาดและรูปร่าง */
-  padding: 12px 32px; /* เพิ่มความกว้างให้ดูเป็นสี่เหลี่ยมสวยงาม */
-  border-radius: 7px; /* ✅ ตามที่ขอ: มุมมน 7px */
-  border: none;
-  /* สี */
-  background-color: #ff6d00; /* ✅ สีส้มสด (Orange) */
-  color: #ffffff; /* ✅ สีขาว (White) */
-  /* ตัวอักษร */
-  font-size: 18px;
-  font-weight: 600; /* ตัวหนานิดหน่อยให้อ่านง่าย */
-  font-family: inherit;
-  /* Interaction */
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* เงาเล็กน้อยให้ปุ่มดูลอย */
-  transition: all 0.2s ease;
-}
-
-.wp-overlay-play-btn:hover {
-  background-color: #e65100; /* สีส้มเข้มขึ้นเล็กน้อย */
-  transform: translateY(-2px); /* ขยับขึ้นนิดนึง */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
-
-.wp-overlay-play-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* ==================== Camera Guide Overlay (Blue/White) ==================== */
