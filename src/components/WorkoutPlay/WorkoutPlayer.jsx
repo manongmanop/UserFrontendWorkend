@@ -147,6 +147,7 @@ export default function WorkoutPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isResting, setIsResting] = useState(false);
 
+  const [countdownAction, setCountdownAction] = useState("startNew");
   // --- State: Timers (Progress & Countdown) ---
   const [countdown, setCountdown] = useState(3);
   const [exerciseProgress, setExerciseProgress] = useState(0);
@@ -257,17 +258,29 @@ export default function WorkoutPlayer() {
 
   // Countdown Logic
   useEffect(() => {
-    if (!isCounting) return;
-    if (countdown > 0) {
-      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(t);
-    } else {
-      setIsCounting(false);
+  if (!isCounting) return;
+
+  if (countdown > 0) {
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  } else {
+    // countdown = 0
+    setIsCounting(false);
+    setIsPaused(false);
+
+    if (countdownAction === "startNew") {
       setIsPlaying(true);
-      setIsPaused(false);
       startWorkoutTimersForCurrent();
+    } else if (countdownAction === "resumeWorkout") {
+      setIsPlaying(true);
+      resumeWorkoutTimers();
+    } else if (countdownAction === "resumeRest") {
+      setIsResting(true);
+      resumeRestTimers();
     }
-  }, [isCounting, countdown]);
+  }
+}, [isCounting, countdown, countdownAction]);
+
 
   useEffect(() => {
     const videoEl = exerciseVideoRef.current;
@@ -488,56 +501,104 @@ export default function WorkoutPlayer() {
   };
 
   const endRest = () => {
-    resetRestTimers();
-    setIsResting(false); setIsPaused(false);
-    const nextIdx = nextIndexRef.current;
-    if (nextIdx != null && nextIdx < exercises.length) {
-      setCurrentExercise(nextIdx);
-      setIsCounting(true); setCountdown(3);
-    } else {
-      onWorkoutEnded();
-    }
-  };
+  resetRestTimers();
+  setIsResting(false);
+  setIsPaused(false);
+  const nextIdx = nextIndexRef.current;
+  if (nextIdx != null && nextIdx < exercises.length) {
+    setCurrentExercise(nextIdx);
+    setCountdownAction("startNew");   // ✅ เริ่มท่าใหม่
+    setIsCounting(true);
+    setCountdown(3);
+  } else {
+    onWorkoutEnded();
+  }
+};
 
   // --- Interaction Handlers ---
   const togglePause = () => {
-    if (isResting) { isPaused ? resumeRestTimers() : pauseRestTimers(); }
-    else if (isPlaying) { isPaused ? resumeWorkoutTimers() : pauseWorkoutTimers(); }
-    setIsPaused(!isPaused);
-  };
+  if (isResting) {
+    // ช่วงพัก: pause / resume ตามปกติ (ไม่ต้องขึ้น 3-2-1 ก็ได้)
+    if (isPaused) {
+      resumeRestTimers();
+      setIsPaused(false);
+    } else {
+      pauseRestTimers();
+      setIsPaused(true);
+    }
+  } else if (isPlaying) {
+    if (isPaused) {
+      // ✅ RESUME จาก pause ระหว่างเล่นท่า
+      // แทนที่จะ resume ทันที → ขึ้น 3-2-1 ก่อน
+      setCountdown(3);
+      setCountdownAction("resumeWorkout");
+      setIsCounting(true);
+    } else {
+      // กดหยุด
+      pauseWorkoutTimers();
+      setIsPaused(true);
+    }
+  }
+};
+
 
   const safeResumeFromOverlay = () => {
     if (overlayResumeArmedRef.current) togglePause();
   };
 
   const handleNext = () => {
-    if (isResting) { endRest(); return; }
-    if (isPlaying) {
-      // Force finish current
-      currentDurationMsRef.current = currentDurationMsRef.current || 1;
-      remainingMsRef.current = currentDurationMsRef.current; // Force 0 elapsed for logic consistency
-      onWorkoutEnded();
-      return;
-    }
-    if (isCounting) {
-      setIsCounting(false);
+  if (isResting) {
+    endRest();
+    return;
+  }
+
+  if (isCounting) {
+    // กำลัง 3-2-1 อยู่ แล้วผู้ใช้กด "เริ่มเลย"
+    setIsCounting(false);
+    setIsPaused(false);
+
+    if (countdownAction === "startNew") {
       setIsPlaying(true);
       startWorkoutTimersForCurrent();
+    } else if (countdownAction === "resumeWorkout") {
+      setIsPlaying(true);
+      resumeWorkoutTimers();
+    } else if (countdownAction === "resumeRest") {
+      setIsResting(true);
+      resumeRestTimers();
     }
-  };
+    return;
+  }
+
+  if (isPlaying) {
+    // Force finish current
+    currentDurationMsRef.current = currentDurationMsRef.current || 1;
+    remainingMsRef.current = currentDurationMsRef.current;
+    onWorkoutEnded();
+    return;
+  }
+};
+
 
   const handlePrev = () => {
-    stopCamera(); resetAllTimers();
-    const prev = Math.max(0, currentExercise - 1);
-    setCurrentExercise(prev);
-    setIsPaused(false); setIsResting(false); setIsPlaying(false); setIsCounting(false);
-    if (prev === 0) {
-      setIsResting(true);
-      startRest(0, REST_BASE_SEC);
-    } else {
-      setIsCounting(true); setCountdown(3);
-    }
-  };
+  stopCamera();
+  resetAllTimers();
+  const prev = Math.max(0, currentExercise - 1);
+  setCurrentExercise(prev);
+  setIsPaused(false);
+  setIsResting(false);
+  setIsPlaying(false);
+  setIsCounting(false);
+
+  if (prev === 0) {
+    setIsResting(true);
+    startRest(0, REST_BASE_SEC);
+  } else {
+    setCountdownAction("startNew");   // ✅ เริ่มท่าใหม่
+    setIsCounting(true);
+    setCountdown(3);
+  }
+};
 
   const handleAcceptGuide = async () => {
     const key = `hasSeenGuide:${programId}`;
@@ -663,11 +724,23 @@ export default function WorkoutPlayer() {
               }
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <video ref={exerciseVideoRef} className="hidden" playsInline muted width="640" height="480" />
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                style={{
+                  width: '100%',
+                  maxWidth: 1000,
+                  borderRadius: 12,
+                  transform: 'scaleX(-1)' // กลับด้านกระจกเงาเพื่อให้เหมือนส่องกระจก
+                }}
+              />
+              {/* <video ref={exerciseVideoRef} className="hidden" playsInline muted width="640" height="480" /> */}
             </div>
             {cameraStatus === "loading" && <div className="wp-overlay wp-overlay--muted"><div className="wp-overlay-card">กำลังเปิดกล้อง…</div></div>}
             {cameraStatus === "error" && <div className="wp-overlay wp-overlay--error"><div className="wp-overlay-card">ไม่สามารถเปิดกล้องได้</div></div>}
-            {renderOverlay()}
+            {/* {renderOverlay()} */}
           </div>
         </main>
       )}
@@ -699,7 +772,7 @@ export default function WorkoutPlayer() {
             <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 8 }}>
               <button className="wp-btn wp-btn-primary" onClick={() => addRestSeconds(10)}>เพิ่มเวลาพัก +10 วิ</button>
             </div>
-            {isPaused && !showGuide && (
+            {/* {isPaused && !showGuide && (
               <div className="wp-overlay wp-overlay--dark"
                 role="button"
                 tabIndex={0}
@@ -711,7 +784,6 @@ export default function WorkoutPlayer() {
                     className="wp-overlay-play-btn"
                     onClick={togglePause}
                   >
-                    {/* fill="currentColor" จะทำให้สีไอคอนเป็นสีเดียวกับ color ของปุ่ม (สีขาว) */}
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                       <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
                     </svg>
@@ -720,7 +792,7 @@ export default function WorkoutPlayer() {
 
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </main>
       )}

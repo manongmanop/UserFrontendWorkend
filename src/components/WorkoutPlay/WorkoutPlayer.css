@@ -566,13 +566,20 @@ body {
   position: relative; /* เพื่อให้ overlay อยู่ข้างในได้ */
 }
 
-.wp-exercise-video, .wp-media {
+.wp-exercise-video,
+.wp-media {
   width: 100%;
   max-width: 750px !important;
   height: 100%;
   -o-object-fit: cover;
      object-fit: cover;
   display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+video.hidden {
+  transform: scaleX(-1);
 }
 
 .wp-overlay-centered {
