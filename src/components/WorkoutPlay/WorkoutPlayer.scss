@@ -479,7 +479,6 @@ body {
 
 /* ==================== Main Exercise Area ==================== */
 .wp-main {
-  // flex: 1;
   padding: 0 20px;
   max-width: 1200px;
   margin: 0 auto;
@@ -492,7 +491,7 @@ body {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  margin-top:32px;
+  margin-top: 32px;
   margin-bottom: 24px;
   gap: 16px;
 }
@@ -509,7 +508,6 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
-  // flex-shrink: 0;
 }
 
 .wp-time-remaining {
@@ -552,57 +550,41 @@ body {
   stroke-linecap: round;
   transition: stroke-dashoffset .3s ease;
 }
+
+/* Media area */
 .wp-media-container {
+  position: relative;
   display: grid;
-  /* แบ่งเป็น 2 คอลัมน์เท่ากัน (1fr 1fr) เมื่อจอเล็กให้ยุบเหลือ 1 คอลัมน์ */
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
   justify-content: center;
   align-items: start;
 }
-// .wp-media-container {
-//   position: relative;
-//   background: var(--bg-card);
-//   border: 1px solid var(--border);
-//   border-radius: var(--radius-xl);
-//   overflow: hidden;
-//   box-shadow: var(--shadow-lg);
 
-//   /* ขนาด & สัดส่วน */
-//   width: min(100%, var(--wp-media-max-w));
-//   max-width: 1250px;
-//   max-height: var(--wp-media-max-h);
-//   aspect-ratio: var(--wp-media-ratio);
-
-//   margin: 0 auto var(--space-lg);
-//   display: grid;
-//   place-items: center;
-//   padding: 0; /* ใช้พื้นที่เต็ม ไม่มี padding ในกรอบสื่อ */
-// }
-/* --- Video Card Wrapper --- */
 .wp-video-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
 }
+
 .wp-video-title {
   font-size: 16px;
   margin-bottom: 12px;
   color: #555;
   font-weight: 500;
 }
-/* --- The Frame (กรอบวิดีโอ) --- */
+
 .wp-video-frame {
   width: 100%;
-  /* กุญแจสำคัญ: บังคับสัดส่วน 4:3 ให้เท่ากันทั้งซ้ายขวา */
-  aspect-ratio: 4 / 3; 
+  aspect-ratio: 4 / 3;
   background-color: #000;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  position: relative; /* เพื่อให้ overlay อยู่ข้างในได้ */
+  position: relative;
 }
+
 .wp-exercise-video,
 .wp-media {
   width: 100%;
@@ -613,12 +595,21 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
+
 video.hidden {
   transform: scaleX(-1);
 }
+
+canvas.wp-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+}
+
 .wp-overlay-centered {
   position: absolute;
-  inset: 0; /* top, right, bottom, left = 0 */
+  inset: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
@@ -627,6 +618,19 @@ video.hidden {
   color: white;
   z-index: 10;
 }
+
+.wp-overlay-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
 .wp-no-video {
   width: 100%;
   height: 100%;
@@ -636,6 +640,7 @@ video.hidden {
   justify-content: center;
   color: #999;
 }
+
 .wp-description {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -649,29 +654,6 @@ video.hidden {
   line-height: 1.6;
   text-align: center;
   font-size: clamp(0.875rem, 3vw, 1rem);
-}
-
-.wp-media-container {
-  position: relative;
-}
-
-canvas.wp-media {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 5px;
-}
-
-.wp-overlay-hint {
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 4px;
 }
 
 /* ==================== Controls ==================== */
@@ -1278,8 +1260,22 @@ canvas.wp-media {
     font-size: 1rem;
   }
 
+  .wp-main {
+    padding: var(--space-md);
+  }
+
+  .wp-media-container {
+    grid-template-columns: repeat(auto-fit, minmax( 20px, 1fr));
+    gap: var(--space-lg);
+  }
+
   .wp-controls {
     flex-direction: row;
+    padding: var(--space-md) var(--space-lg);
+  }
+
+  .wp-control-btn span {
+    display: inline;
   }
 
   .wp-completion-actions {
@@ -1298,28 +1294,37 @@ canvas.wp-media {
     padding: var(--space-xl);
   }
 
-  .wp-controls {
-    padding: var(--space-xl);
-  }
-
   .wp-exercise-header {
     align-items: center;
+    gap: var(--space-xl);
   }
 
   .wp-exercise-stats {
     gap: var(--space-xl);
   }
+
+  .wp-media-container {
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: var(--space-xl);
+  }
+
+  .wp-controls {
+    padding: var(--space-xl);
+  }
 }
 
 /* Large devices (≥992px) */
 @media (min-width: 992px) {
-  /*
-  .wp-media-container {
-    aspect-ratio: 21/9;
+  .wp-main {
+    padding: var(--space-xl) var(--space-xl) var(--space-lg);
   }
-  */
+
   .wp-exercise-header {
     margin-bottom: var(--space-md);
+  }
+
+  .wp-media-container {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -1328,10 +1333,28 @@ canvas.wp-media {
   .wp-main {
     padding: var(--space-md);
   }
+
+  .wp-media-container {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
 }
 
-/* ===== Landscape / Low-height fixes (สำคัญ) ===== */
+/* ===== Landscape / Low-height fixes (แนวนอนจอเตี้ย) ===== */
 @media (orientation: landscape) and (max-height: 500px) {
+  .wp-main {
+    padding: var(--space-sm);
+  }
+
+  .wp-media-container {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  .wp-exercise-header {
+    margin-top: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
   .guide-card {
     max-height: 96vh;
     border-radius: var(--radius-lg);
@@ -1358,6 +1381,16 @@ canvas.wp-media {
     width: 100%;
     padding: var(--space-sm) var(--space-md);
   }
+}
+
+@media (max-width: 768px) {
+  .wp-container { height: 100dvh; min-height: 100dvh; }
+  .wp-main { padding: var(--space-md); }
+  .wp-media-container { grid-template-columns: 1fr; gap: var(--space-md); }
+  .wp-controls { gap: var(--space-sm); padding: var(--space-md); flex-direction: column; }
+  .wp-control-btn { width: 100%; justify-content: center; }
+  .wp-control-btn span { display: none; }
+  .wp-control-btn svg { margin: 0 auto; }
 }
 
 /* ==================== Accessibility ==================== */
@@ -1401,6 +1434,7 @@ canvas.wp-media {
     --text-secondary: var(--text-primary);
   }
 }
+
 /* ==================== Viewport Fit Overrides ==================== */
 /* Keep the whole player within the viewport without page scroll */
 .wp-container {
@@ -1438,16 +1472,6 @@ canvas.wp-media {
 
 .wp-control-btn-pause { min-width: clamp(80px, 20vw, 120px); }
 
-/*
-.wp-media-container {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  place-items: center;
-  padding: clamp(6px, 1.5vh, var(--space-md));
-}
-*/
-
 .wp-media,
 canvas.wp-canvas,
 .wp-stage-canvas {
@@ -1456,11 +1480,4 @@ canvas.wp-canvas,
   width: auto;
   height: auto;
   object-fit: contain;
-}
-
-@media (max-width: 768px) {
-  .wp-container { height: 100dvh; min-height: 100dvh; }
-  .wp-controls { gap: var(--space-sm); }
-  .wp-control-btn span { display: none; }
-  .wp-control-btn svg { margin: 0 auto; }
 }

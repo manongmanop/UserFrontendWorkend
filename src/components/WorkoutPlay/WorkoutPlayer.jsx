@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import "./WorkoutPlayer.css";
@@ -124,6 +124,7 @@ export default function WorkoutPlayer() {
 
   // --- Constants ---
   const REST_BASE_SEC = 20;
+  const REST_MAX_SEC = 150;
   const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
 
   // --- State: Data & Status ---
@@ -172,6 +173,7 @@ export default function WorkoutPlayer() {
   const restRemainingMsRef = useRef(0);
   const restLastStartTsRef = useRef(0);
   const nextIndexRef = useRef(null);
+  const overallProgressFillRef = useRef(null);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -444,8 +446,9 @@ export default function WorkoutPlayer() {
   const startRest = (nextIndex, baseSec = REST_BASE_SEC) => {
     setIsResting(true); setIsCounting(false); setIsPlaying(false); setIsPaused(false);
     nextIndexRef.current = nextIndex;
-    restTotalMsRef.current = Math.max(1, baseSec) * 1000;
-    restRemainingMsRef.current = restTotalMsRef.current;
+    const initialMs = Math.min(Math.max(1, baseSec), REST_MAX_SEC) * 1000;
+    restTotalMsRef.current = initialMs;
+    restRemainingMsRef.current = initialMs;
     resumeRestTimers();
   };
 
@@ -495,9 +498,23 @@ export default function WorkoutPlayer() {
   };
 
   const addRestSeconds = (sec = 10) => {
-    restRemainingMsRef.current += sec * 1000;
-    restTotalMsRef.current += sec * 1000;
-    setRestRemaining(Math.ceil(restRemainingMsRef.current / 1000));
+    const REST_MAX_MS = REST_MAX_SEC * 1000;
+    const deltaMs = Math.max(0, sec) * 1000;
+
+    const nextRemaining = Math.min(REST_MAX_MS, Math.max(0, restRemainingMsRef.current) + deltaMs);
+    const nextTotal = Math.min(REST_MAX_MS, Math.max(nextRemaining, Math.max(0, restTotalMsRef.current) + deltaMs));
+    restRemainingMsRef.current = nextRemaining;
+    restTotalMsRef.current = nextTotal;
+
+    // Re-arm timers to reflect the new duration
+    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
+    if (restTimerRef.current) clearTimeout(restTimerRef.current);
+    restIntervalRef.current = null; restTimerRef.current = null;
+
+    updateRestUI(restRemainingMsRef.current);
+    if (!isPaused && isResting) {
+      resumeRestTimers();
+    }
   };
 
   const endRest = () => {
@@ -712,15 +729,18 @@ export default function WorkoutPlayer() {
           <div className="wp-exercise-header" style={{ marginTop: 32 }}>
             <h2 className="wp-current-exercise-name">{current?.name}</h2>
             <div className="wp-exercise-stats">
-              <div className="wp-time-remaining"><span className="wp-time-number">{timeRemaining}</span><span className="wp-time-unit">วินาที</span></div>
+              <div className="wp-time-remaining">
+                <span className="wp-time-number">{timeRemaining}</span>
+                <span className="wp-time-unit">วินาที</span>
+              </div>
               <ProgressRing progress={exerciseProgress} />
             </div>
           </div>
-          <div className="wp-media-container" style={{ display: 'flex', gap: '32px', justifyContent: 'center', alignItems: 'center' }}>
+          <div className="wp-media-container">
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {current?.video || current?.imageUrl ?
-                <video className="wp-exercise-video" src={current?.video} poster={current?.imageUrl} autoPlay muted playsInline loop style={{ width: '100%', maxWidth: 400, borderRadius: 12 }} /> :
-                <div style={{ width: 400, height: 240, background: '#eee', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span>ไม่มีวีดีโอ</span></div>
+                <video className="wp-exercise-video" src={current?.video} poster={current?.imageUrl} autoPlay muted playsInline loop/> :
+                <div style={{ width: 400, height: 240, background: '#eee', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span>ไม่มีวิดีโอ</span></div>
               }
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -733,13 +753,13 @@ export default function WorkoutPlayer() {
                   width: '100%',
                   maxWidth: 1000,
                   borderRadius: 12,
-                  transform: 'scaleX(-1)' // กลับด้านกระจกเงาเพื่อให้เหมือนส่องกระจก
+                  transform: 'scaleX(-1)'
                 }}
               />
               {/* <video ref={exerciseVideoRef} className="hidden" playsInline muted width="640" height="480" /> */}
             </div>
-            {cameraStatus === "loading" && <div className="wp-overlay wp-overlay--muted"><div className="wp-overlay-card">กำลังเปิดกล้อง…</div></div>}
-            {cameraStatus === "error" && <div className="wp-overlay wp-overlay--error"><div className="wp-overlay-card">ไม่สามารถเปิดกล้องได้</div></div>}
+            {cameraStatus === "loading" && <div className="wp-overlay wp-overlay--muted"><div className="wp-overlay-card">กำลังเตรียมกล้อง...</div></div>}
+            {cameraStatus === "error" && <div className="wp-overlay wp-overlay--error"><div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div></div>}
             {/* {renderOverlay()} */}
           </div>
         </main>
@@ -751,26 +771,24 @@ export default function WorkoutPlayer() {
             <div className="wp-exercise-header">
               <h2 className="wp-current-exercise-name">{exercises[nextIndexRef.current]?.name}</h2>
               <div className="wp-exercise-stats">
-                <div className="wp-time-remaining">
-                  <span className="wp-time-number">{restRemaining}</span>
-                  <span className="wp-time-unit">วินาที</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div className="wp-time-remaining">
+                    <span className="wp-time-number">{restRemaining}</span>
+                    <span className="wp-time-unit">วินาที</span>
+                  </div>
+                  <button className="wp-btn wp-btn-primary" onClick={() => addRestSeconds(10)}>+10 วินาที</button>
                 </div>
                 <ProgressRing progress={restProgress} />
               </div>
             </div>
 
             <div className="wp-media-container">
-              {/* ✅ จุดที่แก้: เปลี่ยน nextEx เป็น exercises[nextIndexRef.current] */}
               <video
                 className="wp-media"
                 src={exercises[nextIndexRef.current]?.video}
                 poster={exercises[nextIndexRef.current]?.imageUrl}
                 autoPlay muted playsInline loop
               />
-            </div>
-
-            <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 8 }}>
-              <button className="wp-btn wp-btn-primary" onClick={() => addRestSeconds(10)}>เพิ่มเวลาพัก +10 วิ</button>
             </div>
             {/* {isPaused && !showGuide && (
               <div className="wp-overlay wp-overlay--dark"
@@ -779,7 +797,7 @@ export default function WorkoutPlayer() {
                 onClick={safeResumeFromOverlay}
               >
                 <div className="wp-overlay-card" onClick={(e) => e.stopPropagation()}>
-                  <div className="wp-overlay-name">หยุดชั่วคราว</div>
+                  <div className="wp-overlay-name">วินาทีวินาที</div>
                   <button
                     className="wp-overlay-play-btn"
                     onClick={togglePause}
@@ -787,7 +805,7 @@ export default function WorkoutPlayer() {
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                       <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
                     </svg>
-                    <span>เล่นต่อ</span>
+                    <span>วินาที?</span>
                   </button>
 
                 </div>
