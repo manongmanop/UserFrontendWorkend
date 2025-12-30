@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import axios from "axios";
 import { Smile, Meh, Frown } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./WorkoutPlayer.css";
 import guideImg from "../assets/Infographic.png";
 import guideImg2 from "../assets/Infographic2.png";
+import { useUserAuth } from "../../context/UserAuthContext.jsx";
 const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
-// import { submitProgramFeedback } from "../api/client"; // Import the feedback API function
 /* =========================================
    SECTION 1: Helpers & Utilities
    ========================================= */
@@ -64,17 +64,17 @@ const ProgressRing = ({ progress, size = 80, strokeWidth = 6 }) => {
 function CameraGuide({ mode = "gate", images = [], onAccept, onClose }) {
   const safeImages = (images || []).filter(Boolean);
   const hasMany = safeImages.length > 1;
-  const [idx, setIdx] = React.useState(0);
-  const [preview, setPreview] = React.useState(null);
+  const [idx, setIdx] = useState(0);
+  const [preview, setPreview] = useState(null);
 
-  const go = React.useCallback((d) => {
+  const go = useCallback((d) => {
     setIdx((i) => {
       const n = safeImages.length || 1;
       return ((i + d) % n + n) % n;
     });
   }, [safeImages.length]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const onKey = (e) => {
       if (preview != null) {
         if (e.key === "Escape") setPreview(null);
@@ -126,9 +126,9 @@ function CameraGuide({ mode = "gate", images = [], onAccept, onClose }) {
 }
 export function submitProgramFeedback(programId, level) {
   const payload = { level };
+  // ลองเพิ่ม console.log เพื่อเช็คว่าถูกเรียกจริงไหม
+  console.log(`Sending Feedback: Program=${programId}, Level=${level}`);
   return axios.patch(`/api/workout_programs/${programId}/feedback`, payload);
-
-  
 }
 /* =========================================
    SECTION 3: Main Component
@@ -139,7 +139,7 @@ export default function WorkoutPlayer() {
   // --- Constants ---
   const REST_BASE_SEC = 20;
   const REST_MAX_SEC = 150;
-
+  const navigate = useNavigate();
   // --- State: Data & Status ---
   const [program, setProgram] = useState(null);
   const [exercises, setExercises] = useState([]);
@@ -195,8 +195,11 @@ export default function WorkoutPlayer() {
   const exerciseVideoRef = useRef(null);
 
   // --- Auth ---
-  const { user } = (typeof useUserAuth === 'function' ? useUserAuth() : { user: null });
-  const uid = user?.uid || "t8Enu17J6PSZUG5BC2M21UtinH52";
+  const { user } = useUserAuth();
+  const uid = user?.uid;
+  useEffect(() => {
+    console.log("Current User UID:", uid);
+}, [uid]);
   const overallProgress = useMemo(() => {
     if (!exercises.length) return 0;
     return ((currentExercise + exerciseProgress / 100) / exercises.length) * 100;
@@ -223,23 +226,39 @@ export default function WorkoutPlayer() {
       console.warn("บันทึก history mock ไม่สำเร็จ", e);
     }
   };
-  const handlePickFeedback = async (level) => {
+ const handlePickFeedback = async (level) => {
   if (!programId) return;
+
+  // ✅ เช็คว่ามี UID หรือไม่
+  if (!uid) {
+    alert("ไม่พบข้อมูลผู้ใช้ (UID missing) กรุณา Login ใหม่");
+    return;
+  }
 
   setSendingFeedback(true);
   try {
-    await submitProgramFeedback(programId, level); // level = 'easy'|'medium'|'hard'
-    recordMockHistory(level);
+    // 1) บันทึก feedback
+    await submitProgramFeedback(programId, level);
+
+    // 2) ย้ำให้แน่ใจว่าจบ Session แล้ว (กันเหนียว)
+    if (sessionIdRef.current) {
+        await axios.patch(`/api/workout_sessions/${sessionIdRef.current}/finish`, {});
+    }
+    // 3) ไปหน้า Summary
+    navigate(`/summary/program/${uid}`); 
+    console.log("Start sending feedback..."); // <--- เพิ่ม Log
+    await submitProgramFeedback(programId, level);
+    console.log("Feedback sent successfully!"); // <--- เพิ่ม Log
   } catch (e) {
     console.warn("ส่ง feedback ไม่สำเร็จ:", e);
+    // กรณี Error ก็ยังให้ไปหน้า Summary ได้ (ถ้ามี UID)
+    navigate(`/summary/program/${uid}`);
   } finally {
     setSendingFeedback(false);
     setShowFeedbackModal(false);
-
-    // ไปหน้า summary ต่อ
-    // window.location.assign(`/summary/program/${uid}`);
   }
 };
+
 
   /* =========================================
      SECTION 4: Effects (Data, Camera, Resume)
@@ -250,7 +269,7 @@ export default function WorkoutPlayer() {
     (async () => {
       try {
         setIsLoading(true); setLoadError(null);
-        const res = await axios.get(`${API_BASE}/api/workout_programs/${programId}`);
+        const res = await axios.get(`/api/workout_programs/${programId}`);
         if (ignore) return;
 
         setProgram(res.data);
@@ -312,6 +331,7 @@ export default function WorkoutPlayer() {
     return () => { mounted = false; };
   }, [isPlaying, isPaused]);
 
+  
   // Countdown Logic
   useEffect(() => {
   if (!isCounting) return;
@@ -349,6 +369,14 @@ export default function WorkoutPlayer() {
       videoEl.play().catch(() => { });
     }
   }, [isPaused]);
+useEffect(() => {
+  return () => {
+    if (sessionIdRef.current) {
+      axios.patch(`/api/workout_sessions/${sessionIdRef.current}/finish`, {})
+        .catch(() => {});
+    }
+  };
+}, []);
 
   /* =========================================
      SECTION 5: Logic & Timers
@@ -361,48 +389,105 @@ export default function WorkoutPlayer() {
 
   // --- Session & API ---
   function buildSnapshotFromExercises(list) {
-    return (list || []).map((it, i) => ({
-      exercise: it.exercise?._id || it._id || it.exercise,
-      name: it.name,
-      type: it.type,
-      value: it.value ?? it.time ?? it.duration,
-      order: i
-    }));
+  return (list || [])
+    .map((it, i) => {
+      // บางทีมันเป็น { exercise: {...}, ... } หรือเป็น {...} ตรงๆ
+      const ex = it?.exercise && typeof it.exercise === "object" ? it.exercise : it;
+
+      const exerciseId = ex?._id || it?._id || it?.exercise?._id;
+
+      // type ต้องเป็น "reps" หรือ "time"
+      const type = ex?.type;
+
+      // value ต้องเป็น number
+      const rawValue = ex?.value ?? ex?.time ?? ex?.duration ?? 0;
+      const value = Number(rawValue);
+
+      return {
+        exerciseId,
+        name: ex?.name || it?.name || "",
+        target: { type, value },
+        order: i,
+      };
+    })
+    .filter((x) => x.exerciseId && (x.target?.type === "reps" || x.target?.type === "time") && Number.isFinite(x.target.value));
+}
+
+
+
+  async function startSessionIfNeeded() {
+  if (sessionIdRef.current) return sessionIdRef.current;
+
+  
+  const snapshotExercises = buildSnapshotFromExercises(exercises);
+    
+
+  // กันเคส exercises ยังไม่โหลด / snapshot ว่าง → ไม่ส่งไปให้ 400
+  if (!uid || !programId || snapshotExercises.length === 0) {
+    throw new Error("เริ่ม session ไม่ได้: uid/programId/exercises ไม่พร้อม");
   }
 
-  async function startSessionIfNeeded(kind = "program") {
-    if (sessionIdRef.current) return sessionIdRef.current;
-    const snapshotExercises = buildSnapshotFromExercises(exercises);
-    const body = {
-      uid,
-      origin: { kind: "program", programId },
-      snapshot: { programName: program?.name, exercises: snapshotExercises.map(x => String(x.exercise)) },
-      totalExercises: snapshotExercises.length
-    };
-    const res = await axios.post(`${API_BASE}/api/workout_sessions/start`, body);
-    sessionIdRef.current = res.data?._id;
-    return sessionIdRef.current;
+  const body = {
+    uid,
+    origin: { kind: "program", programId },
+    snapshot: {
+      programName: program?.name || null,
+      exercises: snapshotExercises,
+    },
+  };
+  console.log("START SESSION BODY =", body);
+  // ❗️ใช้ /api/... ตรงๆ ไม่ใช้ API_BASE เพื่อกัน /api/api
+  const res = await axios.post(`/api/workout_sessions/start`, body);
+
+  sessionIdRef.current = res.data?._id;
+  return sessionIdRef.current;
+}
+
+
+  async function logExerciseResult({ order, exerciseDoc, performedSeconds = 0, status = "completed" }) {
+  const sessionId = await startSessionIfNeeded();
+
+  const ex = exerciseDoc?.exercise && typeof exerciseDoc.exercise === "object"
+    ? exerciseDoc.exercise
+    : exerciseDoc;
+
+  const exerciseId = ex?._id || exerciseDoc?._id;
+
+  const type = ex?.type;
+  const rawValue = ex?.value ?? ex?.time ?? ex?.duration ?? 0;
+  const value = Number(rawValue);
+
+  if (!exerciseId || (type !== "reps" && type !== "time") || !Number.isFinite(value)) {
+    throw new Error("logExerciseResult: ข้อมูลท่าออกกำลังกายไม่ครบ (exerciseId/type/value)");
   }
 
-  async function logExerciseResult({ order, exerciseDoc, performedSeconds = 0 }) {
-    const sessionId = await startSessionIfNeeded("program");
-    const targetType = exerciseDoc?.type;
-    const targetValue = exerciseDoc?.value ?? exerciseDoc?.time ?? exerciseDoc?.duration;
+  const payload = {
+    order,
+    exerciseId,
+    name: ex?.name || "",
+    target: { type, value },
+    performed: {
+      reps: type === "reps" ? value : 0,
+      seconds: type === "time" ? Number(performedSeconds) : 0,
+    },
+    status,
+    calories: 0,
+    startedAt: null,
+    endedAt: null,
+  };
 
-    await axios.post(`${API_BASE}/api/workout_sessions/${sessionId}/log-exercise`, {
-      uid, order,
-      exerciseId: exerciseDoc?._id || exerciseDoc?.exercise,
-      name: exerciseDoc?.name,
-      target: { type: targetType, value: String(targetValue ?? "") },
-      performed: { seconds: performedSeconds, reps: 0 },
-      calories: 0
-    });
-  }
+  await axios.post(`/api/workout_sessions/${sessionId}/log-exercise`, payload);
+}
+
+const finishedOnceRef = useRef(false);
 
   async function finishSession() {
-    if (!sessionIdRef.current) return;
-    await axios.patch(`${API_BASE}/api/workout_sessions/${sessionIdRef.current}/finish`, {});
-  }
+  if (!sessionIdRef.current) return;
+  if (finishedOnceRef.current) return;
+  finishedOnceRef.current = true;
+
+  await axios.patch(`/api/workout_sessions/${sessionIdRef.current}/finish`, {});
+}
 
   // --- Workout Logic ---
   const resetWorkoutTimers = () => {
@@ -465,14 +550,28 @@ export default function WorkoutPlayer() {
   };
 
   const onWorkoutEnded = async () => {
-    try {
-      const cur = exercises[currentExercise];
-      const totalMs = currentDurationMsRef.current || parseDurationMs(cur);
-      const remainMs = Math.max(0, remainingMsRef.current || 0);
-      const performedSeconds = Math.round((totalMs - remainMs) / 1000);
+    if (isLoggingRef.current) return;
+    isLoggingRef.current = true;
+   try {
+    const cur = exercises[currentExercise];
+    const totalMs = currentDurationMsRef.current || parseDurationMs(cur);
 
-      // await logExerciseResult({ order: currentExercise, exerciseDoc: cur, performedSeconds });
-    } catch (e) { console.warn("Log failed", e); }
+    const remainMs = Math.max(0, remainingMsRef.current || 0);
+    const performedSeconds = Math.round((totalMs - remainMs) / 1000);
+    if (performedSeconds < 0) performedSeconds = 0;
+    console.log(`Log Exercise [${currentExercise}]: ${cur.name}, Time: ${performedSeconds}s`);
+    await logExerciseResult({
+      order: currentExercise,
+      exerciseDoc: cur,
+      performedSeconds,
+      status: "completed",
+    });
+  } catch (e) {
+    console.warn("Log failed:", e?.message || e);
+  } finally {
+       // ปลดล็อคเมื่อทำงานเสร็จ
+       isLoggingRef.current = false;
+    }
 
     resetWorkoutTimers();
     stopCamera();
@@ -618,7 +717,7 @@ export default function WorkoutPlayer() {
   const safeResumeFromOverlay = () => {
     if (overlayResumeArmedRef.current) togglePause();
   };
-
+  const isLoggingRef = useRef(false);
   const handleNext = () => {
   if (isResting) {
     endRest();
@@ -645,8 +744,6 @@ export default function WorkoutPlayer() {
 
   if (isPlaying) {
     // Force finish current
-    currentDurationMsRef.current = currentDurationMsRef.current || 1;
-    remainingMsRef.current = currentDurationMsRef.current;
     onWorkoutEnded();
     return;
   }

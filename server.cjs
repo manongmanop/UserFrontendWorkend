@@ -465,12 +465,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // กำหนดที่เก็บไฟล์สำหรับ Multer
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-      cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-      cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 
 // กำหนด filter สำหรับไฟล์ที่อนุญาต
@@ -483,13 +479,10 @@ const fileFilter = (req, file, cb) => {
 };
 
 // ตั้งค่า Multer
-const upload = multer({ 
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 200 * 1024 * 1024 // จำกัดขนาดไฟล์ 10MB
-  }
-});
+const upload = multer({ storage, fileFilter: (req, file, cb) => {
+  if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) cb(null, true);
+  else cb(new Error('Invalid file type'), false);
+}});
 
 // เชื่อมต่อกับ MongoDB
 mongoose.connect('mongodb://127.0.0.1:27017/fitness_app')
@@ -801,7 +794,7 @@ app.delete('/api/exercises/:id', async (req, res) => {
   }
 });
 
-// WorkoutProgram Schema และ Routes (ไม่เปลี่ยนแปลง)A
+// WorkoutProgram Schema และ Routes (ไม่เปลี่ยนแปลง)
 const workoutProgramSchema = new Schema({
   name: String,
   description: String,
@@ -813,76 +806,67 @@ const workoutProgramSchema = new Schema({
     enum: ['ความแข็งแรง', 'คาร์ดิโอ', 'ความยืดหยุ่น', 'HIIT'],
     default: 'ความแข็งแรง'
   },
+DataFeedback: {
+    easy: { type: Number, default: 0 },
+    medium: { type: Number, default: 0 },
+    hard: { type: Number, default: 0 },
+  },
   workoutList: [
-    {
-      exercise: {
-        type: Schema.Types.ObjectId,
-        ref: "Exercise"
-      }
-    }
-  ]
+    {
+      exercise: { type: mongoose.Schema.Types.ObjectId, ref: "Exercise", required: true },
+    }
+  ]
 });
 
-const WorkoutProgram = mongoose.model('WorkoutProgram', workoutProgramSchema, 'Program');
+const WorkoutProgram = mongoose.model('WorkoutProgram', workoutProgramSchema, 'program');
 
 // WorkoutProgram Routes
 app.get('/api/workout_programs', async (req, res) => {
-  try {
-    const { category } = req.query; // เพิ่ม query parameter สำหรับ category
-    
-    let filter = {};
-    if (category && category !== 'ทั้งหมด') {
-      filter.category = category;
-    }
-
-    const programs = await WorkoutProgram.find(filter)
-      .populate({
-        path: 'workoutList.exercise'
-      })
-      .lean();
-
-    const formattedPrograms = programs.map(program => ({
-      ...program,
-      workoutList: program.workoutList.map(item => ({
-        _id: item.exercise?._id,
-        name: item.exercise?.name,
-        image: item.exercise?.image,
-        imageUrl: item.exercise?.imageUrl, // เพิ่ม imageUrl
-        type: item.exercise?.type,
-        value: item.exercise?.value
-      }))
-    }));
-
-    res.json(formattedPrograms);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  try {
+    const { category } = req.query;
+    let filter = {};
+    if (category && category !== 'ทั้งหมด') filter.category = category;
+    const programs = await WorkoutProgram.find(filter).populate('workoutList.exercise').lean();
+    
+    // Normalize Data
+    const formattedPrograms = programs.map(p => ({
+      ...p,
+      workoutList: p.workoutList.map(item => ({
+        _id: item.exercise?._id,
+        name: item.exercise?.name,
+        image: item.exercise?.image,
+        imageUrl: item.exercise?.imageUrl,
+        type: item.exercise?.type,
+        value: item.exercise?.value
+      }))
+    }));
+    res.json(formattedPrograms);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 
 // ใน Backend - ปรับ API ให้ populate ข้อมูล exercise
-app.get('/api/workout_programs/:id', async (req, res) => {
-  try {
-    const program = await WorkoutProgram.findById(req.params.id)
-      .populate({
-        path: 'workoutList.exercise',
-        model: 'Exercise' // ชื่อ model ของ Exercise
-      });
-    
-    // แปลงโครงสร้างข้อมูลให้ Frontend ใช้งานง่าย
-    const transformedProgram = {
-      ...program.toObject(),
-      workoutList: program.workoutList.map(workout => ({
-        _id: workout._id,
-        ...workout.exercise.toObject(), // ดึงข้อมูลจาก exercise มาขึ้นบนสุด
-        originalExerciseId: workout.exercise._id
-      }))
-    };
-    
-    res.json(transformedProgram);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+app.get("/api/workout_programs/:id", async (req, res) => {
+  try {
+    const program = await WorkoutProgram.findById(req.params.id)
+      .populate({ path: "workoutList.exercise", select: "name description tips type value time duration image video caloriesBurned" })
+      .lean();
+    if (!program) return res.status(404).json({ message: "Program not found" });
+
+    const workoutList = (program.workoutList || []).map((item, order) => {
+      const ex = item.exercise || {};
+      const targetValue = ex.value ?? ex.time ?? ex.duration ?? 0;
+      return {
+        _id: item._id, order, exercise: String(ex._id),
+        name: ex.name, type: ex.type, value: Number(targetValue),
+        image: (ex.image || "").replace(/\\/g, "/"),
+        video: (ex.video || "").replace(/\\/g, "/"),
+        description: ex.description, tips: ex.tips, caloriesBurned: ex.caloriesBurned
+      };
+    });
+    const image = (program.image || "").replace(/\\/g, "/");
+    res.json({ ...program, image, workoutList });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 app.post('/api/workout_programs', upload.single('image'), async (req, res) => {
   try {
@@ -1002,71 +986,73 @@ app.delete('/api/workout_programs/:id', async (req, res) => {
   }
 });
 
-// ================== Schema & Model ==================
-const recentSchema = new Schema({
-  calorieBurn: { type: Number, required: true },
-  type: { type: String, enum: ["reps", "time"], required: true },
-  progress: { type: Number, required: true },
-  unit: { type: String, required: true },
-  date: { type: String, required: true },
-  uid: { type: String, required: true },        // user id
-  exerciseId: { type: String, required: true }  // exercise id
-});
+// ================== Workout History (replaces "Recent") ==================
+// ================== Histories (collection: histories) ==================
+const historySchema = new mongoose.Schema({
+  uid: { type: String, required: true, index: true },
+  programId: { type: String }, 
+  programName: { type: String, default: "" },
+  totalSeconds: { type: Number, default: 0 },
+  caloriesBurned: { type: Number, default: 0 },
+  feedbackLevel: { type: String, default: "" },
+  totalExercises: { type: Number, default: 0 },
+  finishedAt: { type: Date, default: Date.now },
+}, { timestamps: true });
+const History = mongoose.model("History", historySchema, "histories");
 
-const Recent = mongoose.model("Recent", recentSchema);
 
 // ================== CRUD API ==================
 
-// ➕ Create
-app.post("/api/recent", async (req, res) => {
-  try {
-    const recent = new Recent(req.body);
-    await recent.save();
-    res.status(201).json(recent);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+// Create
+// app.post("/api/workouthistory", async (req, res) => {
+//   try {
+//     const record = new Workouthistory(req.body);
+//     await record.save();
+//     res.status(201).json(record);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
 
-// 📖 Read All
-app.get("/api/recent", async (req, res) => {
-  try {
-    const recents = await Recent.find();
-    res.json(recents);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Read All
+// app.get("/api/workouthistory", async (req, res) => {
+//   try {
+//     const records = await Workouthistory.find().sort({ completedAt: -1 });
+//     res.json(records);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
-// 📖 Read By User
-app.get("/api/recent/user/:uid", async (req, res) => {
-  try {
-    const recents = await Recent.find({ uid: req.params.uid });
-    res.json(recents);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Read By User
+// app.get("/api/workouthistory/user/:uid", async (req, res) => {
+//   try {
+//     const records = await Workouthistory.find({ uid: req.params.uid }).sort({ completedAt: -1 });
+//     res.json(records);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
-// ✏️ Update
-app.put("/api/recent/:id", async (req, res) => {
-  try {
-    const updated = await Recent.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updated);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+// Update
+// app.put("/api/workouthistory/:id", async (req, res) => {
+//   try {
+//     const updated = await Workouthistory.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//     res.json(updated);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
 
-// ❌ Delete
-app.delete("/api/recent/:id", async (req, res) => {
-  try {
-    await Recent.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Delete
+// app.delete("/api/workouthistory/:id", async (req, res) => {
+//   try {
+//     await Workouthistory.findByIdAndDelete(req.params.id);
+//     res.json({ message: "Deleted successfully" });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 app.get('/api/workout-plans/templates/:level', async (req, res) => {
   try {
     const { level } = req.params;
@@ -1367,11 +1353,7 @@ app.get('/api/workout-plans/templates/:level', async (req, res) => {
 const workoutPlanSchema = new mongoose.Schema({
   uid: { type: String, required: true, unique: true },
   plans: [{
-    day: {
-      type: String,
-      required: true,
-      enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-    },
+    day: { type: String, required: true },
     exercises: [{
       exercise: { type: mongoose.Schema.Types.ObjectId, ref: 'Exercise', required: true },
       performed: {
@@ -1379,265 +1361,320 @@ const workoutPlanSchema = new mongoose.Schema({
         seconds: { type: Number, default: 0 }
       }
     }]
-  }],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
-const WorkoutPlan = mongoose.model('WorkoutPlan', workoutPlanSchema);
-
-// async function seedData() {
-//     try {
-//         // ลบข้อมูลเดิม (ถ้าต้องการ)
-//         await BodyMetric.deleteMany({ userId: 'W9wHEQLdVaZ7S5LcclkB1DZ3pFP2' });
-        
-//         // เพิ่มข้อมูลใหม่
-//         for (const item of bodyMetricsData.testData) {
-//             const heightInMeters = item.height / 100;
-//             const bmi = (item.weight / (heightInMeters * heightInMeters)).toFixed(2);
-            
-//             const metric = new BodyMetric({
-//                 ...item,
-//                 bmi: parseFloat(bmi),
-//                 date: new Date(item.date)
-//             });
-            
-//             await metric.save();
-//             console.log(`Added: ${item.date} - Weight: ${item.weight}kg`);
-//         }
-        
-//         console.log('✅ ข้อมูลทดสอบถูกเพิ่มเรียบร้อยแล้ว!');
-//         process.exit(0);
-//     } catch (error) {
-//         console.error('❌ Error:', error);
-//         process.exit(1);
-//     }
-// }
-
-// seedData();
-// =============== Workout Session ===============
-// Sub-schemas must be declared before usage in workoutSessionSchema
-if (false) {
-const __ignored_workoutSessionExerciseSchema = new mongoose.Schema({
-  exercise: { type: String },
-  name: String,
-  type: { type: String, enum: ['reps','time'] },
-  value: mongoose.Schema.Types.Mixed,
-  order: Number
-}, { _id: false });
-
-const __ignored_workoutSessionLogSchema = new mongoose.Schema({
-  order: Number,
-  exerciseId: String,
-  name: String,
-  target: {
-    type: { type: String },
-    value: String
-  },
-  performed: {
-    seconds: { type: Number, default: 0 },
-    reps: { type: Number, default: 0 }
-  },
-  calories: { type: Number, default: 0 },
-  at: { type: Date, default: Date.now }
-}, { _id: false });
-const workoutSessionSchema = new mongoose.Schema({
-  uid: { type: String, required: true, index: true },
-  origin: {
-    kind: { type: String, enum: ['program','daily'], required: true },
-    programId: { type: String, default: null }
-  },
-  snapshot: {
-    programName: { type: String, default: null },
-    exercises: [workoutSessionExerciseSchema]   // <<<< สำคัญ: เป็นอาเรย์ของอ็อบเจ็กต์
-  },
-  totalExercises: { type: Number, default: 0 },
-  startedAt: { type: Date, default: Date.now },
-  finishedAt: { type: Date, default: null },
-  logs: [workoutSessionLogSchema]
+  }]
 }, { timestamps: true });
+const WorkoutPlan = mongoose.model('WorkoutPlan', workoutPlanSchema);
+// ================== Submit Feedback ==================
 
-const WorkoutSession = mongoose.model('WorkoutSession', workoutSessionSchema);
-
-// เริ่ม session
-app.post('/api/workout_sessions/start', async (req, res) => {
-  try {
-    let { uid, origin, snapshot, totalExercises } = req.body || {};
-    if (!uid) return res.status(400).json({ error: 'uid is required' });
-    if (!origin?.kind) return res.status(400).json({ error: 'origin.kind is required' });
-
-    // ---- ปรับรูปแบบถ้าถูกส่งมาเป็นสตริง ----
-    if (typeof snapshot === 'string') {
-      try { snapshot = JSON.parse(snapshot); } catch (_) {}
-    }
-    if (snapshot && typeof snapshot.exercises === 'string') {
-      try { snapshot.exercises = JSON.parse(snapshot.exercises); } catch (_) {}
-    }
-    if (!Array.isArray(snapshot?.exercises)) snapshot = { ...(snapshot||{}), exercises: [] };
-
-    const doc = await WorkoutSession.create({
-      uid,
-      origin,
-      snapshot,
-      totalExercises: Number(totalExercises) || (snapshot.exercises.length || 0),
-    });
-
-    return res.status(201).json(doc);
-  } catch (e) {
-    console.error('start session error:', e);
-    return res.status(500).json({ error: 'failed to start session' });
-  }
-});
-
-// บันทึกผลของ “ท่าหนึ่ง”
-app.post('/api/workout_sessions/:id/log-exercise', async (req, res) => {
+app.patch("/api/workout_programs/:id/feedback", async (req, res) => {
   try {
     const { id } = req.params;
-    const payload = req.body || {};
+    const { level } = req.body;
+    console.log(`📝 Received Feedback: ID=${id}, Level=${level}`);
 
-    const update = {
-      $push: {
-        logs: {
-          order: Number(payload.order ?? 0),
-          exerciseId: String(payload.exerciseId ?? ''),
-          name: payload.name || '',
-          target: {
-            type: payload.target?.type || null,
-            value: String(payload.target?.value ?? '')
-          },
-          performed: {
-            seconds: Number(payload.performed?.seconds || 0),
-            reps: Number(payload.performed?.reps || 0)
-          },
-          calories: Number(payload.calories || 0)
-        }
-      }
-    };
+    if (!['easy', 'medium', 'hard'].includes(level)) {
+      return res.status(400).json({ error: "Invalid level" });
+    }
 
-    const sess = await WorkoutSession.findByIdAndUpdate(id, update, { new: true });
-    if (!sess) return res.status(404).json({ error: 'session not found' });
-
-    return res.json({ ok: true });
-  } catch (e) {
-    console.error('log-exercise error:', e);
-    return res.status(500).json({ error: 'failed to log exercise' });
-  }
-});
-
-// จบ session + สรุปผลอย่างคร่าว
-app.patch('/api/workout_sessions/:id/finish', async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const sess = await WorkoutSession.findByIdAndUpdate(
+    const incField = `DataFeedback.${level}`;
+    const updated = await WorkoutProgram.findByIdAndUpdate(
       id,
-      { finishedAt: new Date() },
-      { new: true }
+      { $inc: { [incField]: 1 } },
+      { new: true, upsert: false } // upsert: false เพราะต้องมี program อยู่แล้ว
     );
-    if (!sess) return res.status(404).json({ error: 'session not found' });
 
-    const totals = sess.logs.reduce((acc, l) => {
-      acc.seconds  += Number(l?.performed?.seconds || 0);
-      acc.reps     += Number(l?.performed?.reps || 0);
-      acc.calories += Number(l?.calories || 0);
-      return acc;
-    }, { seconds: 0, reps: 0, calories: 0 });
-
-    // อัปเดตสถิติผู้ใช้แบบคร่าว ๆ (ถ้ามี user นั้นอยู่)
-    try {
-      await User.findOneAndUpdate(
-        { uid: sess.uid },
-        { 
-          $inc: { 
-            caloriesBurned: totals.calories, 
-            workoutsDone: 1 
-          },
-          updatedAt: new Date()
-        },
-        { new: true }
-      );
-    } catch (e) {
-      // เงียบไว้ ไม่บล็อค flow
-      console.warn('update user stats warn:', e?.message);
-    }
-
-    return res.json({
-      sessionId: sess._id,
-      programName: sess.snapshot?.programName || null,
-      totalExercises: sess.totalExercises || (sess.snapshot?.exercises?.length || 0),
-      doneExercises: sess.logs.length,
-      totals,
-      finishedAt: sess.finishedAt
-    });
-  } catch (e) {
-    console.error('finish session error:', e);
-    return res.status(500).json({ error: 'failed to finish session' });
+    if (!updated) return res.status(404).json({ error: "Workout program not found" });
+    
+    console.log("✅ Feedback Updated:", updated.DataFeedback);
+    res.json({ ok: true, DataFeedback: updated.DataFeedback });
+  } catch (err) {
+    console.error("❌ Feedback Error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
+// ================== /api/histories ==================
 
-// ========= Summary endpoint ที่หน้า Summary เรียก =========
-// NOTE: ชื่อ path จงใจให้ตรงกับที่ frontend เรียกอยู่ (/api/__summary_internal/...)
-app.get('/api/__summary_internal/program/:uid', async (req, res) => {
+// CREATE: บันทึกประวัติ (default 0 ได้เลย)
+app.post("/api/histories", async (req, res) => {
+  try {
+    const doc = await History.create(req.body);
+    res.status(201).json(doc);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+app.get("/api/histories/latest/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    if (!uid) return res.status(400).json({ error: 'uid is required' });
-
-    // ดึง session ล่าสุดของโปรแกรม (ที่จบแล้วก่อน)
-    const latest = await WorkoutSession
-      .findOne({ uid, 'origin.kind': 'program' })
-      .sort({ finishedAt: -1, startedAt: -1 })
-      .lean();
-
-    if (!latest) {
-      return res.status(404).json({ error: 'no finished session found for this uid' });
-    }
-
-    const totals = latest.logs?.reduce((acc, l) => {
-      acc.seconds  += Number(l?.performed?.seconds || 0);
-      acc.reps     += Number(l?.performed?.reps || 0);
-      acc.calories += Number(l?.calories || 0);
-      return acc;
-    }, { seconds: 0, reps: 0, calories: 0 }) || { seconds: 0, reps: 0, calories: 0 };
-
-    return res.json({
-      uid,
-      sessionId: String(latest._id),
-      programName: latest.snapshot?.programName || null,
-      totalExercises: latest.totalExercises || (latest.snapshot?.exercises?.length || 0),
-      doneExercises: latest.logs?.length || 0,
-      totals,
-      logs: latest.logs || [],
-      startedAt: latest.startedAt,
-      finishedAt: latest.finishedAt
-    });
+    const latest = await History.findOne({ uid }).sort({ finishedAt: -1, createdAt: -1 }).lean();
+    if (!latest) return res.status(404).json({ error: "no history" });
+    res.json(latest);
   } catch (e) {
-    console.error('summary endpoint error:', e);
-    return res.status(500).json({ error: 'failed to build summary' });
+    res.status(500).json({ error: e.message });
   }
 });
+
+// READ ALL: (admin ใช้ดูทั้งหมด)
+app.get("/api/histories", async (_req, res) => {
+  try {
+    const items = await History.find({}).sort({ finishedAt: -1, createdAt: -1 }).lean();
+    return res.json(items);
+  } catch (err) {
+    console.error("[histories] list error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// READ BY USER: ดูประวัติของผู้ใช้
+app.get("/api/histories/user/:uid", async (req, res) => {
+  try {
+    const items = await History.find({ uid: req.params.uid }).sort({ finishedAt: -1 }).lean();
+    res.json(items);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// UPDATE: แก้รายการ history (ถ้าต้องใช้)
+app.put("/api/histories/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const body = req.body || {};
+
+    const updated = await History.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          ...(body.programName !== undefined ? { programName: String(body.programName || "") } : {}),
+          ...(body.totalSeconds !== undefined ? { totalSeconds: Number(body.totalSeconds || 0) } : {}),
+          ...(body.caloriesBurned !== undefined ? { caloriesBurned: Number(body.caloriesBurned || 0) } : {}),
+          ...(body.feedbackLevel !== undefined ? { feedbackLevel: String(body.feedbackLevel || "") } : {}),
+          ...(body.totalExercises !== undefined ? { totalExercises: Number(body.totalExercises || 0) } : {}),
+          ...(body.finishedAt !== undefined ? { finishedAt: new Date(body.finishedAt) } : {}),
+        },
+      },
+      { new: true }
+    );
+
+    if (!updated) return res.status(404).json({ error: "history not found" });
+    return res.json(updated);
+  } catch (err) {
+    console.error("[histories] update error:", err);
+    return res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE: ลบรายการ history
+app.delete("/api/histories/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await History.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ error: "history not found" });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[histories] delete error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ================== WorkoutSession (Schema + Model) ==================
 const workoutSessionExerciseSchema = new mongoose.Schema({
-  exercise: { type: String },            // เก็บเป็น String ก็พอ (จะเป็น ObjectId string)
-  name: String,
-  type: { type: String, enum: ['reps','time'] },
-  value: mongoose.Schema.Types.Mixed,    // seconds / reps / string
-  order: Number
+  exerciseId: { type: mongoose.Schema.Types.ObjectId, ref: "Exercise", required: true },
+  name: { type: String, default: "" },
+
+  // เป้าหมายของท่านั้น (มาจาก exercise.type)
+  target: {
+    type: { type: String, enum: ["reps", "time"], required: true }, // reps | time
+    value: { type: Number, required: true }, // reps = จำนวนครั้ง, time = วินาที (แนะนำให้เก็บเป็นวินาทีให้ชัดเจน)
+  },
+
+  order: { type: Number, default: 0 },
 }, { _id: false });
 
 const workoutSessionLogSchema = new mongoose.Schema({
   order: Number,
-  exerciseId: String,
+  exerciseId: { type: mongoose.Schema.Types.ObjectId, ref: "Exercise" },
   name: String,
-  target: {
-    type: { type: String },              // 'time' | 'reps'
-    value: String
-  },
+  target: { type: Object },
   performed: {
+    reps: { type: Number, default: 0 },
     seconds: { type: Number, default: 0 },
-    reps: { type: Number, default: 0 }
   },
-  calories: { type: Number, default: 0 },
-  at: { type: Date, default: Date.now }
+  status: { type: String, default: "completed" },
+  calories: { type: Number, default: 0 }
 }, { _id: false });
-}
+
+const workoutSessionSchema = new mongoose.Schema({
+  uid: { type: String, required: true, index: true },
+  origin: {
+    kind: { type: String, default: "program" },
+    programId: { type: mongoose.Schema.Types.ObjectId, ref: "WorkoutProgram" }
+  },
+  snapshot: {
+    programName: String,
+    exercises: [] 
+  },
+  logs: [workoutSessionLogSchema],
+  startedAt: { type: Date, default: Date.now },
+  finishedAt: { type: Date, default: null }
+}, { timestamps: true });
+const WorkoutSession = mongoose.model("WorkoutSession", workoutSessionSchema, "workout_sessions");
+// ================== API: Start Session ==================
+app.post("/api/workout_sessions/start", async (req, res) => {
+  try {
+    const { uid, origin, snapshot } = req.body;
+    
+    // 🔥 FIX: เช็คก่อนว่ามี Session ที่ "ยังเล่นไม่จบ" (finishedAt: null) ของ User นี้ใน Program นี้ค้างอยู่ไหม
+    const existingSession = await WorkoutSession.findOne({
+      uid,
+      "origin.programId": origin.programId,
+      finishedAt: null
+    });
+
+    // ถ้ามีของเก่าที่ยังไม่จบ ให้ใช้ ID เดิมส่งกลับไปเลย (ไม่สร้างใหม่)
+    if (existingSession) {
+      console.log(`♻️ Resuming existing session: ${existingSession._id}`);
+      return res.json({ _id: existingSession._id });
+    }
+
+    // ถ้าไม่มี ค่อยสร้างใหม่
+    console.log(`🚀 Starting NEW Session for UID: ${uid}`);
+    const newSession = await WorkoutSession.create({
+      uid,
+      origin,
+      snapshot,
+      startedAt: new Date()
+    });
+    
+    res.status(201).json(newSession);
+  } catch (err) {
+    console.error("Start Session Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+// ================== API: Log Exercise ==================
+app.post("/api/workout_sessions/:id/log-exercise", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const logData = req.body;
+
+    // 1. ตรวจสอบค่า seconds และ calories
+    const seconds = Math.max(0, Number(logData.performed?.seconds || 0));
+    
+    // สูตรคำนวณแคลอรี่ (ปรับตามต้องการ)
+    // ตัวอย่าง: (วินาที / 60) * 5
+    let rawCalories = (seconds / 60) * 5; 
+    // ปัดเศษทศนิยมให้สวยงาม (ถ้าเกิน 10 วิ ปัดเต็ม, ถ้าน้อยกว่านั้นเก็บทศนิยม 2 ตำแหน่ง)
+    const calories = seconds > 10 ? Math.ceil(rawCalories) : parseFloat(rawCalories.toFixed(2));
+    
+    // 🔥 FIX สำคัญ: ใช้ $pull ลบ Log เดิมของท่านี้ (order เดียวกัน) ออกก่อน
+    await WorkoutSession.findByIdAndUpdate(id, {
+      $pull: { logs: { order: logData.order } }
+    });
+
+    // 🔥 จากนั้นค่อย $push อันใหม่เข้าไป
+    await WorkoutSession.findByIdAndUpdate(
+      id,
+      { 
+        $push: { logs: { ...logData, performed: { ...logData.performed, seconds }, calories } } 
+      }
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Log Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+// ================== API: Finish Session ==================
+app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🏁 Finishing Session ID: ${id}`);
+
+    // 1. อัปเดต Session ว่าจบแล้ว
+    const session = await WorkoutSession.findByIdAndUpdate(
+      id,
+      { finishedAt: new Date() },
+      { new: true }
+    );
+
+    if (!session) return res.status(404).json({ error: "Session not found" });
+
+    // 2. คำนวณผลรวม (ใช้ Math.round เพื่อความสวยงาม)
+    const totals = session.logs.reduce((acc, log) => {
+      acc.seconds += Number(log.performed?.seconds || 0);
+      acc.reps += Number(log.performed?.reps || 0);
+      acc.calories += Number(log.calories || 0);
+      return acc;
+    }, { seconds: 0, reps: 0, calories: 0 });
+
+    // ปัดเศษผลรวมแคลอรี่
+    totals.calories = Math.ceil(totals.calories);
+
+    // 3. สร้าง History ถาวร
+    const historyData = {
+      uid: session.uid,
+      programId: session.origin?.programId,
+      programName: session.snapshot?.programName || "Unknown Program",
+      totalSeconds: totals.seconds,
+      caloriesBurned: totals.calories,
+      totalExercises: session.logs.length, // นับจำนวนจาก Log จริงๆ
+      finishedAt: new Date()
+    };
+
+    const newHistory = await History.create(historyData);
+    console.log("✅ History Created:", newHistory._id);
+
+    // 4. อัปเดต User Stats
+    await User.findOneAndUpdate(
+        { uid: session.uid },
+        { 
+            $inc: { 
+                caloriesBurned: totals.calories,
+                workoutsDone: 1 
+            }
+        }
+    );
+
+    res.json({ 
+      sessionId: session._id, 
+      historyId: newHistory._id,
+      msg: "Session finished and History saved",
+      totals
+    });
+
+  } catch (err) {
+    console.error("❌ Finish Session Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+// ================== API: Latest Summary (Program) ==================
+app.get("/api/__summary_internal/program/:uid", async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const latest = await WorkoutSession.findOne({ 
+      uid, 
+      finishedAt: { $ne: null } 
+    }).sort({ finishedAt: -1 }).lean();
+
+    if (!latest) return res.status(404).json({ error: "ไม่พบประวัติการเล่น" });
+
+    const totals = (latest.logs || []).reduce((acc, l) => {
+      acc.seconds += Number(l.performed?.seconds || 0);
+      acc.calories += Number(l.calories || 0);
+      return acc;
+    }, { seconds: 0, calories: 0 });
+
+    res.json({
+      uid,
+      sessionId: latest._id,
+      programName: latest.snapshot?.programName,
+      totalExercises: latest.snapshot?.exercises?.length || 0,
+      doneExercises: latest.logs?.length || 0,
+      totals,
+      finishedAt: latest.finishedAt
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

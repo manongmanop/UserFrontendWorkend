@@ -530,6 +530,45 @@ body {
   transition: stroke-dashoffset 0.3s ease;
 }
 
+.wp-media-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wp-placeholder-video {
+  width: 100%;
+  max-width: 400px;
+  min-height: 240px;
+  background: #eee;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: var(--space-md);
+}
+
+.wp-exercise-video--primary {
+  max-width: 400px !important;
+  border-radius: 12px;
+}
+
+.wp-camera-feed {
+  width: 100%;
+  max-width: 1000px;
+  border-radius: 12px;
+  transform: scaleX(-1);
+}
+
+.wp-rest-timer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Media area */
 .wp-media-container {
   position: relative;
@@ -1030,6 +1069,47 @@ canvas.wp-media {
   box-shadow: var(--shadow-xl);
 }
 
+.wp-feedback-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px 24px;
+  width: min(460px, 92vw);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.wp-feedback-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.wp-feedback-btn {
+  flex: 1;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.wp-feedback-btn--easy {
+  background: #22c55e;
+  color: #fff;
+} /* เขียว */
+.wp-feedback-btn--medium {
+  background: #facc15;
+  color: #111827;
+} /* เหลือง */
+.wp-feedback-btn--hard {
+  background: #ef4444;
+  color: #fff;
+} /* แดง */
+.wp-feedback-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ==================== Generic Overlays (Pause/Camera/Error) ==================== */
 .wp-overlay {
   position: absolute;
@@ -1066,6 +1146,10 @@ canvas.wp-media {
 .wp-overlay-name {
   font-weight: var(--font-weight-bold);
   font-size: clamp(1rem, 2.5vw, 1.25rem);
+}
+
+.wp-overlay-play-icon {
+  margin-left: 4px;
 }
 
 /* ===== Gallery (หลายรูป) ===== */

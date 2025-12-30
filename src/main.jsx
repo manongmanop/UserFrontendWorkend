@@ -19,6 +19,7 @@ import RecentMenu from './components/History Section/RecentCard.jsx'
 // แต่ให้แน่ใจว่าตัว component ชื่อ/behavior ตรงกับที่ต้องการ
 
 import WorkoutPlayer from './components/WorkoutPlay/WorkoutPlayer.jsx'
+import SummaryProgram  from './components/WorkoutPlay/SummaryProgram.jsx'
 import Summary from './components/Program/Summary.jsx'
 import PoseDetector from './PoseDetector.jsx'
 import Dumbbell from './Dumbbell.jsx'
@@ -50,9 +51,7 @@ const router = createBrowserRouter([
   { path: "/detail/:id", element: <ProtectedRoute><Detail /></ProtectedRoute> },
 
   // ✅ Summary & Recent
-  { path: "/summary/:workoutType/:userId", element: <ProtectedRoute><Summary /></ProtectedRoute> },
   { path: "/recent/:userId", element: <ProtectedRoute><RecentMenu /></ProtectedRoute> },
-
   { path: "/PoseDetector", element: <ProtectedRoute><PoseDetector /></ProtectedRoute> },
   { path: "/Dumbbell", element: <ProtectedRoute><Dumbbell /></ProtectedRoute> },
   { path: "/Hipe_Raise", element: <ProtectedRoute><Hipe_Raise /></ProtectedRoute> },
@@ -61,10 +60,11 @@ const router = createBrowserRouter([
   { path: "/Push_ups", element: <ProtectedRoute><Push_ups /></ProtectedRoute> },
   { path: "/Squat", element: <ProtectedRoute><Squat /></ProtectedRoute> },
   { path: "/WorkoutPlayer/:programId", element: <ProtectedRoute><WorkoutPlayer /></ProtectedRoute> },
+  { path: "/summary/program/:uid", element: <ProtectedRoute><SummaryProgram /></ProtectedRoute> },
 
   // ✅ (ตัวเลือก) เพื่อให้ flow จบจาก WorkoutPlayer → Result → History ได้ครบ
   // { path: "/results/:sessionId", element: <ProtectedRoute><WorkoutResult /></ProtectedRoute> },
-  { path: "/history", element: <ProtectedRoute><WorkoutHistory /></ProtectedRoute> },
+  { path: "/history/:uid", element: <ProtectedRoute><WorkoutHistory /></ProtectedRoute> },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
