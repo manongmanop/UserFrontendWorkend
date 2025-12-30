@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
+import { Smile, Meh, Frown } from "lucide-react";
 import { useParams } from "react-router-dom";
 import "./WorkoutPlayer.css";
 import guideImg from "../assets/Infographic.png";
 import guideImg2 from "../assets/Infographic2.png";
-
+const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
+// import { submitProgramFeedback } from "../api/client"; // Import the feedback API function
 /* =========================================
    SECTION 1: Helpers & Utilities
    ========================================= */
@@ -46,8 +48,15 @@ const ProgressRing = ({ progress, size = 80, strokeWidth = 6 }) => {
   return (
     <svg width={size} height={size} className="progress-ring-svg">
       <circle className="progress-ring-background" cx={center} cy={center} r={radius} strokeWidth={strokeWidth} />
-      <circle className="progress-ring-progress" cx={center} cy={center} r={radius} strokeWidth={strokeWidth}
-        style={{ strokeDasharray: `${C} ${C}`, strokeDashoffset: dashoffset, transform: "rotate(-90deg)", transformOrigin: "50% 50%" }} />
+      <circle
+        className="progress-ring-progress"
+        cx={center}
+        cy={center}
+        r={radius}
+        strokeWidth={strokeWidth}
+        strokeDasharray={`${C} ${C}`}
+        strokeDashoffset={dashoffset}
+      />
     </svg>
   );
 };
@@ -115,7 +124,12 @@ function CameraGuide({ mode = "gate", images = [], onAccept, onClose }) {
     </>
   );
 }
+export function submitProgramFeedback(programId, level) {
+  const payload = { level };
+  return axios.patch(`/api/workout_programs/${programId}/feedback`, payload);
 
+  
+}
 /* =========================================
    SECTION 3: Main Component
    ========================================= */
@@ -125,7 +139,6 @@ export default function WorkoutPlayer() {
   // --- Constants ---
   const REST_BASE_SEC = 20;
   const REST_MAX_SEC = 150;
-  const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
 
   // --- State: Data & Status ---
   const [program, setProgram] = useState(null);
@@ -173,7 +186,6 @@ export default function WorkoutPlayer() {
   const restRemainingMsRef = useRef(0);
   const restLastStartTsRef = useRef(0);
   const nextIndexRef = useRef(null);
-  const overallProgressFillRef = useRef(null);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -185,18 +197,60 @@ export default function WorkoutPlayer() {
   // --- Auth ---
   const { user } = (typeof useUserAuth === 'function' ? useUserAuth() : { user: null });
   const uid = user?.uid || "t8Enu17J6PSZUG5BC2M21UtinH52";
+  const overallProgress = useMemo(() => {
+    if (!exercises.length) return 0;
+    return ((currentExercise + exerciseProgress / 100) / exercises.length) * 100;
+  }, [currentExercise, exerciseProgress, exercises.length]);
+
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [sendingFeedback, setSendingFeedback] = useState(false);
+  const recordMockHistory = (level) => {
+    const key = "mock:workoutHistory";
+    const entry = {
+      programId,
+      programName: program?.name || "โปรแกรมไม่มีชื่อ",
+      totalExercises: exercises.length,
+      level,
+      time: 0,
+      calories: 0,
+      finishedAt: new Date().toISOString(),
+    };
+    try {
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      list.unshift(entry);
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 50)));
+    } catch (e) {
+      console.warn("บันทึก history mock ไม่สำเร็จ", e);
+    }
+  };
+  const handlePickFeedback = async (level) => {
+  if (!programId) return;
+
+  setSendingFeedback(true);
+  try {
+    await submitProgramFeedback(programId, level); // level = 'easy'|'medium'|'hard'
+    recordMockHistory(level);
+  } catch (e) {
+    console.warn("ส่ง feedback ไม่สำเร็จ:", e);
+  } finally {
+    setSendingFeedback(false);
+    setShowFeedbackModal(false);
+
+    // ไปหน้า summary ต่อ
+    // window.location.assign(`/summary/program/${uid}`);
+  }
+};
 
   /* =========================================
      SECTION 4: Effects (Data, Camera, Resume)
      ========================================= */
-
   // Load Program Data
   useEffect(() => {
     let ignore = false;
     (async () => {
       try {
         setIsLoading(true); setLoadError(null);
-        const res = await axios.get(`/api/workout_programs/${programId}`);
+        const res = await axios.get(`${API_BASE}/api/workout_programs/${programId}`);
         if (ignore) return;
 
         setProgram(res.data);
@@ -417,7 +471,7 @@ export default function WorkoutPlayer() {
       const remainMs = Math.max(0, remainingMsRef.current || 0);
       const performedSeconds = Math.round((totalMs - remainMs) / 1000);
 
-      await logExerciseResult({ order: currentExercise, exerciseDoc: cur, performedSeconds });
+      // await logExerciseResult({ order: currentExercise, exerciseDoc: cur, performedSeconds });
     } catch (e) { console.warn("Log failed", e); }
 
     resetWorkoutTimers();
@@ -427,11 +481,13 @@ export default function WorkoutPlayer() {
     if (currentExercise < exercises.length - 1) {
       startRest(currentExercise + 1, REST_BASE_SEC);
     } else {
-      setIsCounting(false);
-      alert("🎉 เสร็จสิ้นการออกกำลังกายแล้ว!");
-      try { await finishSession(); } catch (e) { }
-      window.location.assign(`/summary/program/${uid}`);
-    }
+  setIsCounting(false);
+  try { await finishSession(); } catch (e) {}
+
+  // ✅ เปิด modal ให้โหวตก่อน
+  setShowFeedbackModal(true);
+  };
+
   };
 
   // --- Rest Logic ---
@@ -621,7 +677,7 @@ export default function WorkoutPlayer() {
     const key = `hasSeenGuide:${programId}`;
     localStorage.setItem(key, "true");
     setShowGuide(false); setGuideMode("peek");
-    try { await startSessionIfNeeded("program"); } catch (e) { }
+    // try { await startSessionIfNeeded("program"); } catch (e) { }
     // Start initial rest phase ONLY after user confirms
     if (exercises.length > 0) {
       setCurrentExercise(0);
@@ -673,7 +729,6 @@ export default function WorkoutPlayer() {
 
   const current = exercises[currentExercise];
   const nextEx = currentExercise < exercises.length - 1 ? exercises[currentExercise + 1] : null;
-  const overallProgress = ((currentExercise + exerciseProgress / 100) / exercises.length) * 100;
 
   // -- Render Helpers --
   const renderOverlay = () => (
@@ -691,7 +746,7 @@ export default function WorkoutPlayer() {
             className="wp-overlay-play-btn"
             onClick={togglePause}
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginLeft: 4 }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="wp-overlay-play-icon">
               <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
             </svg>
           </button>
@@ -726,7 +781,7 @@ export default function WorkoutPlayer() {
 
       {isPlaying && (
         <main className="wp-main">
-          <div className="wp-exercise-header" style={{ marginTop: 32 }}>
+          <div className="wp-exercise-header">
             <h2 className="wp-current-exercise-name">{current?.name}</h2>
             <div className="wp-exercise-stats">
               <div className="wp-time-remaining">
@@ -737,24 +792,19 @@ export default function WorkoutPlayer() {
             </div>
           </div>
           <div className="wp-media-container">
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="wp-media-column">
               {current?.video || current?.imageUrl ?
-                <video className="wp-exercise-video" src={current?.video} poster={current?.imageUrl} autoPlay muted playsInline loop/> :
-                <div style={{ width: 400, height: 240, background: '#eee', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span>ไม่มีวิดีโอ</span></div>
+                <video className="wp-exercise-video wp-exercise-video--primary" src={current?.video} poster={current?.imageUrl} autoPlay muted playsInline loop/> :
+                <div className="wp-placeholder-video"><span>ไม่มีวิดีโอ</span></div>
               }
             </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="wp-media-column">
               <video
                 ref={videoRef}
                 autoPlay
                 muted
                 playsInline
-                style={{
-                  width: '100%',
-                  maxWidth: 1000,
-                  borderRadius: 12,
-                  transform: 'scaleX(-1)'
-                }}
+                className="wp-camera-feed"
               />
               {/* <video ref={exerciseVideoRef} className="hidden" playsInline muted width="640" height="480" /> */}
             </div>
@@ -771,12 +821,12 @@ export default function WorkoutPlayer() {
             <div className="wp-exercise-header">
               <h2 className="wp-current-exercise-name">{exercises[nextIndexRef.current]?.name}</h2>
               <div className="wp-exercise-stats">
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div className="wp-rest-timer-row">
                   <div className="wp-time-remaining">
                     <span className="wp-time-number">{restRemaining}</span>
                     <span className="wp-time-unit">วินาที</span>
                   </div>
-                  <button className="wp-btn wp-btn-primary" onClick={() => addRestSeconds(10)}>+10 วินาที</button>
+                  <button className="wp-btn wp-btn-primary" onClick={() => addRestSeconds(10)}>เพิ่มเวลาพัก +10 วินาที</button>
                 </div>
                 <ProgressRing progress={restProgress} />
               </div>
@@ -824,6 +874,51 @@ export default function WorkoutPlayer() {
         mainButtonLabel={isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านนี้" : "ถัดไป"}
         showPlayPause={isResting || isPlaying}
       />
+      {showFeedbackModal && (
+  <div className="wp-overlay wp-overlay--dark" role="dialog" aria-modal="true">
+    <div className="wp-feedback-card" onClick={(e) => e.stopPropagation()}>
+      <h2 className="wp-feedback-title">ให้คะแนนความยากของโปรแกรมนี้</h2>
+
+      <div className="wp-feedback-actions">
+        <button
+          className="wp-feedback-btn wp-feedback-btn--easy"
+          disabled={sendingFeedback}
+          onClick={() => handlePickFeedback("easy")}
+        >
+          <div className="sentiment-icon happy">
+            <Smile size={22} />
+          </div>
+          ง่ายมาก
+        </button>
+
+        <button
+          className="wp-feedback-btn wp-feedback-btn--medium"
+          disabled={sendingFeedback}
+          onClick={() => handlePickFeedback("medium")}
+        >
+          <div className="sentiment-icon neutral">
+            <Meh size={22} />
+          </div>
+          ปานกลาง
+        </button>
+
+        <button
+          className="wp-feedback-btn wp-feedback-btn--hard"
+          disabled={sendingFeedback}
+          onClick={() => handlePickFeedback("hard")}
+        >
+          <div className="sentiment-icon sad">
+            <Frown size={22} />
+          </div>
+          ยากมาก
+        </button>
+      </div>
+
+      {sendingFeedback && <div className="wp-feedback-loading">กำลังบันทึก...</div>}
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
@@ -856,7 +951,9 @@ const Header = ({ title, current, total, progress, onBack, onGuide }) => (
         <h1 className="wp-program-title">{title}</h1>
         <div className="wp-progress-info">
           <span className="wp-exercise-counter">{current}/{total}</span>
-          <div className="wp-overall-progress"><div className="wp-overall-progress-fill" style={{ width: `${progress}%` }} /></div>
+          <div className="wp-overall-progress">
+            <div className="wp-overall-progress-fill" style={{ width: `${progress}%` }} />
+          </div>
         </div>
       </div>
       <button className="wp-sound-btn" onClick={onGuide} title="เปิดไกด์">
@@ -886,4 +983,5 @@ const Controls = ({ onPrev, onNext, onTogglePause, isPaused, canPrev, mainButton
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="5 4 15 12 5 20 5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
     </button>
   </footer>
+  
 );
