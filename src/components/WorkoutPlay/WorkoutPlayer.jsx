@@ -19,24 +19,7 @@ function normalizeUrl(p) {
 }
 
 function parseDurationMs(ex) {
-  const { type, value, time, duration } = ex || {};
-  const pick = time ?? duration ?? value;
-  const toSeconds = (val) => {
-    if (typeof val === "number") return val;
-    if (val == null) return 0;
-    const s = String(val).trim();
-    if (/^\d+(\.\d+)?$/.test(s)) return parseFloat(s);
-    const parts = s.split(":").map((n) => parseInt(n, 10) || 0);
-    if (parts.length === 2) { const [mm, ss] = parts; return mm * 60 + ss; }
-    if (parts.length === 3) { const [hh, mm, ss] = parts; return hh * 3600 + mm * 60 + ss; }
-    return 0;
-  };
-  if (type === "time") return Math.max(0, toSeconds(pick)) * 1000;
-  if (type === "reps") {
-    const reps = typeof pick === "number" ? pick : parseInt(pick, 10) || 0;
-    return Math.max(0, reps) * 2000;
-  }
-  return 0;
+  return 50 * 1000;
 }
 
 /* =========================================
@@ -197,6 +180,35 @@ export default function WorkoutPlayer() {
   // --- Auth ---
   const { user } = useUserAuth();
   const uid = user?.uid;
+
+  const activeExerciseIndexRef = useRef(-1);
+  useEffect(() => {
+    // ถ้า index ยังไม่เปลี่ยน หรือไม่มีข้อมูลท่า -> ไม่ต้องทำอะไร
+    if (activeExerciseIndexRef.current === currentExercise || !exercises[currentExercise]) {
+        return;
+    }
+
+    // จำไว้ว่าทำท่านี่แล้ว
+    activeExerciseIndexRef.current = currentExercise;
+
+    // 1. ตั้งค่าเวลาเริ่ม (จุดสำคัญ: ทำครั้งเดียว ไม่มีการรีเซ็ตอีกจนกว่าจะเปลี่ยนท่า)
+    exerciseStartTimeRef.current = Date.now();
+    
+    // 2. ตั้งค่า Duration 60 วิ
+    const duration = 60 * 1000;
+    currentDurationMsRef.current = duration;
+    remainingMsRef.current = duration;
+
+    console.log(`🎬 Init Exercise ${currentExercise}: StartTime Fixed at ${exerciseStartTimeRef.current}`);
+
+    // 3. เริ่มนับถอยหลัง
+    if (!isResting && !isCounting) {
+        setIsPlaying(true);
+        resumeWorkoutTimers();
+    }
+
+  }, [currentExercise, isResting, isCounting, exercises]);
+
   useEffect(() => {
     console.log("Current User UID:", uid);
 }, [uid]);
@@ -226,39 +238,30 @@ export default function WorkoutPlayer() {
       console.warn("บันทึก history mock ไม่สำเร็จ", e);
     }
   };
+  const sendingOnceRef = useRef(false);
  const handlePickFeedback = async (level) => {
-  if (!programId) return;
+  if (!programId || !uid) return;
 
-  // ✅ เช็คว่ามี UID หรือไม่
-  if (!uid) {
-    alert("ไม่พบข้อมูลผู้ใช้ (UID missing) กรุณา Login ใหม่");
-    return;
-  }
+  if (sendingOnceRef.current) return;      // ✅ กันคลิก/ยิงซ้ำ
+  sendingOnceRef.current = true;
 
   setSendingFeedback(true);
   try {
-    // 1) บันทึก feedback
+    // ✅ จบ session แบบครั้งเดียว
+    await finishSession();  // ให้ฟังก์ชันนี้ guard เอง
+
+    // ✅ ส่ง feedback ครั้งเดียว
     await submitProgramFeedback(programId, level);
 
-    // 2) ย้ำให้แน่ใจว่าจบ Session แล้ว (กันเหนียว)
-    if (sessionIdRef.current) {
-        await axios.patch(`/api/workout_sessions/${sessionIdRef.current}/finish`, {});
-    }
-    // 3) ไปหน้า Summary
-    navigate(`/summary/program/${uid}`); 
-    console.log("Start sending feedback..."); // <--- เพิ่ม Log
-    await submitProgramFeedback(programId, level);
-    console.log("Feedback sent successfully!"); // <--- เพิ่ม Log
+    setShowFeedbackModal(false);
+    navigate(`/summary/program/${uid}`);
   } catch (e) {
     console.warn("ส่ง feedback ไม่สำเร็จ:", e);
-    // กรณี Error ก็ยังให้ไปหน้า Summary ได้ (ถ้ามี UID)
     navigate(`/summary/program/${uid}`);
   } finally {
     setSendingFeedback(false);
-    setShowFeedbackModal(false);
   }
 };
-
 
   /* =========================================
      SECTION 4: Effects (Data, Camera, Resume)
@@ -371,12 +374,14 @@ export default function WorkoutPlayer() {
   }, [isPaused]);
 useEffect(() => {
   return () => {
-    if (sessionIdRef.current) {
-      axios.patch(`/api/workout_sessions/${sessionIdRef.current}/finish`, {})
-        .catch(() => {});
-    }
+    finishSession().catch(() => {});
   };
 }, []);
+
+useEffect(() => {
+    exerciseStartTimeRef.current = Date.now();
+    console.log(`⏱️ New Exercise Started: ${currentExercise} at ${exerciseStartTimeRef.current}`);
+  }, [currentExercise]); // ทำงานเมื่อเลขข้อเปลี่ยนเท่านั้น
 
   /* =========================================
      SECTION 5: Logic & Timers
@@ -412,35 +417,56 @@ useEffect(() => {
     })
     .filter((x) => x.exerciseId && (x.target?.type === "reps" || x.target?.type === "time") && Number.isFinite(x.target.value));
 }
+const isStartingSessionRef = useRef(false);
 
-
-
-  async function startSessionIfNeeded() {
+//  แก้ไขฟังก์ชันนี้
+async function startSessionIfNeeded() {
+  // ถ้ามี Session ID แล้ว ให้ใช้เลย ไม่ต้องสร้างใหม่
   if (sessionIdRef.current) return sessionIdRef.current;
 
-  
-  const snapshotExercises = buildSnapshotFromExercises(exercises);
-    
-
-  // กันเคส exercises ยังไม่โหลด / snapshot ว่าง → ไม่ส่งไปให้ 400
-  if (!uid || !programId || snapshotExercises.length === 0) {
-    throw new Error("เริ่ม session ไม่ได้: uid/programId/exercises ไม่พร้อม");
+  // 🔥 FIX: ถ้ากำลังสร้างอยู่ (Loading) ให้รอจนกว่าจะเสร็จ (ป้องกันการเรียกซ้ำ)
+  if (isStartingSessionRef.current) {
+    // รอจนกว่า sessionIdRef.current จะมีค่า (Polling แบบง่าย)
+    return new Promise((resolve) => {
+      const check = setInterval(() => {
+        if (sessionIdRef.current) {
+          clearInterval(check);
+          resolve(sessionIdRef.current);
+        }
+      }, 100);
+    });
   }
 
-  const body = {
-    uid,
-    origin: { kind: "program", programId },
-    snapshot: {
-      programName: program?.name || null,
-      exercises: snapshotExercises,
-    },
-  };
-  console.log("START SESSION BODY =", body);
-  // ❗️ใช้ /api/... ตรงๆ ไม่ใช้ API_BASE เพื่อกัน /api/api
-  const res = await axios.post(`/api/workout_sessions/start`, body);
+  isStartingSessionRef.current = true; // 🔒 ล็อคทันที
 
-  sessionIdRef.current = res.data?._id;
-  return sessionIdRef.current;
+  try {
+    const snapshotExercises = buildSnapshotFromExercises(exercises);
+
+    if (!uid || !programId || snapshotExercises.length === 0) {
+      throw new Error("เริ่ม session ไม่ได้: uid/programId/exercises ไม่พร้อม");
+    }
+
+    const body = {
+      uid,
+      origin: { kind: "program", programId },
+      snapshot: {
+        programName: program?.name || null,
+        exercises: snapshotExercises,
+      },
+    };
+    
+    console.log("🚀 START SESSION (Once Only) =", body);
+    const res = await axios.post(`/api/workout_sessions/start`, body);
+
+    sessionIdRef.current = res.data?._id;
+    return sessionIdRef.current;
+
+  } catch (e) {
+    console.error("Start Session Failed:", e);
+    throw e;
+  } finally {
+    isStartingSessionRef.current = false; // 🔓 ปลดล็อค (เผื่อจะลองใหม่ถ้า Error)
+  }
 }
 
 
@@ -467,8 +493,12 @@ useEffect(() => {
     name: ex?.name || "",
     target: { type, value },
     performed: {
-      reps: type === "reps" ? value : 0,
-      seconds: type === "time" ? Number(performedSeconds) : 0,
+      // ✅ แก้ตรงนี้: ให้บันทึก Reps ตามเป้า (หรือ 0 ถ้าไม่ใช่ Reps)
+      reps: type === "reps" ? value : 0, 
+      
+      // 🔥 FIX: บันทึกเวลาเสมอ! ไม่ว่าจะเป็นท่า Reps หรือ Time
+      // (ลบเงื่อนไข type === "time" ออก)
+      seconds: Number(performedSeconds) || 0, 
     },
     status,
     calories: 0,
@@ -482,11 +512,12 @@ useEffect(() => {
 const finishedOnceRef = useRef(false);
 
   async function finishSession() {
-  if (!sessionIdRef.current) return;
-  if (finishedOnceRef.current) return;
-  finishedOnceRef.current = true;
+  if (!sessionIdRef.current) return null;
+  if (finishedOnceRef.current) return sessionIdRef.current;
 
+  finishedOnceRef.current = true;
   await axios.patch(`/api/workout_sessions/${sessionIdRef.current}/finish`, {});
+  return sessionIdRef.current;
 }
 
   // --- Workout Logic ---
@@ -501,10 +532,12 @@ const finishedOnceRef = useRef(false);
   const startWorkoutTimersForCurrent = () => {
     const cur = exercises[currentExercise]; if (!cur) return;
     const durationMs = parseDurationMs(cur);
-    if (durationMs <= 0) { onWorkoutEnded(); return; }
+    if (durationMs <= 0) {
+      //onWorkoutEnded(); return;
+    }
 
-    currentDurationMsRef.current = durationMs;
-    remainingMsRef.current = durationMs;
+    currentDurationMsRef.current = durationMs > 0 ? durationMs : 60000; // Default 60s
+    remainingMsRef.current = currentDurationMsRef.current;
     resumeWorkoutTimers();
   };
 
@@ -548,45 +581,55 @@ const finishedOnceRef = useRef(false);
     setExerciseProgress(100 - (ms / currentDurationMsRef.current) * 100);
     setTimeRemaining(Math.ceil(ms / 1000));
   };
-
+  const exerciseStartTimeRef = useRef(Date.now());
+  const endingRef = useRef(false);
   const onWorkoutEnded = async () => {
-    if (isLoggingRef.current) return;
-    isLoggingRef.current = true;
-   try {
-    const cur = exercises[currentExercise];
-    const totalMs = currentDurationMsRef.current || parseDurationMs(cur);
+    if (endingRef.current) return;
+    endingRef.current = true;
 
-    const remainMs = Math.max(0, remainingMsRef.current || 0);
-    const performedSeconds = Math.round((totalMs - remainMs) / 1000);
-    if (performedSeconds < 0) performedSeconds = 0;
-    console.log(`Log Exercise [${currentExercise}]: ${cur.name}, Time: ${performedSeconds}s`);
-    await logExerciseResult({
-      order: currentExercise,
-      exerciseDoc: cur,
-      performedSeconds,
-      status: "completed",
-    });
-  } catch (e) {
-    console.warn("Log failed:", e?.message || e);
-  } finally {
-       // ปลดล็อคเมื่อทำงานเสร็จ
-       isLoggingRef.current = false;
+    try {
+      const cur = exercises[currentExercise];
+      
+      const now = Date.now();
+      const startTime = exerciseStartTimeRef.current;
+      
+      // ✅ คำนวณเวลาที่ผ่านไปจริง
+      const elapsedMs = now - startTime;
+      let performedSeconds = Math.round(elapsedMs / 1000);
+
+      // ถ้าเวลาเกิน 60 ให้ปัดเป็น 60 (ตามโจทย์)
+      if (performedSeconds > 60) performedSeconds = 60;
+      
+      // ถ้าเวลาน้อยกว่า 1 ให้เป็น 1 (กันเหนียว)
+      if (performedSeconds < 1) performedSeconds = 1;
+
+      console.log(`✅ Log Order ${currentExercise}: ${performedSeconds}s (From ${startTime} to ${now})`);
+
+      await logExerciseResult({
+        order: currentExercise,
+        exerciseDoc: cur,
+        performedSeconds,
+        status: "completed",
+      });
+
+    } catch (e) {
+      console.warn("Log failed:", e);
+    } finally {
+      endingRef.current = false;
     }
 
     resetWorkoutTimers();
     stopCamera();
-    setIsPlaying(false); setIsPaused(false);
+    setIsPlaying(false); 
+    setIsPaused(false);
 
     if (currentExercise < exercises.length - 1) {
       startRest(currentExercise + 1, REST_BASE_SEC);
     } else {
-  setIsCounting(false);
-  try { await finishSession(); } catch (e) {}
-
-  // ✅ เปิด modal ให้โหวตก่อน
-  setShowFeedbackModal(true);
-  };
-
+      setIsCounting(false);
+      try { await finishSession(); } catch (e) {}
+      setShowFeedbackModal(true);
+    }
   };
 
   // --- Rest Logic ---
@@ -743,7 +786,6 @@ const finishedOnceRef = useRef(false);
   }
 
   if (isPlaying) {
-    // Force finish current
     onWorkoutEnded();
     return;
   }

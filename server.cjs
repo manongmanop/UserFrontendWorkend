@@ -1393,11 +1393,30 @@ app.patch("/api/workout_programs/:id/feedback", async (req, res) => {
   }
 });
 // ================== /api/histories ==================
+app.patch("/api/histories/:sessionId/feedback", async (req, res) => {
+  const { sessionId } = req.params;
+  const { level } = req.body;
 
+  const updated = await History.findOneAndUpdate(
+    { sessionId },
+    { $set: { feedbackLevel: level } },
+    { new: true }
+  );
+
+  res.json(updated);
+});
 // CREATE: บันทึกประวัติ (default 0 ได้เลย)
 app.post("/api/histories", async (req, res) => {
   try {
-    const doc = await History.create(req.body);
+    const body = req.body || {};
+    if (!body.sessionId) return res.status(400).json({ error: "sessionId required" });
+
+    const doc = await History.findOneAndUpdate(
+      { sessionId: body.sessionId },
+      { $setOnInsert: body },
+      { upsert: true, new: true }
+    );
+
     res.status(201).json(doc);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -1521,30 +1540,42 @@ const WorkoutSession = mongoose.model("WorkoutSession", workoutSessionSchema, "w
 app.post("/api/workout_sessions/start", async (req, res) => {
   try {
     const { uid, origin, snapshot } = req.body;
-    
-    // 🔥 FIX: เช็คก่อนว่ามี Session ที่ "ยังเล่นไม่จบ" (finishedAt: null) ของ User นี้ใน Program นี้ค้างอยู่ไหม
-    const existingSession = await WorkoutSession.findOne({
+
+    // เงื่อนไขในการค้นหา: User เดิม, Program เดิม, และ "ยังไม่จบ" (finishedAt: null)
+    const filter = {
       uid,
       "origin.programId": origin.programId,
       finishedAt: null
-    });
+    };
 
-    // ถ้ามีของเก่าที่ยังไม่จบ ให้ใช้ ID เดิมส่งกลับไปเลย (ไม่สร้างใหม่)
-    if (existingSession) {
-      console.log(`♻️ Resuming existing session: ${existingSession._id}`);
-      return res.json({ _id: existingSession._id });
-    }
+    // ข้อมูลที่จะใช้สร้าง ถ้าหาไม่เจอ
+    const update = {
+      $setOnInsert: { // $setOnInsert ทำงานเฉพาะตอนสร้างใหม่เท่านั้น
+        uid,
+        origin,
+        snapshot,
+        logs: [],
+        startedAt: new Date()
+      }
+    };
 
-    // ถ้าไม่มี ค่อยสร้างใหม่
-    console.log(`🚀 Starting NEW Session for UID: ${uid}`);
-    const newSession = await WorkoutSession.create({
-      uid,
-      origin,
-      snapshot,
-      startedAt: new Date()
-    });
+    // ใช้ findOneAndUpdate พร้อม upsert: true
+    // - ถ้าเจอ: จะคืนค่าเดิมกลับมา
+    // - ถ้าไม่เจอ: จะสร้างใหม่ให้ทันที (Atomic Operation) ป้องกันการชนกัน
+    const session = await WorkoutSession.findOneAndUpdate(
+      filter,
+      update,
+      { 
+        new: true,   // คืนค่า document หลังอัปเดต (หรือสร้างใหม่)
+        upsert: true, // ถ้าไม่มีให้สร้างใหม่
+        setDefaultsOnInsert: true // ใช้ default value จาก Schema
+      }
+    );
+
+    console.log(`✅ Session Active: ${session._id} (Is New: ${session.createdAt === session.updatedAt})`);
     
-    res.status(201).json(newSession);
+    return res.status(201).json({ _id: session._id });
+
   } catch (err) {
     console.error("Start Session Error:", err);
     res.status(500).json({ error: err.message });
@@ -1556,27 +1587,40 @@ app.post("/api/workout_sessions/:id/log-exercise", async (req, res) => {
     const { id } = req.params;
     const logData = req.body;
 
-    // 1. ตรวจสอบค่า seconds และ calories
+    // 1. ดึงค่าออกมาให้ชัดเจน
     const seconds = Math.max(0, Number(logData.performed?.seconds || 0));
+    const reps = Math.max(0, Number(logData.performed?.reps || 0));
     
-    // สูตรคำนวณแคลอรี่ (ปรับตามต้องการ)
-    // ตัวอย่าง: (วินาที / 60) * 5
+    // 2. คำนวณแคลอรี่
     let rawCalories = (seconds / 60) * 5; 
-    // ปัดเศษทศนิยมให้สวยงาม (ถ้าเกิน 10 วิ ปัดเต็ม, ถ้าน้อยกว่านั้นเก็บทศนิยม 2 ตำแหน่ง)
     const calories = seconds > 10 ? Math.ceil(rawCalories) : parseFloat(rawCalories.toFixed(2));
     
-    // 🔥 FIX สำคัญ: ใช้ $pull ลบ Log เดิมของท่านี้ (order เดียวกัน) ออกก่อน
+    // 3. สร้าง Object Log ที่ถูกต้องตาม Schema เป๊ะๆ
+    const newLog = {
+        order: logData.order,
+        exerciseId: logData.exerciseId,
+        name: logData.name,
+        target: logData.target,
+        performed: {
+            reps: reps,
+            seconds: seconds // บันทึกวินาทีที่ถูกต้องแน่นอน
+        },
+        status: logData.status,
+        calories: calories,
+        startedAt: logData.startedAt,
+        endedAt: logData.endedAt
+    };
+
+    console.log(`📝 Logging Order ${logData.order}: ${seconds}s`); // เพิ่ม Log ดูว่า Backend เห็นกี่วินาที
+
+    // 4. ลบอันเก่า (ถ้ามี) แล้วเพิ่มอันใหม่
     await WorkoutSession.findByIdAndUpdate(id, {
       $pull: { logs: { order: logData.order } }
     });
 
-    // 🔥 จากนั้นค่อย $push อันใหม่เข้าไป
-    await WorkoutSession.findByIdAndUpdate(
-      id,
-      { 
-        $push: { logs: { ...logData, performed: { ...logData.performed, seconds }, calories } } 
-      }
-    );
+    await WorkoutSession.findByIdAndUpdate(id, { 
+        $push: { logs: newLog } 
+    });
 
     res.json({ success: true });
   } catch (err) {
@@ -1590,41 +1634,59 @@ app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
     const { id } = req.params;
     console.log(`🏁 Finishing Session ID: ${id}`);
 
-    // 1. อัปเดต Session ว่าจบแล้ว
-    const session = await WorkoutSession.findByIdAndUpdate(
-      id,
-      { finishedAt: new Date() },
-      { new: true }
-    );
+    // 1. ค้นหา Session ก่อน
+    const session = await WorkoutSession.findById(id);
 
+    // ✅ FIX: เช็คก่อนเลยว่าเจอไหม ถ้าไม่เจอให้เด้งออกทันที กัน Error
     if (!session) return res.status(404).json({ error: "Session not found" });
 
-    // 2. คำนวณผลรวม (ใช้ Math.round เพื่อความสวยงาม)
+    // Debug: ปริ้นท์ Log หลังจากมั่นใจว่า session มีอยู่จริง
+    console.log("---- Session Logs Debug ----");
+    if (session.logs) {
+        session.logs.forEach(l => console.log(`Order ${l.order}: ${l.performed?.seconds}s`));
+    }
+    console.log("----------------------------");
+
+    // 🔥 FIX: ถ้า Session นี้จบไปแล้ว (มี finishedAt) ให้หยุดเลย ไม่ต้องสร้าง History ซ้ำ
+    if (session.finishedAt) {
+      console.log("⚠️ Session already finished. Skipping history creation.");
+      return res.json({ msg: "Session already finished", sessionId: session._id });
+    }
+
+    // 2. ถ้ายังไม่จบ -> อัปเดต finishedAt
+    session.finishedAt = new Date();
+    await session.save();
+
+    // 3. คำนวณผลรวม (Logic ของคุณถูกต้องแล้วครับ)
     const totals = session.logs.reduce((acc, log) => {
-      acc.seconds += Number(log.performed?.seconds || 0);
-      acc.reps += Number(log.performed?.reps || 0);
-      acc.calories += Number(log.calories || 0);
+      // แปลงเป็น Number อีกรอบกันเหนียว
+      const s = Number(log.performed?.seconds); 
+      const c = Number(log.calories);
+      
+      // ถ้าเป็น NaN ให้เป็น 0
+      acc.seconds += isNaN(s) ? 0 : s;
+      acc.calories += isNaN(c) ? 0 : c;
       return acc;
     }, { seconds: 0, reps: 0, calories: 0 });
 
-    // ปัดเศษผลรวมแคลอรี่
+    console.log(`∑ Totals: ${totals.seconds}s, ${totals.calories}kcal`);
     totals.calories = Math.ceil(totals.calories);
 
-    // 3. สร้าง History ถาวร
+    // 4. สร้าง History ถาวร
     const historyData = {
       uid: session.uid,
       programId: session.origin?.programId,
       programName: session.snapshot?.programName || "Unknown Program",
       totalSeconds: totals.seconds,
       caloriesBurned: totals.calories,
-      totalExercises: session.logs.length, // นับจำนวนจาก Log จริงๆ
-      finishedAt: new Date()
+      totalExercises: session.logs.length,
+      finishedAt: session.finishedAt
     };
 
     const newHistory = await History.create(historyData);
     console.log("✅ History Created:", newHistory._id);
 
-    // 4. อัปเดต User Stats
+    // 5. อัปเดต User Stats
     await User.findOneAndUpdate(
         { uid: session.uid },
         { 
@@ -1637,7 +1699,7 @@ app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
 
     res.json({ 
       sessionId: session._id, 
-      historyId: newHistory._id,
+      historyId: newHistory._id, 
       msg: "Session finished and History saved",
       totals
     });
