@@ -272,7 +272,7 @@ function TrainingCard() {
 
           <div className="workout-list-section">
             <div className="workout-list-header">
-              <h3>Workout list</h3>
+              <h3>รายการท่าออกกำลังกาย</h3>
             </div>
             <ul className="workout-list">
               {program.workoutList.length > 0 ? (

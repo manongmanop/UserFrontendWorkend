@@ -1,21 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as Pose from '@mediapipe/pose';
 import * as cam from '@mediapipe/camera_utils';
 
-const CurlCounter = () => {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-
+export const useHipRaiseCamera = ({ 
+  videoRef, 
+  canvasRef, 
+  isActive,
+  targetReps = null,
+  targetSets = null,
+  setRestTime = null,
+  onRepComplete,
+  onSetComplete,
+  onWorkoutComplete
+}) => {
   // State variables
   const [counterLeft, setCounterLeft] = useState(0);
   const [counterRight, setCounterRight] = useState(0);
   const [sets, setSets] = useState(0);
-  const [targetReps, setTargetReps] = useState(1);
-  const [targetSets, setTargetSets] = useState(2);
-  const [setRestTime, setSetRestTime] = useState(5);
-  const [resting, setResting] = useState(false);
-  const [restTimeRemaining, setRestTimeRemaining] = useState(0);
-  const [isConfigured, setIsConfigured] = useState(true);
+  // const [resting, setResting] = useState(false);
+  // const [restTimeRemaining, setRestTimeRemaining] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
@@ -37,6 +40,10 @@ const CurlCounter = () => {
   // Database refs - for storing angle data
   const angleDataRight = useRef([]);
   const angleDataLeft = useRef([]);
+
+  // Camera and Pose refs
+  const cameraRef = useRef(null);
+  const poseRef = useRef(null);
 
   // TTS and AI refs
   const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -90,7 +97,6 @@ const CurlCounter = () => {
   const calculateAngle = (a, b, c) => {
     const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
     let angle = Math.abs(radians * 180.0 / Math.PI);
-
     if (angle > 180.0) {
       angle = 360 - angle;
     }
@@ -138,18 +144,13 @@ const CurlCounter = () => {
   // Gemini API call
   const callGeminiAPI = async (angle) => {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiApiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [
             ...chatHistory.current,
-            {
-              role: "user",
-              parts: [{ text: Math.round(angle).toString() }]
-            }
+            { role: "user", parts: [{ text: Math.round(angle).toString() }] }
           ],
           generationConfig: {
             temperature: 0.8,
@@ -191,6 +192,7 @@ const CurlCounter = () => {
           voice: 'ballad',
           input: text,
           instructions,
+          speed: 1.5,
           response_format: 'mp3'
         })
       });
@@ -260,203 +262,56 @@ const CurlCounter = () => {
     }, 1000);
   };
 
+  // Check if set is complete
   useEffect(() => {
-    const initCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'user',
-            width: { ideal: 640 },
-            height: { ideal: 480 }
-          }
-        });
+    if (counterLeft >= targetReps && counterRight >= targetReps && !workoutComplete) {
+      setSets(prev => {
+        const newSets = prev + 1;
+        if (newSets >= targetSets) {
+          setWorkoutComplete(true);
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.style.display = 'block';
-
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play();
-            const pose = new Pose.Pose({
-              locateFile: (file) => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+          // Prepare and save session data
+          const sessionData = {
+            timestamp: new Date().toLocaleString('th-TH', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            }),
+            set: {
+              target_reps: targetReps,
+              target_sets: targetSets,
+              completed_sets: newSets,
+              arm: {
+                data_right: angleDataRight.current,
+                data_left: angleDataLeft.current
               }
-            });
-
-            pose.setOptions({
-              modelComplexity: 1,
-              smoothLandmarks: false,
-              minDetectionConfidence: 0.7,
-              minTrackingConfidence: 0.7
-            });
-
-            const onResults = (results) => {
-              const canvasCtx = canvasRef.current.getContext('2d');
-              canvasCtx.save();
-              canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-              canvasCtx.translate(canvasRef.current.width, 0);
-              canvasCtx.scale(-1, 1);
-
-              canvasCtx.drawImage(results.image, 0, 0, canvasRef.current.width, canvasRef.current.height);
-
-              if (results.poseLandmarks) {
-                const landmarks = results.poseLandmarks;
-
-                // Left arm processing
-                const shoulderLeft = landmarks[11];
-                const hipLeft = landmarks[23];
-                const kneeLeft = landmarks[25];
-
-                if (shoulderLeft && hipLeft && kneeLeft) {
-                  const angleLeft = calculateAngle(shoulderLeft, hipLeft, kneeLeft);
-                  const colorLeft = getColorForAngle(angleLeft);
-
-                  drawArmConnections(canvasCtx, [shoulderLeft, hipLeft, kneeLeft], {
-                    color: colorLeft,
-                    lineWidth: 4
-                  });
-
-                  drawSpecificLandmarks(canvasCtx, [shoulderLeft, hipLeft, kneeLeft], {
-                    color: colorLeft,
-                    radius: 8
-                  });
-
-                  // canvasCtx.fillStyle = '#FFFFFF';
-                  // canvasCtx.font = '20px Arial';
-                  // canvasCtx.fillText(
-                  //   `LEFT: ${angleLeft.toFixed(2)}°`,
-                  //   hipLeft.x * canvasRef.current.width - 50,
-                  //   hipLeft.y * canvasRef.current.height - 10
-                  // );
-
-                  // Left arm curl logic with hold timer
-                  if (angleLeft < 130) {
-                    stageLeft.current = "down";
-                    isTimingLeft.current = false;
-                    holdTimeLeft.current = 0;
-                  } else if (angleLeft <= 145 && angleLeft <= 165 && stageLeft.current === "down") {
-                    if (!isTimingLeft.current) {
-                      timerStartLeft.current = Date.now();
-                      isTimingLeft.current = true;
-                    }
-
-                    const currentHoldTime = (Date.now() - timerStartLeft.current) / 1000;
-                    const totalHoldTime = holdTimeLeft.current + currentHoldTime;
-
-                    if (totalHoldTime >= holdTimeRequiredLeft.current) {
-                      stageLeft.current = "up";
-                      setCounterLeft(prev => {
-                        const newCounter = prev + 1;
-                        // Record angle data
-                        angleDataLeft.current.push({
-                          counter_left: newCounter,
-                          angle: Math.round(angleLeft * 100) / 100,
-                          timestamp: new Date().toISOString()
-                        });
-                        return newCounter;
-                      });
-                      isTimingLeft.current = false;
-                      holdTimeLeft.current = 0;
-
-                      processGeminiAndTTS(Math.round(angleLeft));
-                    }
-                  } else if ((angleLeft < 130 && angleLeft < 145) || angleLeft < 165) {
-                    if (isTimingLeft.current) {
-                      holdTimeLeft.current += (Date.now() - timerStartLeft.current) / 1000;
-                      isTimingLeft.current = false;
-                    }
-                  }
-                }
-
-                // Right arm processing
-                const shoulderRight = landmarks[12];
-                const hipRight = landmarks[24];
-                const kneeRight = landmarks[26];
-
-                if (shoulderRight && hipRight && kneeRight) {
-                  const angleRight = calculateAngle(shoulderRight, hipRight, kneeRight);
-                  const colorRight = getColorForAngle(angleRight);
-
-                  drawArmConnections(canvasCtx, [shoulderRight, hipRight, kneeRight], {
-                    color: colorRight,
-                    lineWidth: 4
-                  });
-
-                  drawSpecificLandmarks(canvasCtx, [shoulderRight, hipRight, kneeRight], {
-                    color: colorRight,
-                    radius: 8
-                  });
-
-                  // canvasCtx.fillStyle = '#FFFFFF';
-                  // canvasCtx.font = '20px Arial';
-                  // canvasCtx.fillText(
-                  //   `RIGHT: ${angleRight.toFixed(2)}°`,
-                  //   hipRight.x * canvasRef.current.width - 50,
-                  //   hipRight.y * canvasRef.current.height - 10
-                  // );
-
-                  // Right arm curl logic with hold timer
-                  if (angleRight < 130) {
-                    stageRight.current = "down";
-                    isTimingRight.current = false;
-                    holdTimeRight.current = 0;
-                  } else if (angleRight <= 145 && angleRight <= 165 && stageRight.current === "down") {
-                    if (!isTimingRight.current) {
-                      timerStartRight.current = Date.now();
-                      isTimingRight.current = true;
-                    }
-
-                    const currentHoldTime = (Date.now() - timerStartRight.current) / 1000;
-                    const totalHoldTime = holdTimeRight.current + currentHoldTime;
-
-                    if (totalHoldTime >= holdTimeRequiredRight.current) {
-                      stageRight.current = "up";
-                      setCounterRight(prev => {
-                        const newCounter = prev + 1;
-                        // Record angle data
-                        angleDataRight.current.push({
-                          counter_right: newCounter,
-                          angle_right: Math.round(angleRight * 100) / 100,
-                          timestamp: new Date().toISOString()
-                        });
-                        return newCounter;
-                      });
-                      isTimingRight.current = false;
-                      holdTimeRight.current = 0;
-
-                      processGeminiAndTTS(Math.round(angleRight));
-                    }
-                  } else if ((angleRight < 130 && angleRight < 145) || angleRight < 165) {
-                    if (isTimingRight.current) {
-                      holdTimeRight.current += (Date.now() - timerStartRight.current) / 1000;
-                      isTimingRight.current = false;
-                    }
-                  }
-                }
-              }
-              canvasCtx.restore();
-            };
-
-            pose.onResults(onResults);
-
-            if (videoRef.current) {
-              const camera = new cam.Camera(videoRef.current, {
-                onFrame: async () => {
-                  await pose.send({ image: videoRef.current });
-                },
-                width: 640,
-                height: 480
-              });
-              camera.start();
             }
           };
+
+          // Auto save to database
+          saveSessionData(sessionData);
+          
+          if (onWorkoutComplete) {
+            onWorkoutComplete(sessionData);
+          }
+        } else {
+          startRestPeriod();
+          if (onSetComplete) {
+            onSetComplete(newSets);
+          }
         }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        alert('Cannot access camera. Please allow camera permission.');
-      }
-    };
+        return newSets;
+      });
+    }
+  }, [counterLeft, counterRight, targetReps, sets, targetSets, workoutComplete]);
+
+  useEffect(() => {
+    if (!isActive || !videoRef.current || !canvasRef.current || workoutComplete) {
+      return;
+    }
 
     const drawArmConnections = (ctx, points, style) => {
       if (!points || points.length < 2) return;
@@ -495,149 +350,251 @@ const CurlCounter = () => {
       ctx.restore();
     };
 
-    if (!workoutComplete) {
-      initCamera();
-    }
+    const initCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user',
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          }
+        });
 
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.style.display = 'block';
+
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current.play();
+            const pose = new Pose.Pose({
+              locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+              }
+            });
+
+            poseRef.current = pose;
+
+            pose.setOptions({
+              modelComplexity: 1,
+              smoothLandmarks: false,
+              minDetectionConfidence: 0.7,
+              minTrackingConfidence: 0.7
+            });
+
+            const onResults = (results) => {
+              if (!canvasRef.current) return;
+
+              const canvasCtx = canvasRef.current.getContext('2d');
+              canvasCtx.save();
+              canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+              canvasCtx.translate(canvasRef.current.width, 0);
+              canvasCtx.scale(-1, 1);
+
+              canvasCtx.drawImage(results.image, 0, 0, canvasRef.current.width, canvasRef.current.height);
+
+              if (results.poseLandmarks) {
+                const landmarks = results.poseLandmarks;
+
+                // Left arm processing
+                const shoulderLeft = landmarks[11];
+                const hipLeft = landmarks[23];
+                const kneeLeft = landmarks[25];
+
+                if (shoulderLeft && hipLeft && kneeLeft) {
+                  const angleLeft = calculateAngle(shoulderLeft, hipLeft, kneeLeft);
+                  const colorLeft = getColorForAngle(angleLeft);
+
+                  drawArmConnections(canvasCtx, [shoulderLeft, hipLeft, kneeLeft], {
+                    color: colorLeft,
+                    lineWidth: 4
+                  });
+
+                  drawSpecificLandmarks(canvasCtx, [shoulderLeft, hipLeft, kneeLeft], {
+                    color: colorLeft,
+                    radius: 8
+                  });
+
+                  // Left arm curl logic with hold timer
+                  if (angleLeft < 130) {
+                    stageLeft.current = "down";
+                    isTimingLeft.current = false;
+                    holdTimeLeft.current = 0;
+                  } else if (angleLeft <= 145 && angleLeft <= 165 && stageLeft.current === "down") {
+                    if (!isTimingLeft.current) {
+                      timerStartLeft.current = Date.now();
+                      isTimingLeft.current = true;
+                    }
+
+                    const currentHoldTime = (Date.now() - timerStartLeft.current) / 1000;
+                    const totalHoldTime = holdTimeLeft.current + currentHoldTime;
+
+                    if (totalHoldTime >= holdTimeRequiredLeft.current) {
+                      stageLeft.current = "up";
+                      setCounterLeft(prev => {
+                        const newCounter = prev + 1;
+                        angleDataLeft.current.push({
+                          counter_left: newCounter,
+                          angle: Math.round(angleLeft * 100) / 100,
+                          timestamp: new Date().toISOString()
+                        });
+                        
+                        if (onRepComplete) onRepComplete('left', newCounter);
+                        
+                        return newCounter;
+                      });
+                      isTimingLeft.current = false;
+                      holdTimeLeft.current = 0;
+
+                      processGeminiAndTTS(Math.round(angleLeft));
+                    }
+                  } else if ((angleLeft < 130 && angleLeft < 145) || angleLeft < 165) {
+                    if (isTimingLeft.current) {
+                      holdTimeLeft.current += (Date.now() - timerStartLeft.current) / 1000;
+                      isTimingLeft.current = false;
+                    }
+                  }
+                }
+
+                // Right arm processing
+                const shoulderRight = landmarks[12];
+                const hipRight = landmarks[24];
+                const kneeRight = landmarks[26];
+
+                if (shoulderRight && hipRight && kneeRight) {
+                  const angleRight = calculateAngle(shoulderRight, hipRight, kneeRight);
+                  const colorRight = getColorForAngle(angleRight);
+
+                  drawArmConnections(canvasCtx, [shoulderRight, hipRight, kneeRight], {
+                    color: colorRight,
+                    lineWidth: 4
+                  });
+
+                  drawSpecificLandmarks(canvasCtx, [shoulderRight, hipRight, kneeRight], {
+                    color: colorRight,
+                    radius: 8
+                  });
+
+                  // Right arm curl logic
+                  if (angleRight < 130) {
+                    stageRight.current = "down";
+                    isTimingRight.current = false;
+                    holdTimeRight.current = 0;
+                  } else if (angleRight <= 145 && angleRight <= 165 && stageRight.current === "down") {
+                    if (!isTimingRight.current) {
+                      timerStartRight.current = Date.now();
+                      isTimingRight.current = true;
+                    }
+
+                    const currentHoldTime = (Date.now() - timerStartRight.current) / 1000;
+                    const totalHoldTime = holdTimeRight.current + currentHoldTime;
+
+                    if (totalHoldTime >= holdTimeRequiredRight.current) {
+                      stageRight.current = "up";
+                      setCounterRight(prev => {
+                        const newCounter = prev + 1;
+                        angleDataRight.current.push({
+                          counter_right: newCounter,
+                          angle_right: Math.round(angleRight * 100) / 100,
+                          timestamp: new Date().toISOString()
+                        });
+
+                        if (onRepComplete) onRepComplete('right', newCounter);
+
+                        return newCounter;
+                      });
+                      isTimingRight.current = false;
+                      holdTimeRight.current = 0;
+
+                      processGeminiAndTTS(Math.round(angleRight));
+                    }
+                  } else if ((angleRight < 130 && angleRight < 145) || angleRight < 165) {
+                    if (isTimingRight.current) {
+                      holdTimeRight.current += (Date.now() - timerStartRight.current) / 1000;
+                      isTimingRight.current = false;
+                    }
+                  }
+                }
+              }
+              canvasCtx.restore();
+            };
+
+            pose.onResults(onResults);
+
+            if (videoRef.current) {
+              const camera = new cam.Camera(videoRef.current, {
+                onFrame: async () => {
+                  await pose.send({ image: videoRef.current });
+                },
+                width: 640,
+                height: 480
+              });
+              
+              cameraRef.current = camera;
+              camera.start();
+            }
+          };
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        alert('Cannot access camera. Please allow camera permission.');
+      }
+    };
+
+    initCamera();
+
+    // Cleanup function
     return () => {
+      console.log('🧹 Cleaning up camera...');
+      
+      if (cameraRef.current) {
+        try {
+          cameraRef.current.stop();
+          cameraRef.current = null;
+        } catch (error) {
+          console.error('Error stopping camera:', error);
+        }
+      }
+
+      if (poseRef.current) {
+        try {
+          poseRef.current.close();
+          poseRef.current = null;
+        } catch (error) {
+          console.error('Error closing pose:', error);
+        }
+      }
+
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach(track => {
+          track.stop();
+          console.log('✅ Stopped track:', track.kind);
+        });
+        videoRef.current.srcObject = null;
+      }
+
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+
       if (restInterval.current) {
         clearInterval(restInterval.current);
       }
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
-      }
     };
-  }, [isConfigured, resting, workoutComplete, geminiApiKey, openaiApiKey]);
+  }, [isActive, targetReps, workoutComplete]);
 
-  // Check if set is complete and save data when workout is complete
-  useEffect(() => {
-    if (counterLeft >= targetReps && counterRight >= targetReps && !resting && !workoutComplete) {
-      setSets(prev => {
-        const newSets = prev + 1;
-        if (newSets >= targetSets) {
-          setWorkoutComplete(true);
-
-          // Prepare and save session data
-          const sessionData = {
-            timestamp: new Date().toLocaleString('th-TH', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit'
-            }),
-            set: {
-              target_reps: targetReps,
-              target_sets: targetSets,
-              completed_sets: newSets,
-              arm: {
-                data_right: angleDataRight.current,
-                data_left: angleDataLeft.current
-              }
-            }
-          };
-
-          // Auto save to database
-          saveSessionData(sessionData);
-        } else {
-          startRestPeriod();
-        }
-        return newSets;
-      });
-    }
-  }, [counterLeft, counterRight, targetReps, sets, targetSets, resting, workoutComplete]);
-
-  const resetWorkout = () => {
-    setCounterLeft(0);
-    setCounterRight(0);
-    setSets(0);
-    setResting(false);
-    setWorkoutComplete(false);
-    setRestTimeRemaining(0);
-    setSaveStatus('');
-    holdTimeLeft.current = 0;
-    holdTimeRight.current = 0;
-    isTimingLeft.current = false;
-    isTimingRight.current = false;
-    angleDataRight.current = [];
-    angleDataLeft.current = [];
-    if (restInterval.current) {
-      clearInterval(restInterval.current);
-    }
+  return {
+    counterLeft,
+    counterRight,
+    sets,
+    isSpeaking,
+    workoutComplete,
+    saveStatus,
+    angleDataLeft: angleDataLeft.current,
+    angleDataRight: angleDataRight.current
   };
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
-      <div className="mb-4 text-center">
-        <h1 className="text-3xl font-bold mb-2 text-black">Bicep Curl Counter</h1>
-        <div className="flex gap-4 justify-center items-center">
-          <div className="bg-blue-600 px-4 py-2 rounded">
-            <p className="text-sm text-black">Left: {counterLeft}/{targetReps}</p>
-          </div>
-          <div className="bg-green-600 px-4 py-2 rounded">
-            <p className="text-sm text-black">Right: {counterRight}/{targetReps}</p>
-          </div>
-          <div className="bg-purple-600 px-4 py-2 rounded">
-            <p className="text-sm text-black">Sets: {sets}/{targetSets}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative mb-6">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          width="640"
-          height="480"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            opacity: 0,
-            width: 0,
-            height: 0,
-            pointerEvents: "none",
-          }}
-        />
-        <canvas
-          ref={canvasRef}
-          className="border-2 border-gray-600 rounded-lg shadow-xl"
-          width="640"
-          height="480"
-        />
-      </div>
-
-      {/* {workoutComplete && (
-        <div className="bg-green-600 px-6 py-4 rounded-lg mb-4">
-          <h2 className="text-2xl font-bold mb-2">🎉 Workout Complete!</h2>
-          <p>Total sets completed: {sets}</p>
-          <p>Right arm reps: {angleDataRight.current.length}</p>
-          <p>Left arm reps: {angleDataLeft.current.length}</p>
-          <button
-            onClick={resetWorkout}
-            className="mt-4 bg-white text-green-600 px-6 py-2 rounded font-bold hover:bg-gray-200"
-          >
-            Start New Workout
-          </button>
-        </div>
-      )} */}
-
-      {/* {!workoutComplete && (
-        <div className="flex gap-4">
-          <button
-            onClick={resetWorkout}
-            className="bg-red-600 px-6 py-2 rounded font-bold hover:bg-red-700"
-          >
-            Reset
-          </button>
-        </div>
-      )} */}
-    </div>
-  );
 };
 
-export default CurlCounter;
+export default useHipRaiseCamera;

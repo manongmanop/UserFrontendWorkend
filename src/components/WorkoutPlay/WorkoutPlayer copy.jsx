@@ -7,7 +7,6 @@ import guideImg from "../assets/Infographic.png";
 import guideImg2 from "../assets/Infographic2.png";
 import { useUserAuth } from "../../context/UserAuthContext.jsx";
 const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
-import { ExerciseCameraManager } from '../../ExerciseCameraManager.jsx';
 /* =========================================
    SECTION 1: Helpers & Utilities
    ========================================= */
@@ -119,16 +118,7 @@ export function submitProgramFeedback(programId, level) {
    ========================================= */
 export default function WorkoutPlayer() {
   const { programId } = useParams();
-  // Callback เมื่อทำครบ Rep
-  const handleRepComplete = (side, count) => {
-    console.log(`✅ ${side} arm completed rep ${count}`);
-  };
 
-  // Callback เมื่อทำครบ Set
-  const handleSetComplete = () => {
-    console.log('🎉 Set complete!');
-    onWorkoutEnded(); // เรียกฟังก์ชันเดิม
-  };
   // --- Constants ---
   const REST_BASE_SEC = 20;
   const REST_MAX_SEC = 150;
@@ -195,7 +185,7 @@ export default function WorkoutPlayer() {
   useEffect(() => {
     // ถ้า index ยังไม่เปลี่ยน หรือไม่มีข้อมูลท่า -> ไม่ต้องทำอะไร
     if (activeExerciseIndexRef.current === currentExercise || !exercises[currentExercise]) {
-      return;
+        return;
     }
 
     // จำไว้ว่าทำท่านี่แล้ว
@@ -203,7 +193,7 @@ export default function WorkoutPlayer() {
 
     // 1. ตั้งค่าเวลาเริ่ม (จุดสำคัญ: ทำครั้งเดียว ไม่มีการรีเซ็ตอีกจนกว่าจะเปลี่ยนท่า)
     exerciseStartTimeRef.current = Date.now();
-
+    
     // 2. ตั้งค่า Duration 60 วิ
     const duration = 60 * 1000;
     currentDurationMsRef.current = duration;
@@ -213,15 +203,15 @@ export default function WorkoutPlayer() {
 
     // 3. เริ่มนับถอยหลัง
     if (!isResting && !isCounting) {
-      setIsPlaying(true);
-      resumeWorkoutTimers();
+        setIsPlaying(true);
+        resumeWorkoutTimers();
     }
 
   }, [currentExercise, isResting, isCounting, exercises]);
 
   useEffect(() => {
     console.log("Current User UID:", uid);
-  }, [uid]);
+}, [uid]);
   const overallProgress = useMemo(() => {
     if (!exercises.length) return 0;
     return ((currentExercise + exerciseProgress / 100) / exercises.length) * 100;
@@ -249,29 +239,29 @@ export default function WorkoutPlayer() {
     }
   };
   const sendingOnceRef = useRef(false);
-  const handlePickFeedback = async (level) => {
-    if (!programId || !uid) return;
+ const handlePickFeedback = async (level) => {
+  if (!programId || !uid) return;
 
-    if (sendingOnceRef.current) return;      // ✅ กันคลิก/ยิงซ้ำ
-    sendingOnceRef.current = true;
+  if (sendingOnceRef.current) return;      // ✅ กันคลิก/ยิงซ้ำ
+  sendingOnceRef.current = true;
 
-    setSendingFeedback(true);
-    try {
-      // ✅ จบ session แบบครั้งเดียว
-      await finishSession();  // ให้ฟังก์ชันนี้ guard เอง
+  setSendingFeedback(true);
+  try {
+    // ✅ จบ session แบบครั้งเดียว
+    await finishSession();  // ให้ฟังก์ชันนี้ guard เอง
 
-      // ✅ ส่ง feedback ครั้งเดียว
-      await submitProgramFeedback(programId, level);
+    // ✅ ส่ง feedback ครั้งเดียว
+    await submitProgramFeedback(programId, level);
 
-      setShowFeedbackModal(false);
-      navigate(`/summary/program/${uid}`);
-    } catch (e) {
-      console.warn("ส่ง feedback ไม่สำเร็จ:", e);
-      navigate(`/summary/program/${uid}`);
-    } finally {
-      setSendingFeedback(false);
-    }
-  };
+    setShowFeedbackModal(false);
+    navigate(`/summary/program/${uid}`);
+  } catch (e) {
+    console.warn("ส่ง feedback ไม่สำเร็จ:", e);
+    navigate(`/summary/program/${uid}`);
+  } finally {
+    setSendingFeedback(false);
+  }
+};
 
   /* =========================================
      SECTION 4: Effects (Data, Camera, Resume)
@@ -344,31 +334,31 @@ export default function WorkoutPlayer() {
     return () => { mounted = false; };
   }, [isPlaying, isPaused]);
 
-
+  
   // Countdown Logic
   useEffect(() => {
-    if (!isCounting) return;
+  if (!isCounting) return;
 
-    if (countdown > 0) {
-      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(t);
-    } else {
-      // countdown = 0
-      setIsCounting(false);
-      setIsPaused(false);
+  if (countdown > 0) {
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  } else {
+    // countdown = 0
+    setIsCounting(false);
+    setIsPaused(false);
 
-      if (countdownAction === "startNew") {
-        setIsPlaying(true);
-        startWorkoutTimersForCurrent();
-      } else if (countdownAction === "resumeWorkout") {
-        setIsPlaying(true);
-        resumeWorkoutTimers();
-      } else if (countdownAction === "resumeRest") {
-        setIsResting(true);
-        resumeRestTimers();
-      }
+    if (countdownAction === "startNew") {
+      setIsPlaying(true);
+      startWorkoutTimersForCurrent();
+    } else if (countdownAction === "resumeWorkout") {
+      setIsPlaying(true);
+      resumeWorkoutTimers();
+    } else if (countdownAction === "resumeRest") {
+      setIsResting(true);
+      resumeRestTimers();
     }
-  }, [isCounting, countdown, countdownAction]);
+  }
+}, [isCounting, countdown, countdownAction]);
 
 
   useEffect(() => {
@@ -382,13 +372,13 @@ export default function WorkoutPlayer() {
       videoEl.play().catch(() => { });
     }
   }, [isPaused]);
-  useEffect(() => {
-    return () => {
-      finishSession().catch(() => { });
-    };
-  }, []);
+useEffect(() => {
+  return () => {
+    finishSession().catch(() => {});
+  };
+}, []);
 
-  useEffect(() => {
+useEffect(() => {
     exerciseStartTimeRef.current = Date.now();
     console.log(`⏱️ New Exercise Started: ${currentExercise} at ${exerciseStartTimeRef.current}`);
   }, [currentExercise]); // ทำงานเมื่อเลขข้อเปลี่ยนเท่านั้น
@@ -404,136 +394,131 @@ export default function WorkoutPlayer() {
 
   // --- Session & API ---
   function buildSnapshotFromExercises(list) {
-    return (list || [])
-      .map((it, i) => {
-        // บางทีมันเป็น { exercise: {...}, ... } หรือเป็น {...} ตรงๆ
-        const ex = it?.exercise && typeof it.exercise === "object" ? it.exercise : it;
+  return (list || [])
+    .map((it, i) => {
+      // บางทีมันเป็น { exercise: {...}, ... } หรือเป็น {...} ตรงๆ
+      const ex = it?.exercise && typeof it.exercise === "object" ? it.exercise : it;
 
-        const exerciseId = ex?._id || it?._id || it?.exercise?._id;
+      const exerciseId = ex?._id || it?._id || it?.exercise?._id;
 
-        // type ต้องเป็น "reps" หรือ "time"
-        const type = ex?.type;
+      // type ต้องเป็น "reps" หรือ "time"
+      const type = ex?.type;
 
-        // value ต้องเป็น number
-        const rawValue = ex?.value ?? ex?.time ?? ex?.duration ?? 0;
-        const value = Number(rawValue);
+      // value ต้องเป็น number
+      const rawValue = ex?.value ?? ex?.time ?? ex?.duration ?? 0;
+      const value = Number(rawValue);
 
-        return {
-          exerciseId,
-          name: ex?.name || it?.name || "",
-          target: { type, value },
-          order: i,
-        };
-      })
-      .filter((x) => x.exerciseId && (x.target?.type === "reps" || x.target?.type === "time") && Number.isFinite(x.target.value));
-  }
-  const isStartingSessionRef = useRef(false);
-
-  //  แก้ไขฟังก์ชันนี้
-  async function startSessionIfNeeded() {
-    // ถ้ามี Session ID แล้ว ให้ใช้เลย ไม่ต้องสร้างใหม่
-    if (sessionIdRef.current) return sessionIdRef.current;
-
-    // 🔥 FIX: ถ้ากำลังสร้างอยู่ (Loading) ให้รอจนกว่าจะเสร็จ (ป้องกันการเรียกซ้ำ)
-    if (isStartingSessionRef.current) {
-      // รอจนกว่า sessionIdRef.current จะมีค่า (Polling แบบง่าย)
-      return new Promise((resolve) => {
-        const check = setInterval(() => {
-          if (sessionIdRef.current) {
-            clearInterval(check);
-            resolve(sessionIdRef.current);
-          }
-        }, 100);
-      });
-    }
-
-    isStartingSessionRef.current = true; // 🔒 ล็อคทันที
-
-    try {
-      const snapshotExercises = buildSnapshotFromExercises(exercises);
-
-      if (!uid || !programId || snapshotExercises.length === 0) {
-        throw new Error("เริ่ม session ไม่ได้: uid/programId/exercises ไม่พร้อม");
-      }
-
-      const body = {
-        uid,
-        origin: { kind: "program", programId },
-        snapshot: {
-          programName: program?.name || null,
-          exercises: snapshotExercises,
-        },
+      return {
+        exerciseId,
+        name: ex?.name || it?.name || "",
+        target: { type, value },
+        order: i,
       };
+    })
+    .filter((x) => x.exerciseId && (x.target?.type === "reps" || x.target?.type === "time") && Number.isFinite(x.target.value));
+}
+const isStartingSessionRef = useRef(false);
 
-      console.log("🚀 START SESSION (Once Only) =", body);
-      const res = await axios.post(`/api/workout_sessions/start`, body);
+//  แก้ไขฟังก์ชันนี้
+async function startSessionIfNeeded() {
+  // ถ้ามี Session ID แล้ว ให้ใช้เลย ไม่ต้องสร้างใหม่
+  if (sessionIdRef.current) return sessionIdRef.current;
 
-      sessionIdRef.current = res.data?._id;
-      return sessionIdRef.current;
-
-    } catch (e) {
-      console.error("Start Session Failed:", e);
-      throw e;
-    } finally {
-      isStartingSessionRef.current = false; // 🔓 ปลดล็อค (เผื่อจะลองใหม่ถ้า Error)
-    }
+  // 🔥 FIX: ถ้ากำลังสร้างอยู่ (Loading) ให้รอจนกว่าจะเสร็จ (ป้องกันการเรียกซ้ำ)
+  if (isStartingSessionRef.current) {
+    // รอจนกว่า sessionIdRef.current จะมีค่า (Polling แบบง่าย)
+    return new Promise((resolve) => {
+      const check = setInterval(() => {
+        if (sessionIdRef.current) {
+          clearInterval(check);
+          resolve(sessionIdRef.current);
+        }
+      }, 100);
+    });
   }
+
+  isStartingSessionRef.current = true; // 🔒 ล็อคทันที
+
+  try {
+    const snapshotExercises = buildSnapshotFromExercises(exercises);
+
+    if (!uid || !programId || snapshotExercises.length === 0) {
+      throw new Error("เริ่ม session ไม่ได้: uid/programId/exercises ไม่พร้อม");
+    }
+
+    const body = {
+      uid,
+      origin: { kind: "program", programId },
+      snapshot: {
+        programName: program?.name || null,
+        exercises: snapshotExercises,
+      },
+    };
+    
+    console.log("🚀 START SESSION (Once Only) =", body);
+    const res = await axios.post(`/api/workout_sessions/start`, body);
+
+    sessionIdRef.current = res.data?._id;
+    return sessionIdRef.current;
+
+  } catch (e) {
+    console.error("Start Session Failed:", e);
+    throw e;
+  } finally {
+    isStartingSessionRef.current = false; // 🔓 ปลดล็อค (เผื่อจะลองใหม่ถ้า Error)
+  }
+}
 
 
   async function logExerciseResult({ order, exerciseDoc, performedSeconds = 0, status = "completed" }) {
-    const sessionId = await startSessionIfNeeded();
+  const sessionId = await startSessionIfNeeded();
 
-    const ex = exerciseDoc?.exercise && typeof exerciseDoc.exercise === "object"
-      ? exerciseDoc.exercise
-      : exerciseDoc;
+  const ex = exerciseDoc?.exercise && typeof exerciseDoc.exercise === "object"
+    ? exerciseDoc.exercise
+    : exerciseDoc;
 
-    const exerciseId = ex?._id || exerciseDoc?._id;
+  const exerciseId = ex?._id || exerciseDoc?._id;
 
-    const type = ex?.type;
-    const rawValue = ex?.value ?? ex?.time ?? ex?.duration ?? 0;
-    const value = Number(rawValue);
+  const type = ex?.type;
+  const rawValue = ex?.value ?? ex?.time ?? ex?.duration ?? 0;
+  const value = Number(rawValue);
 
-    if (!exerciseId || (type !== "reps" && type !== "time") || !Number.isFinite(value)) {
-      throw new Error("logExerciseResult: ข้อมูลท่าออกกำลังกายไม่ครบ (exerciseId/type/value)");
-    }
-
-    // ✅ เพิ่มการคำนวณแคลอรี่ตรงนี้
-    // สูตรสมมติ: 5 kcal ต่อ 1 นาที (ปรับเปลี่ยนตัวเลข 5 ได้ตามความหนักเบา)
-    const rawCalories = (Number(performedSeconds) / 60) * 5;
-    
-    // ✅ แปลงเป็นทศนิยม 2 ตำแหน่ง (และแปลงกลับเป็น Number เพื่อไม่ให้เป็น String)
-    const calories = Number(rawCalories.toFixed(2));
-
-    const payload = {
-      order,
-      exerciseId,
-      name: ex?.name || "",
-      target: { type, value },
-      performed: {
-        reps: type === "reps" ? value : 0,
-        seconds: Number(performedSeconds) || 0,
-      },
-      status,
-      calories: calories, // ✅ ส่งค่าที่คำนวณและปัดเศษแล้วไป
-      startedAt: null,
-      endedAt: null,
-    };
-
-    console.log(`🔥 Logged Calories: ${calories} kcal (from ${performedSeconds}s)`);
-
-    await axios.post(`/api/workout_sessions/${sessionId}/log-exercise`, payload);
+  if (!exerciseId || (type !== "reps" && type !== "time") || !Number.isFinite(value)) {
+    throw new Error("logExerciseResult: ข้อมูลท่าออกกำลังกายไม่ครบ (exerciseId/type/value)");
   }
 
-  const finishedOnceRef = useRef(false);
+  const payload = {
+    order,
+    exerciseId,
+    name: ex?.name || "",
+    target: { type, value },
+    performed: {
+      // ✅ แก้ตรงนี้: ให้บันทึก Reps ตามเป้า (หรือ 0 ถ้าไม่ใช่ Reps)
+      reps: type === "reps" ? value : 0, 
+      
+      // 🔥 FIX: บันทึกเวลาเสมอ! ไม่ว่าจะเป็นท่า Reps หรือ Time
+      // (ลบเงื่อนไข type === "time" ออก)
+      seconds: Number(performedSeconds) || 0, 
+    },
+    status,
+    calories: 0,
+    startedAt: null,
+    endedAt: null,
+  };
+
+  await axios.post(`/api/workout_sessions/${sessionId}/log-exercise`, payload);
+}
+
+const finishedOnceRef = useRef(false);
 
   async function finishSession() {
-    if (!sessionIdRef.current) return null;
-    if (finishedOnceRef.current) return sessionIdRef.current;
+  if (!sessionIdRef.current) return null;
+  if (finishedOnceRef.current) return sessionIdRef.current;
 
-    finishedOnceRef.current = true;
-    await axios.patch(`/api/workout_sessions/${sessionIdRef.current}/finish`, {});
-    return sessionIdRef.current;
-  }
+  finishedOnceRef.current = true;
+  await axios.patch(`/api/workout_sessions/${sessionIdRef.current}/finish`, {});
+  return sessionIdRef.current;
+}
 
   // --- Workout Logic ---
   const resetWorkoutTimers = () => {
@@ -604,17 +589,17 @@ export default function WorkoutPlayer() {
 
     try {
       const cur = exercises[currentExercise];
-
+      
       const now = Date.now();
       const startTime = exerciseStartTimeRef.current;
-
+      
       // ✅ คำนวณเวลาที่ผ่านไปจริง
       const elapsedMs = now - startTime;
       let performedSeconds = Math.round(elapsedMs / 1000);
 
       // ถ้าเวลาเกิน 60 ให้ปัดเป็น 60 (ตามโจทย์)
       if (performedSeconds > 60) performedSeconds = 60;
-
+      
       // ถ้าเวลาน้อยกว่า 1 ให้เป็น 1 (กันเหนียว)
       if (performedSeconds < 1) performedSeconds = 1;
 
@@ -635,14 +620,14 @@ export default function WorkoutPlayer() {
 
     resetWorkoutTimers();
     stopCamera();
-    setIsPlaying(false);
+    setIsPlaying(false); 
     setIsPaused(false);
 
     if (currentExercise < exercises.length - 1) {
       startRest(currentExercise + 1, REST_BASE_SEC);
     } else {
       setIsCounting(false);
-      try { await finishSession(); } catch (e) { }
+      try { await finishSession(); } catch (e) {}
       setShowFeedbackModal(true);
     }
   };
@@ -731,45 +716,45 @@ export default function WorkoutPlayer() {
   };
 
   const endRest = () => {
-    resetRestTimers();
-    setIsResting(false);
-    setIsPaused(false);
-    const nextIdx = nextIndexRef.current;
-    if (nextIdx != null && nextIdx < exercises.length) {
-      setCurrentExercise(nextIdx);
-      setCountdownAction("startNew");   // ✅ เริ่มท่าใหม่
-      setIsCounting(true);
-      setCountdown(3);
-    } else {
-      onWorkoutEnded();
-    }
-  };
+  resetRestTimers();
+  setIsResting(false);
+  setIsPaused(false);
+  const nextIdx = nextIndexRef.current;
+  if (nextIdx != null && nextIdx < exercises.length) {
+    setCurrentExercise(nextIdx);
+    setCountdownAction("startNew");   // ✅ เริ่มท่าใหม่
+    setIsCounting(true);
+    setCountdown(3);
+  } else {
+    onWorkoutEnded();
+  }
+};
 
   // --- Interaction Handlers ---
   const togglePause = () => {
-    if (isResting) {
-      // ช่วงพัก: pause / resume ตามปกติ (ไม่ต้องขึ้น 3-2-1 ก็ได้)
-      if (isPaused) {
-        resumeRestTimers();
-        setIsPaused(false);
-      } else {
-        pauseRestTimers();
-        setIsPaused(true);
-      }
-    } else if (isPlaying) {
-      if (isPaused) {
-        // ✅ RESUME จาก pause ระหว่างเล่นท่า
-        // แทนที่จะ resume ทันที → ขึ้น 3-2-1 ก่อน
-        setCountdown(3);
-        setCountdownAction("resumeWorkout");
-        setIsCounting(true);
-      } else {
-        // กดหยุด
-        pauseWorkoutTimers();
-        setIsPaused(true);
-      }
+  if (isResting) {
+    // ช่วงพัก: pause / resume ตามปกติ (ไม่ต้องขึ้น 3-2-1 ก็ได้)
+    if (isPaused) {
+      resumeRestTimers();
+      setIsPaused(false);
+    } else {
+      pauseRestTimers();
+      setIsPaused(true);
     }
-  };
+  } else if (isPlaying) {
+    if (isPaused) {
+      // ✅ RESUME จาก pause ระหว่างเล่นท่า
+      // แทนที่จะ resume ทันที → ขึ้น 3-2-1 ก่อน
+      setCountdown(3);
+      setCountdownAction("resumeWorkout");
+      setIsCounting(true);
+    } else {
+      // กดหยุด
+      pauseWorkoutTimers();
+      setIsPaused(true);
+    }
+  }
+};
 
 
   const safeResumeFromOverlay = () => {
@@ -777,55 +762,55 @@ export default function WorkoutPlayer() {
   };
   const isLoggingRef = useRef(false);
   const handleNext = () => {
-    if (isResting) {
-      endRest();
-      return;
-    }
+  if (isResting) {
+    endRest();
+    return;
+  }
 
-    if (isCounting) {
-      // กำลัง 3-2-1 อยู่ แล้วผู้ใช้กด "เริ่มเลย"
-      setIsCounting(false);
-      setIsPaused(false);
+  if (isCounting) {
+    // กำลัง 3-2-1 อยู่ แล้วผู้ใช้กด "เริ่มเลย"
+    setIsCounting(false);
+    setIsPaused(false);
 
-      if (countdownAction === "startNew") {
-        setIsPlaying(true);
-        startWorkoutTimersForCurrent();
-      } else if (countdownAction === "resumeWorkout") {
-        setIsPlaying(true);
-        resumeWorkoutTimers();
-      } else if (countdownAction === "resumeRest") {
-        setIsResting(true);
-        resumeRestTimers();
-      }
-      return;
+    if (countdownAction === "startNew") {
+      setIsPlaying(true);
+      startWorkoutTimersForCurrent();
+    } else if (countdownAction === "resumeWorkout") {
+      setIsPlaying(true);
+      resumeWorkoutTimers();
+    } else if (countdownAction === "resumeRest") {
+      setIsResting(true);
+      resumeRestTimers();
     }
+    return;
+  }
 
-    if (isPlaying) {
-      onWorkoutEnded();
-      return;
-    }
-  };
+  if (isPlaying) {
+    onWorkoutEnded();
+    return;
+  }
+};
 
 
   const handlePrev = () => {
-    stopCamera();
-    resetAllTimers();
-    const prev = Math.max(0, currentExercise - 1);
-    setCurrentExercise(prev);
-    setIsPaused(false);
-    setIsResting(false);
-    setIsPlaying(false);
-    setIsCounting(false);
+  stopCamera();
+  resetAllTimers();
+  const prev = Math.max(0, currentExercise - 1);
+  setCurrentExercise(prev);
+  setIsPaused(false);
+  setIsResting(false);
+  setIsPlaying(false);
+  setIsCounting(false);
 
-    if (prev === 0) {
-      setIsResting(true);
-      startRest(0, REST_BASE_SEC);
-    } else {
-      setCountdownAction("startNew");   // ✅ เริ่มท่าใหม่
-      setIsCounting(true);
-      setCountdown(3);
-    }
-  };
+  if (prev === 0) {
+    setIsResting(true);
+    startRest(0, REST_BASE_SEC);
+  } else {
+    setCountdownAction("startNew");   // ✅ เริ่มท่าใหม่
+    setIsCounting(true);
+    setCountdown(3);
+  }
+};
 
   const handleAcceptGuide = async () => {
     const key = `hasSeenGuide:${programId}`;
@@ -935,7 +920,6 @@ export default function WorkoutPlayer() {
 
       {isPlaying && (
         <main className="wp-main">
-          {/* ส่วน Header บอกชื่อท่าและเวลา คงเดิมไว้ */}
           <div className="wp-exercise-header">
             <h2 className="wp-current-exercise-name">{current?.name}</h2>
             <div className="wp-exercise-stats">
@@ -946,62 +930,26 @@ export default function WorkoutPlayer() {
               <ProgressRing progress={exerciseProgress} />
             </div>
           </div>
-
-          {/* ✅ เปลี่ยนส่วนแสดงผลวิดีโอตรงนี้ เป็น Layout ใหม่ */}
-          <div className="media-content">
-            
-            {/* 1. วิดีโอท่าออกกำลังกาย */}
-            <div className="video-wrapper exercise-video">
-              {current?.video || current?.imageUrl ? (
-                <video
-                  className="video-player"
-                  src={current?.video}
-                  poster={current?.imageUrl}
-                  autoPlay
-                  muted
-                  playsInline
-                  loop
-                />
-              ) : (
+          <div className="wp-media-container">
+            <div className="wp-media-column">
+              {current?.video || current?.imageUrl ?
+                <video className="wp-exercise-video wp-exercise-video--primary" src={current?.video} poster={current?.imageUrl} autoPlay muted playsInline loop/> :
                 <div className="wp-placeholder-video"><span>ไม่มีวิดีโอ</span></div>
-              )}
-              <div className="video-label">ท่าตัวอย่าง</div>
+              }
             </div>
-
-            {/* 2. กล้องผู้ใช้ + AI Overlay */}
-<div className="video-wrapper camera-video-wrapper">
-
-    {/* Layer 1: วิดีโอกล้องจริง (อยู่ล่างสุด) */}
-    
-
-    {/* Layer 2: AI Logic Overlay (ทับอยู่ข้างบน) */}
-    {/* ต้องมี pointer-events-none เพื่อให้คลิกทะลุได้ (ถ้าจำเป็น) */}
-    <div className="ai-overlay" style={{ pointerEvents: 'none' }}>
-        <ExerciseCameraManager
-            exerciseName={current?.name}
-            isActive={isPlaying && !isPaused}
-            targetReps={current?.value || 10}
-            onRepComplete={handleRepComplete}
-            onSetComplete={handleSetComplete}
-        />
-    </div>
-
-    {/* Layer 3: UI Label (อยู่บนสุด) */}
-    <div className="video-label">กล้องของคุณ</div>
-
-    {/* Loading / Error States */}
-    {cameraStatus === "loading" && (
-        <div className="wp-overlay wp-overlay--muted">
-            <div className="wp-overlay-card">กำลังเตรียมกล้อง...</div>
-        </div>
-    )}
-    {cameraStatus === "error" && (
-        <div className="wp-overlay wp-overlay--error">
-            <div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div>
-        </div>
-    )}
-</div>
-
+            <div className="wp-media-column">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="wp-camera-feed"
+              />
+              {/* <video ref={exerciseVideoRef} className="hidden" playsInline muted width="640" height="480" /> */}
+            </div>
+            {cameraStatus === "loading" && <div className="wp-overlay wp-overlay--muted"><div className="wp-overlay-card">กำลังเตรียมกล้อง...</div></div>}
+            {cameraStatus === "error" && <div className="wp-overlay wp-overlay--error"><div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div></div>}
+            {/* {renderOverlay()} */}
           </div>
         </main>
       )}
@@ -1056,58 +1004,59 @@ export default function WorkoutPlayer() {
         </main>
       )}
 
-      {/* Controls: แสดงเฉพาะเมื่อไม่ได้โชว์ feedback modal */}
-      {!showFeedbackModal && (
-        <Controls
-          onPrev={handlePrev}
-          onNext={handleNext}
-          onTogglePause={togglePause}
-          isPaused={isPaused}
-          canPrev={currentExercise > 0}
-          mainButtonLabel={isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านนี้" : "ถัดไป"}
-          showPlayPause={isResting || isPlaying}
-        />
-      )}
+      <Controls
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onTogglePause={togglePause}
+        isPaused={isPaused}
+        canPrev={currentExercise > 0}
+        mainButtonLabel={isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านนี้" : "ถัดไป"}
+        showPlayPause={isResting || isPlaying}
+      />
       {showFeedbackModal && (
-        <div className="wp-overlay wp-overlay--dark" role="dialog" aria-modal="true">
-          <div className="wp-feedback-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="wp-feedback-title">ให้คะแนนความยากของโปรแกรมนี้</h2>
-            <div className="wp-feedback-actions">
-              <button
-                className="wp-feedback-btn wp-feedback-btn--easy"
-                disabled={sendingFeedback}
-                onClick={() => handlePickFeedback("easy")}
-              >
-                <div className="sentiment-icon happy">
-                  <Smile size={22} />
-                </div>
-                ง่ายมาก
-              </button>
-              <button
-                className="wp-feedback-btn wp-feedback-btn--medium"
-                disabled={sendingFeedback}
-                onClick={() => handlePickFeedback("medium")}
-              >
-                <div className="sentiment-icon neutral">
-                  <Meh size={22} />
-                </div>
-                ปานกลาง
-              </button>
-              <button
-                className="wp-feedback-btn wp-feedback-btn--hard"
-                disabled={sendingFeedback}
-                onClick={() => handlePickFeedback("hard")}
-              >
-                <div className="sentiment-icon sad">
-                  <Frown size={22} />
-                </div>
-                ยากมาก
-              </button>
-            </div>
-            {sendingFeedback && <div className="wp-feedback-loading">กำลังบันทึก...</div>}
+  <div className="wp-overlay wp-overlay--dark" role="dialog" aria-modal="true">
+    <div className="wp-feedback-card" onClick={(e) => e.stopPropagation()}>
+      <h2 className="wp-feedback-title">ให้คะแนนความยากของโปรแกรมนี้</h2>
+
+      <div className="wp-feedback-actions">
+        <button
+          className="wp-feedback-btn wp-feedback-btn--easy"
+          disabled={sendingFeedback}
+          onClick={() => handlePickFeedback("easy")}
+        >
+          <div className="sentiment-icon happy">
+            <Smile size={22} />
           </div>
-        </div>
-      )}
+          ง่ายมาก
+        </button>
+
+        <button
+          className="wp-feedback-btn wp-feedback-btn--medium"
+          disabled={sendingFeedback}
+          onClick={() => handlePickFeedback("medium")}
+        >
+          <div className="sentiment-icon neutral">
+            <Meh size={22} />
+          </div>
+          ปานกลาง
+        </button>
+
+        <button
+          className="wp-feedback-btn wp-feedback-btn--hard"
+          disabled={sendingFeedback}
+          onClick={() => handlePickFeedback("hard")}
+        >
+          <div className="sentiment-icon sad">
+            <Frown size={22} />
+          </div>
+          ยากมาก
+        </button>
+      </div>
+
+      {sendingFeedback && <div className="wp-feedback-loading">กำลังบันทึก...</div>}
+    </div>
+  </div>
+)}
 
     </div>
   );
@@ -1153,76 +1102,25 @@ const Header = ({ title, current, total, progress, onBack, onGuide }) => (
   </header>
 );
 
-const Controls = ({ 
-  onPrev, 
-  onNext, 
-  onTogglePause, 
-  isPaused, 
-  canPrev, 
-  mainButtonLabel, 
-  showPlayPause 
-}) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const controlsRef = useRef(null);
-
-  return (
-    <footer
-      ref={controlsRef}
-      className={`wp-controls ${isCollapsed ? 'is-collapsed' : ''}`}
-    >
-      {/* --- Buttons Area --- */}
-      <div className="wp-controls-body">
-        {/* ปุ่มย้อนกลับ */}
-        <button 
-          className="wp-control-btn wp-control-btn-secondary" 
-          onClick={onPrev} 
-          disabled={!canPrev}
-          style={{ position: 'relative', zIndex: 10 }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="19 20 9 12 19 4 19 20" />
-            <line x1="5" y1="19" x2="5" y2="5" />
-          </svg>
-          <span>ก่อนหน้า</span>
-        </button>
-
-        {/* ปุ่ม Play/Pause */}
-        {showPlayPause && (
-          <button 
-            className={`wp-control-btn wp-control-btn-circle ${isPaused ? "play" : "pause"}`} 
-            onClick={(e) => { 
-                e.stopPropagation(); 
-                onTogglePause(); 
-            }}
-            style={{ position: 'relative', zIndex: 10 }}
-          >
-            {isPaused ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="5 3 19 12 5 21 5 3" />
-              </svg>
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-            )}
-          </button>
-        )}
-
-        {/* ปุ่มถัดไป */}
-        <button 
-          className="wp-control-btn wp-control-btn-primary" 
-          onClick={onNext}
-          style={{ position: 'relative', zIndex: 10 }}
-        >
-          <span>{mainButtonLabel}</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="5 4 15 12 5 20 5 4" />
-            <line x1="19" y1="5" x2="19" y2="19" />
-          </svg>
-        </button>
-      </div>
-    </footer>
-  );
-};
+const Controls = ({ onPrev, onNext, onTogglePause, isPaused, canPrev, mainButtonLabel, showPlayPause }) => (
+  <footer className="wp-controls">
+    <button className="wp-control-btn wp-control-btn-secondary" onClick={onPrev} disabled={!canPrev}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="19 20 9 12 19 4 19 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <span>ก่อนหน้า</span>
+    </button>
+    {showPlayPause && (
+      <button className={`wp-control-btn ${isPaused ? "wp-control-btn-play" : "wp-control-btn-pause"}`} onClick={(e) => { e.stopPropagation(); onTogglePause(); }}>
+        {isPaused ?
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg> :
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="6" y="4" width="4" height="16" stroke="currentColor" strokeWidth="2" /><rect x="14" y="4" width="4" height="16" stroke="currentColor" strokeWidth="2" /></svg>
+        }
+        <span>{isPaused ? "เล่น" : "หยุด"}</span>
+      </button>
+    )}
+    <button className="wp-control-btn wp-control-btn-primary" onClick={onNext}>
+      <span>{mainButtonLabel}</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="5 4 15 12 5 20 5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </button>
+  </footer>
+  
+);

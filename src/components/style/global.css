@@ -1,6 +1,6 @@
 @charset "UTF-8";
 :root {
-  --font-primary: "Chakra Petch", "Noto Sans Thai Looped", "Prompt", sans-serif;
+  --font-primary: "Montserrat", sans-serif;
 }
 
 /* ให้ทั้งเว็บใช้ฟอนต์นี้โดยอ้างตัวแปรเดียว */

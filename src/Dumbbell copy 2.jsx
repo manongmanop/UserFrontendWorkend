@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import * as Pose from '@mediapipe/pose';
 import * as cam from '@mediapipe/camera_utils';
 
-export const usePushUpCamera = ({ 
+export const useDumbbellCamera = ({ 
   videoRef, 
   canvasRef, 
   isActive,
-  targetReps = null,
-  targetSets = null,
-  setRestTime = null,
+  targetReps = 1,
+  targetSets = 2,
+  setRestTime = 5,
   onRepComplete,
   onSetComplete,
   onWorkoutComplete
@@ -17,8 +17,8 @@ export const usePushUpCamera = ({
   const [counterLeft, setCounterLeft] = useState(0);
   const [counterRight, setCounterRight] = useState(0);
   const [sets, setSets] = useState(0);
-  // const [resting, setResting] = useState(false);
-  // const [restTimeRemaining, setRestTimeRemaining] = useState(0);
+  const [resting, setResting] = useState(false);
+  const [restTimeRemaining, setRestTimeRemaining] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
@@ -54,15 +54,15 @@ export const usePushUpCamera = ({
   const chatHistory = useRef([
     {
       role: "user",
-      parts: [{ text: "ค่ามุมองศาอยู่ที่ 70 มุมองศา หากค่ามากกว่าหรือน้อยกว่าให้ส่งข้อความบอกให้เพิ่มหรือลดตามจำนวนที่ขาดหรือเกิน" }]
+      parts: [{ text: "ค่ามุมองศาอยู่ที่ 30 มุมองศา หากค่ามากกว่าหรือน้อยกว่าให้ส่งข้อความบอกให้เพิ่มหรือลดตามจำนวนที่ขาดหรือเกิน" }]
     },
     {
       role: "model",
-      parts: [{ text: "มุม 70 องศา! ดีมาก! ถ้าต้องการปรับค่า, ทำตามนี้เลย: * **ค่าเกิน:** ลดลง [จำนวนที่เกิน] องศา * **ค่าขาด:** เพิ่มขึ้น [จำนวนที่ขาด] องศา คุณทำได้! ลุย!" }]
+      parts: [{ text: "มุม 30 องศา! ดีมาก! ถ้าต้องการปรับค่า, ทำตามนี้เลย: * **ค่าเกิน:** ลดลง [จำนวนที่เกิน] องศา * **ค่าขาด:** เพิ่มขึ้น [จำนวนที่ขาด] องศา คุณทำได้! ลุย!" }]
     },
     {
       role: "user",
-      parts: [{ text: "60" }]
+      parts: [{ text: "20" }]
     },
     {
       role: "model",
@@ -70,7 +70,7 @@ export const usePushUpCamera = ({
     },
     {
       role: "user",
-      parts: [{ text: "73" }]
+      parts: [{ text: "33" }]
     },
     {
       role: "model",
@@ -78,7 +78,7 @@ export const usePushUpCamera = ({
     },
     {
       role: "user",
-      parts: [{ text: "140" }]
+      parts: [{ text: "100" }]
     },
     {
       role: "model",
@@ -86,7 +86,7 @@ export const usePushUpCamera = ({
     },
     {
       role: "user",
-      parts: [{ text: "69" }]
+      parts: [{ text: "29" }]
     },
     {
       role: "model",
@@ -106,12 +106,12 @@ export const usePushUpCamera = ({
   const getColorForAngle = (angle) => {
     if (angle > 160) {
       return '#ff0000ff'; // Red
-    } else if (angle >= 60 && angle <= 80) {
+    } else if (angle >= 20 && angle <= 40) {
       return '#00ff00ff'; // Green
-    } else if ((angle > 60 && angle < 160) || angle < 80) {
+    } else if ((angle > 40 && angle < 160) || angle < 20) {
       return '#FFFF00'; // Yellow
     }
-    return '#ffffffff'; // White (fallback)
+    return '#ffffffff'; // White
   };
 
   // Save session data to database
@@ -144,7 +144,7 @@ export const usePushUpCamera = ({
   // Gemini API call
   const callGeminiAPI = async (angle) => {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiApiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -192,7 +192,6 @@ export const usePushUpCamera = ({
           voice: 'ballad',
           input: text,
           instructions,
-          speed: 1.5,
           response_format: 'mp3'
         })
       });
@@ -264,7 +263,7 @@ export const usePushUpCamera = ({
 
   // Check if set is complete
   useEffect(() => {
-    if (counterLeft >= targetReps && counterRight >= targetReps && !workoutComplete) {
+    if (counterLeft >= targetReps && counterRight >= targetReps && !resting && !workoutComplete) {
       setSets(prev => {
         const newSets = prev + 1;
         if (newSets >= targetSets) {
@@ -306,10 +305,10 @@ export const usePushUpCamera = ({
         return newSets;
       });
     }
-  }, [counterLeft, counterRight, targetReps, sets, targetSets, workoutComplete]);
+  }, [counterLeft, counterRight, targetReps, sets, targetSets, resting, workoutComplete]);
 
   useEffect(() => {
-    if (!isActive || !videoRef.current || !canvasRef.current || workoutComplete) {
+    if (!isActive || !videoRef.current || !canvasRef.current || workoutComplete || resting) {
       return;
     }
 
@@ -415,12 +414,20 @@ export const usePushUpCamera = ({
                     radius: 8
                   });
 
+                  canvasCtx.fillStyle = '#FFFFFF';
+                  canvasCtx.font = '20px Arial';
+                  canvasCtx.fillText(
+                    `LEFT: ${angleLeft.toFixed(2)}°`,
+                    elbowLeft.x * canvasRef.current.width - 50,
+                    elbowLeft.y * canvasRef.current.height - 10
+                  );
+
                   // Left arm curl logic with hold timer
                   if (angleLeft > 160) {
-                    stageLeft.current = "up";
+                    stageLeft.current = "down";
                     isTimingLeft.current = false;
                     holdTimeLeft.current = 0;
-                  } else if (angleLeft >= 60 && angleLeft <= 40 && stageLeft.current === "up") {
+                  } else if (angleLeft >= 20 && angleLeft <= 40 && stageLeft.current === "down") {
                     if (!isTimingLeft.current) {
                       timerStartLeft.current = Date.now();
                       isTimingLeft.current = true;
@@ -430,7 +437,7 @@ export const usePushUpCamera = ({
                     const totalHoldTime = holdTimeLeft.current + currentHoldTime;
 
                     if (totalHoldTime >= holdTimeRequiredLeft.current) {
-                      stageLeft.current = "down";
+                      stageLeft.current = "up";
                       setCounterLeft(prev => {
                         const newCounter = prev + 1;
                         angleDataLeft.current.push({
@@ -448,7 +455,7 @@ export const usePushUpCamera = ({
 
                       processGeminiAndTTS(Math.round(angleLeft));
                     }
-                  } else if ((angleLeft > 60 && angleLeft < 160) || angleLeft < 80) {
+                  } else if ((angleLeft > 40 && angleLeft < 160) || angleLeft < 20) {
                     if (isTimingLeft.current) {
                       holdTimeLeft.current += (Date.now() - timerStartLeft.current) / 1000;
                       isTimingLeft.current = false;
@@ -475,12 +482,20 @@ export const usePushUpCamera = ({
                     radius: 8
                   });
 
+                  canvasCtx.fillStyle = '#FFFFFF';
+                  canvasCtx.font = '20px Arial';
+                  canvasCtx.fillText(
+                    `RIGHT: ${angleRight.toFixed(2)}°`,
+                    elbowRight.x * canvasRef.current.width - 50,
+                    elbowRight.y * canvasRef.current.height - 10
+                  );
+
                   // Right arm curl logic
                   if (angleRight > 160) {
-                    stageRight.current = "up";
+                    stageRight.current = "down";
                     isTimingRight.current = false;
                     holdTimeRight.current = 0;
-                  } else if (angleRight >= 60 && angleRight <= 80 && stageRight.current === "up") {
+                  } else if (angleRight >= 20 && angleRight <= 40 && stageRight.current === "down") {
                     if (!isTimingRight.current) {
                       timerStartRight.current = Date.now();
                       isTimingRight.current = true;
@@ -490,7 +505,7 @@ export const usePushUpCamera = ({
                     const totalHoldTime = holdTimeRight.current + currentHoldTime;
 
                     if (totalHoldTime >= holdTimeRequiredRight.current) {
-                      stageRight.current = "down";
+                      stageRight.current = "up";
                       setCounterRight(prev => {
                         const newCounter = prev + 1;
                         angleDataRight.current.push({
@@ -508,7 +523,7 @@ export const usePushUpCamera = ({
 
                       processGeminiAndTTS(Math.round(angleRight));
                     }
-                  } else if ((angleRight > 60 && angleRight < 160) || angleRight < 80) {
+                  } else if ((angleRight > 40 && angleRight < 160) || angleRight < 20) {
                     if (isTimingRight.current) {
                       holdTimeRight.current += (Date.now() - timerStartRight.current) / 1000;
                       isTimingRight.current = false;
@@ -583,12 +598,14 @@ export const usePushUpCamera = ({
         clearInterval(restInterval.current);
       }
     };
-  }, [isActive, targetReps, workoutComplete]);
+  }, [isActive, targetReps, workoutComplete, resting]);
 
   return {
     counterLeft,
     counterRight,
     sets,
+    resting,
+    restTimeRemaining,
     isSpeaking,
     workoutComplete,
     saveStatus,
@@ -597,4 +614,4 @@ export const usePushUpCamera = ({
   };
 };
 
-export default usePushUpCamera;
+export default useDumbbellCamera;

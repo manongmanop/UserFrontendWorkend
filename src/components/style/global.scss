@@ -1,8 +1,0 @@
-:root {
-  --font-primary: 'Chakra Petch', 'Noto Sans Thai Looped', 'Prompt', sans-serif;
-}
-
-/* ให้ทั้งเว็บใช้ฟอนต์นี้โดยอ้างตัวแปรเดียว */
-body {
-  font-family: var(--font-primary) !important;
-}

@@ -1,38 +1,38 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as Pose from '@mediapipe/pose';
 import * as cam from '@mediapipe/camera_utils';
 
-const PlankTracker = () => {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-
+export const usePlankCamera = ({ 
+  videoRef, 
+  canvasRef, 
+  isActive,
+  targetSets = 3,
+  targetTimePerSet = 30, // เวลาเป้าหมายต่อเซ็ต (วินาที)
+  onSetComplete,
+  onWorkoutComplete
+}) => {
   // State variables
-  const [plankState, setPlankState] = useState("not_in_position"); // "not_in_position", "in_position", "resting"
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [totalTime, setTotalTime] = useState(0);
+  const [plankState, setPlankState] = useState("not_in_position");
   const [currentSet, setCurrentSet] = useState(1);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [setsCompleted, setSetsCompleted] = useState(0);
-  const [targetSets, setTargetSets] = useState(3);
-  const [targetTimePerSet, setTargetTimePerSet] = useState(30); // seconds
-  const [restTime, setRestTime] = useState(10); // seconds
-  const [resting, setResting] = useState(false);
-  const [restTimeRemaining, setRestTimeRemaining] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [workoutComplete, setWorkoutComplete] = useState(false);
-  const [saveStatus, setSaveStatus] = useState('');
 
-  // Refs for tracking
+  // Refs for tracking state
   const plankStartTime = useRef(null);
   const plankElapsedTime = useRef(0);
-  const restEndTime = useRef(0);
-  const restInterval = useRef(null);
   const lastSaveTime = useRef(Date.now());
   const lastGeminiTime = useRef(Date.now());
-  const saveInterval = 6000; // 6 seconds
-  const geminiInterval = 24000; // 24 seconds
+  const saveInterval = 6000; // บันทึกทุก 6 วินาที
+  const geminiInterval = 24000; // ส่ง Gemini ทุก 24 วินาที
 
-  // Database refs
-  const angleData = useRef([]);
+  // Database refs - for storing angle data
+  const angleDataAvg = useRef([]);
+
+  // Camera and Pose refs
+  const cameraRef = useRef(null);
+  const poseRef = useRef(null);
 
   // TTS and AI refs
   const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -40,12 +40,20 @@ const PlankTracker = () => {
   const ttsQueue = useRef([]);
   const isProcessingTTS = useRef(false);
   const instructions = "Voice: High-energy, upbeat, and encouraging, projecting enthusiasm and motivation.\n\nPunctuation: Short, punchy sentences with strategic pauses to maintain excitement and clarity.\n\nDelivery: Fast-paced and dynamic, with rising intonation to build momentum and keep engagement high.\n\nPhrasing: Action-oriented and direct, using motivational cues to push participants forward.\n\nTone: Positive, energetic, and empowering, creating an atmosphere of encouragement and achievement.";
-  const chatHistory = useRef([]);
+  const chatHistory = useRef([
+    {
+      role: "user",
+      parts: [{ text: "ค่ามุมองศาอยู่ที่ 30 มุมองศา หากค่ามากกว่าหรือน้อยกว่าให้ส่งข้อความบอกให้เพิ่มหรือลดตามจำนวนที่ขาดหรือเกิน" }]
+    },
+    {
+      role: "model",
+      parts: [{ text: "มุม 30 องศา! ดีมาก! ถ้าต้องการปรับค่า, ทำตามนี้เลย: * **ค่าเกิน:** ลดลง [จำนวนที่เกิน] องศา * **ค่าขาด:** เพิ่มขึ้น [จำนวนที่ขาด] องศา คุณทำได้! ลุย!" }]
+    }
+  ]);
 
   const calculateAngle = (a, b, c) => {
     const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
     let angle = Math.abs(radians * 180.0 / Math.PI);
-
     if (angle > 180.0) {
       angle = 360 - angle;
     }
@@ -54,65 +62,31 @@ const PlankTracker = () => {
 
   const getColorForAngle = (angle) => {
     if (angle >= 150 && angle <= 170) {
-      return '#00ff00ff'; // Green - correct plank position
-    } else if (angle >= 140 && angle < 150) {
-      return '#FFFF00'; // Yellow - almost there
-    } else if (angle > 170 && angle <= 180) {
-      return '#FFFF00'; // Yellow - too straight
+      return '#00ff00ff'; // Green - ท่าถูกต้อง
+    } else if ((angle > 170 && angle <= 180) || angle < 150) {
+      return '#FFFF00'; // Yellow - ท่าใกล้เคียง
     } else {
-      return '#ff0000ff'; // Red - incorrect
+      return '#ff0000ff'; // Red - ท่าไม่ถูกต้อง
     }
   };
 
-  // Format time to MM:SS
+  // Format time in MM:SS
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
+    const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Save session data to database
-  const saveSessionData = async (sessionData) => {
-    try {
-      setSaveStatus('Saving...');
-      const response = await fetch('http://127.0.0.1:8000/api/save-exercise', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sessionData)
-      });
-
-      if (response.ok) {
-        setSaveStatus('✓ Data saved successfully!');
-        setTimeout(() => setSaveStatus(''), 3000);
-        return true;
-      } else {
-        setSaveStatus('✗ Failed to save data');
-        setTimeout(() => setSaveStatus(''), 3000);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      setSaveStatus('✗ Error: ' + error.message);
-      setTimeout(() => setSaveStatus(''), 3000);
-      return false;
-    }
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Gemini API call
   const callGeminiAPI = async (angle) => {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiApiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [
             ...chatHistory.current,
-            {
-              role: "user",
-              parts: [{ text: Math.round(angle).toString() }]
-            }
+            { role: "user", parts: [{ text: Math.round(angle).toString() }] }
           ],
           generationConfig: {
             temperature: 0.8,
@@ -151,9 +125,10 @@ const PlankTracker = () => {
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini-tts',
-          voice: 'sage',
+          voice: 'ballad',
           input: text,
           instructions,
+          speed: 1.5,
           response_format: 'mp3'
         })
       });
@@ -205,44 +180,112 @@ const PlankTracker = () => {
     }
   };
 
-  // Start rest period
-  const startRestPeriod = () => {
-    setResting(true);
-    setRestTimeRemaining(restTime);
-    restEndTime.current = Date.now() + (restTime * 1000);
-    plankStartTime.current = null;
-    plankElapsedTime.current = 0;
-    setElapsedTime(0);
-
-    restInterval.current = setInterval(() => {
-      const timeLeft = Math.max(0, Math.ceil((restEndTime.current - Date.now()) / 1000));
-      setRestTimeRemaining(timeLeft);
-
-      if (timeLeft <= 0) {
-        clearInterval(restInterval.current);
-        setResting(false);
-        setPlankState("not_in_position");
-      }
-    }, 1000);
-  };
-
   // Update elapsed time display
   useEffect(() => {
-    let interval;
-    if (plankState === "in_position" && plankStartTime.current && !resting) {
-      interval = setInterval(() => {
+    if (plankState === "in_position" && plankStartTime.current && !workoutComplete) {
+      const timer = setInterval(() => {
         const currentTime = Date.now();
-        const currentElapsed = plankElapsedTime.current + (currentTime - plankStartTime.current) / 1000;
-        setElapsedTime(currentElapsed);
-        setTotalTime(currentElapsed);
+        const totalElapsed = plankElapsedTime.current + (currentTime - plankStartTime.current) / 1000;
+        setElapsedTime(totalElapsed);
+
+        // Check if set is complete
+        if (totalElapsed >= targetTimePerSet) {
+          setSetsCompleted(prev => {
+            const newSets = prev + 1;
+            
+            if (newSets >= targetSets) {
+              setWorkoutComplete(true);
+              
+              // Prepare session data
+              const sessionData = {
+                timestamp: new Date().toLocaleString('th-TH', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                }),
+                set: {
+                  reps: targetTimePerSet,
+                  sets: targetSets,
+                  arm: {
+                    data_avg: angleDataAvg.current
+                  }
+                }
+              };
+              
+              if (onWorkoutComplete) {
+                onWorkoutComplete(sessionData);
+              }
+            } else {
+              if (onSetComplete) {
+                onSetComplete(newSets);
+              }
+              // เริ่มเซ็ตใหม่ทันที
+              setCurrentSet(newSets + 1);
+            }
+            
+            return newSets;
+          });
+          
+          plankElapsedTime.current = 0;
+          plankStartTime.current = null;
+          setPlankState("not_in_position");
+        }
       }, 100);
+
+      return () => clearInterval(timer);
+    } else if (plankState === "not_in_position") {
+      setElapsedTime(plankElapsedTime.current);
     }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [plankState, resting]);
+  }, [plankState, workoutComplete, targetTimePerSet, targetSets]);
 
   useEffect(() => {
+    if (!isActive || !videoRef.current || !canvasRef.current) {
+      return;
+    }
+
+    let isCleanedUp = false;
+
+    // Don't stop camera when workout is complete - let parent component handle it
+    const drawConnections = (ctx, points, style) => {
+      if (!points || points.length < 3) return;
+
+      ctx.save();
+      ctx.strokeStyle = style.color;
+      ctx.lineWidth = style.lineWidth || 4;
+
+      ctx.beginPath();
+      ctx.moveTo(points[0].x * ctx.canvas.width, points[0].y * ctx.canvas.height);
+      ctx.lineTo(points[1].x * ctx.canvas.width, points[1].y * ctx.canvas.height);
+      ctx.lineTo(points[2].x * ctx.canvas.width, points[2].y * ctx.canvas.height);
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    const drawLandmarks = (ctx, landmarks, style) => {
+      if (!landmarks) return;
+
+      ctx.save();
+      ctx.fillStyle = style.color;
+
+      for (const landmark of landmarks) {
+        if (landmark) {
+          ctx.beginPath();
+          ctx.arc(
+            landmark.x * ctx.canvas.width,
+            landmark.y * ctx.canvas.height,
+            style.radius || 5,
+            0,
+            2 * Math.PI
+          );
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    };
+
     const initCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -265,14 +308,18 @@ const PlankTracker = () => {
               }
             });
 
+            poseRef.current = pose;
+
             pose.setOptions({
               modelComplexity: 1,
-              smoothLandmarks: true,
-              minDetectionConfidence: 0.5,
-              minTrackingConfidence: 0.5
+              smoothLandmarks: false,
+              minDetectionConfidence: 0.7,
+              minTrackingConfidence: 0.7
             });
 
             const onResults = (results) => {
+              if (!canvasRef.current || isCleanedUp) return;
+
               const canvasCtx = canvasRef.current.getContext('2d');
               canvasCtx.save();
               canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -282,145 +329,91 @@ const PlankTracker = () => {
 
               canvasCtx.drawImage(results.image, 0, 0, canvasRef.current.width, canvasRef.current.height);
 
-              if (results.poseLandmarks && !resting && !workoutComplete) {
+              if (results.poseLandmarks) {
                 const landmarks = results.poseLandmarks;
 
-                // Get coordinates for plank position
-                const shoulderLeft = landmarks[11];
-                const hipLeft = landmarks[23];
-                const ankleLeft = landmarks[27];
+                // Get coordinates for both sides
+                const shoulderRight = landmarks[11];
+                const hipRight = landmarks[23];
+                const ankleRight = landmarks[27];
 
-                const shoulderRight = landmarks[12];
-                const hipRight = landmarks[24];
-                const ankleRight = landmarks[28];
+                const shoulderLeft = landmarks[12];
+                const hipLeft = landmarks[24];
+                const ankleLeft = landmarks[28];
 
-                const kneeLeft = landmarks[25];
-                const kneeRight = landmarks[26];
-
-                if (shoulderLeft && hipLeft && ankleLeft && shoulderRight && hipRight && ankleRight) {
-                  // Calculate shoulder-hip-ankle angles
-                  const angleLeft = calculateAngle(shoulderLeft, hipLeft, ankleLeft);
+                if (shoulderRight && hipRight && ankleRight && shoulderLeft && hipLeft && ankleLeft) {
+                  // Calculate angles
                   const angleRight = calculateAngle(shoulderRight, hipRight, ankleRight);
-                  const shoulderHipAngleAvg = (angleLeft + angleRight) / 2;
+                  const angleLeft = calculateAngle(shoulderLeft, hipLeft, ankleLeft);
+                  const shoulderHipAnkleAvg = (angleRight + angleLeft) / 2;
 
-                  // Calculate hip angles
-                  const hipAngleLeft = calculateAngle(shoulderLeft, hipLeft, kneeLeft);
-                  const hipAngleRight = calculateAngle(shoulderRight, hipRight, kneeRight);
-                  const hipAngleAvg = (hipAngleLeft + hipAngleRight) / 2;
+                  const color = getColorForAngle(shoulderHipAnkleAvg);
 
-                  // Calculate knee angles
-                  const kneeAngleLeft = calculateAngle(hipLeft, kneeLeft, ankleLeft);
-                  const kneeAngleRight = calculateAngle(hipRight, kneeRight, ankleRight);
-                  const kneeAngleAvg = (kneeAngleLeft + kneeAngleRight) / 2;
-
-                  const color = getColorForAngle(shoulderHipAngleAvg);
-
-                  // Draw connections for left side
-                  drawConnections(canvasCtx, [shoulderLeft, hipLeft, ankleLeft], {
-                    color: color,
-                    lineWidth: 4
-                  });
-
-                  // Draw connections for right side
+                  // Draw right side
                   drawConnections(canvasCtx, [shoulderRight, hipRight, ankleRight], {
                     color: color,
                     lineWidth: 4
                   });
 
-                  // Draw landmarks
-                  drawSpecificLandmarks(canvasCtx,
-                    [shoulderLeft, hipLeft, ankleLeft, shoulderRight, hipRight, ankleRight],
-                    { color: color, radius: 8 }
-                  );
+                  drawLandmarks(canvasCtx, [shoulderRight, hipRight, ankleRight], {
+                    color: color,
+                    radius: 8
+                  });
 
-                  // Display angle
-                  // canvasCtx.fillStyle = '#FFFFFF';
-                  // canvasCtx.font = '24px Arial';
-                  // canvasCtx.fillText(
-                  //   `Body Angle: ${shoulderHipAngleAvg.toFixed(1)}°`,
-                  //   canvasRef.current.width / 2 - 100,
-                  //   50
-                  // );
+                  // Draw left side
+                  drawConnections(canvasCtx, [shoulderLeft, hipLeft, ankleLeft], {
+                    color: color,
+                    lineWidth: 4
+                  });
 
-                  // Plank position logic
-                  const currentTime = Date.now();
+                  drawLandmarks(canvasCtx, [shoulderLeft, hipLeft, ankleLeft], {
+                    color: color,
+                    radius: 8
+                  });
 
-                  if (shoulderHipAngleAvg >= 150 && shoulderHipAngleAvg <= 170) {
-                    // Correct plank position
+                  // Plank timing logic
+                  if (shoulderHipAnkleAvg >= 150 && shoulderHipAnkleAvg <= 170) {
+                    // ท่าถูกต้อง
                     if (plankState !== "in_position") {
                       setPlankState("in_position");
-                      plankStartTime.current = currentTime;
-                    }
-
-                    // Check for Gemini interval
-                    if (currentTime - lastGeminiTime.current >= geminiInterval) {
-                      processGeminiAndTTS(Math.round(shoulderHipAngleAvg));
-                      lastGeminiTime.current = currentTime;
-                    }
-
-                    // Check for save interval
-                    if (currentTime - lastSaveTime.current >= saveInterval) {
-                      const totalElapsed = plankElapsedTime.current + (currentTime - plankStartTime.current) / 1000;
-                      angleData.current.push({
-                        total_time: Math.round(totalElapsed),
-                        human_readable_time: formatTime(totalElapsed),
-                        angle: Math.round(shoulderHipAngleAvg * 100) / 100,
-                        timestamp: new Date().toISOString()
-                      });
-                      lastSaveTime.current = currentTime;
+                      plankStartTime.current = Date.now();
                     }
                   } else {
-                    // Not in correct position
+                    // ท่าไม่ถูกต้อง
                     if (plankStartTime.current !== null) {
-                      plankElapsedTime.current += (currentTime - plankStartTime.current) / 1000;
+                      plankElapsedTime.current += (Date.now() - plankStartTime.current) / 1000;
                     }
                     setPlankState("not_in_position");
                     plankStartTime.current = null;
                   }
 
-                  // Check if current set is complete
-                  if (plankState === "in_position" && plankStartTime.current) {
-                    const totalElapsed = plankElapsedTime.current + (currentTime - plankStartTime.current) / 1000;
+                  // Save angle data every 6 seconds
+                  const currentTime = Date.now();
+                  if (currentTime - lastSaveTime.current >= saveInterval) {
+                    const totalTimeInt = plankState === "in_position" && plankStartTime.current
+                      ? plankElapsedTime.current + (currentTime - plankStartTime.current) / 1000
+                      : plankElapsedTime.current;
 
-                    if (totalElapsed >= targetTimePerSet) {
-                      setSetsCompleted(prev => {
-                        const newSets = prev + 1;
-                        if (newSets >= targetSets) {
-                          setWorkoutComplete(true);
+                    const minutes = Math.floor(totalTimeInt / 60);
+                    const seconds = Math.floor(totalTimeInt % 60);
+                    const humanReadableTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-                          // Prepare and save session data
-                          const sessionData = {
-                            timestamp: new Date().toLocaleString('th-TH', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit'
-                            }),
-                            set: {
-                              reps: targetTimePerSet,
-                              sets: targetSets,
-                              arm: {
-                                data_avg: angleData.current
-                              }
-                            }
-                          };
+                    angleDataAvg.current.push({
+                      total_time: totalTimeInt,
+                      human_readable_time: humanReadableTime,
+                      angle: Math.round(shoulderHipAnkleAvg * 100) / 100
+                    });
 
-                          saveSessionData(sessionData);
-                        } else {
-                          setCurrentSet(prev => prev + 1);
-                          startRestPeriod();
-                        }
-                        return newSets;
-                      });
-                      plankElapsedTime.current = 0;
-                      plankStartTime.current = null;
-                    }
+                    lastSaveTime.current = currentTime;
+                  }
+
+                  // Send Gemini message every 24 seconds
+                  if (currentTime - lastGeminiTime.current >= geminiInterval) {
+                    processGeminiAndTTS(Math.round(shoulderHipAnkleAvg));
+                    lastGeminiTime.current = currentTime;
                   }
                 }
               }
-
               canvasCtx.restore();
             };
 
@@ -429,11 +422,15 @@ const PlankTracker = () => {
             if (videoRef.current) {
               const camera = new cam.Camera(videoRef.current, {
                 onFrame: async () => {
-                  await pose.send({ image: videoRef.current });
+                  if (!isCleanedUp && poseRef.current) {
+                    await pose.send({ image: videoRef.current });
+                  }
                 },
                 width: 640,
                 height: 480
               });
+              
+              cameraRef.current = camera;
               camera.start();
             }
           };
@@ -444,134 +441,59 @@ const PlankTracker = () => {
       }
     };
 
-    const drawConnections = (ctx, points, style) => {
-      if (!points || points.length < 2) return;
+    initCamera();
 
-      ctx.save();
-      ctx.strokeStyle = style.color;
-      ctx.lineWidth = style.lineWidth || 4;
-
-      ctx.beginPath();
-      ctx.moveTo(points[0].x * ctx.canvas.width, points[0].y * ctx.canvas.height);
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x * ctx.canvas.width, points[i].y * ctx.canvas.height);
-      }
-      ctx.stroke();
-      ctx.restore();
-    };
-
-    const drawSpecificLandmarks = (ctx, landmarks, style) => {
-      if (!landmarks) return;
-
-      ctx.save();
-      ctx.fillStyle = style.color;
-
-      for (const landmark of landmarks) {
-        if (landmark) {
-          ctx.beginPath();
-          ctx.arc(
-            landmark.x * ctx.canvas.width,
-            landmark.y * ctx.canvas.height,
-            style.radius || 5,
-            0,
-            2 * Math.PI
-          );
-          ctx.fill();
+    // Cleanup function
+    return () => {
+      console.log('🧹 Cleaning up camera...');
+      isCleanedUp = true;
+      
+      if (cameraRef.current) {
+        try {
+          cameraRef.current.stop();
+          cameraRef.current = null;
+        } catch (error) {
+          console.error('Error stopping camera:', error);
         }
       }
-      ctx.restore();
-    };
 
-    if (!workoutComplete) {
-      initCamera();
-    }
-
-    return () => {
-      if (restInterval.current) {
-        clearInterval(restInterval.current);
+      if (poseRef.current) {
+        try {
+          poseRef.current.close();
+          poseRef.current = null;
+        } catch (error) {
+          console.error('Error closing pose:', error);
+        }
       }
+
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
+        tracks.forEach(track => {
+          track.stop();
+          console.log('✅ Stopped track:', track.kind);
+        });
+        videoRef.current.srcObject = null;
+      }
+
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     };
-  }, [resting, workoutComplete, plankState, targetTimePerSet, targetSets, geminiApiKey, openaiApiKey]);
+  }, [isActive]);
 
-  const resetWorkout = () => {
-    setPlankState("not_in_position");
-    setElapsedTime(0);
-    setTotalTime(0);
-    setCurrentSet(1);
-    setSetsCompleted(0);
-    setResting(false);
-    setWorkoutComplete(false);
-    setRestTimeRemaining(0);
-    setSaveStatus('');
-    plankStartTime.current = null;
-    plankElapsedTime.current = 0;
-    angleData.current = [];
-    if (restInterval.current) {
-      clearInterval(restInterval.current);
-    }
+  return {
+    plankState,
+    currentSet,
+    elapsedTime,
+    setsCompleted,
+    isSpeaking,
+    workoutComplete,
+    formatTime,
+    angleDataAvg: angleDataAvg.current,
+    targetTimePerSet,
+    targetSets
   };
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
-      <div className="mb-4 text-center">
-        <h1 className="text-3xl font-bold mb-2 text-black">Plank Exercise Tracker</h1>
-        <div className="flex gap-4 justify-center items-center flex-wrap">
-          <div className="bg-blue-600 px-4 py-2 rounded">
-            <p className="text-sm text-black">Time: {formatTime(elapsedTime)}/{targetTimePerSet}s</p>
-          </div>
-          <div className="bg-purple-600 px-4 py-2 rounded">
-            <p className="text-sm text-black">Set: {currentSet}/{targetSets}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative mb-6">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          width="640"
-          height="480"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            opacity: 0,
-            width: 0,
-            height: 0,
-            pointerEvents: "none",
-          }}
-        />
-        <canvas
-          ref={canvasRef}
-          className="border-2 border-gray-600 rounded-lg shadow-xl"
-          width="640"
-          height="480"
-        />
-      </div>
-
-      {/* {workoutComplete && (
-        <div className="bg-green-600 px-6 py-4 rounded-lg mb-4">
-          <h2 className="text-2xl font-bold mb-2">🎉 Workout Complete!</h2>
-          <p>Total sets completed: {setsCompleted}</p>
-          <p>Total plank time: {formatTime(totalTime)}</p>
-          <p>Data points recorded: {angleData.current.length}</p>
-          <button
-            onClick={resetWorkout}
-            className="mt-4 bg-white text-green-600 px-6 py-2 rounded font-bold hover:bg-gray-200"
-          >
-            Start New Workout
-          </button>
-        </div>
-      )} */}
-
-    </div>
-  );
 };
 
-export default PlankTracker;
+export default usePlankCamera;

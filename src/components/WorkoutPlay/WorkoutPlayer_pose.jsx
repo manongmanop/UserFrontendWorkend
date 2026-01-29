@@ -969,38 +969,43 @@ export default function WorkoutPlayer() {
             </div>
 
             {/* 2. กล้องผู้ใช้ + AI Overlay */}
-<div className="video-wrapper camera-video-wrapper">
+            <div className="video-wrapper camera-video-wrapper">
+              
+              {/* AI Logic (ExerciseCameraManager) ซ่อนไว้ หรือแสดงทับก็ได้ */}
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 5 }}>
+                 <ExerciseCameraManager
+                    exerciseName={current?.name}
+                    isActive={isPlaying && !isPaused}
+                    targetReps={current?.value || 10}
+                    onRepComplete={handleRepComplete}
+                    onSetComplete={handleSetComplete}
+                 />
+              </div>
 
-    {/* Layer 1: วิดีโอกล้องจริง (อยู่ล่างสุด) */}
-    
-
-    {/* Layer 2: AI Logic Overlay (ทับอยู่ข้างบน) */}
-    {/* ต้องมี pointer-events-none เพื่อให้คลิกทะลุได้ (ถ้าจำเป็น) */}
-    <div className="ai-overlay" style={{ pointerEvents: 'none' }}>
-        <ExerciseCameraManager
-            exerciseName={current?.name}
-            isActive={isPlaying && !isPaused}
-            targetReps={current?.value || 10}
-            onRepComplete={handleRepComplete}
-            onSetComplete={handleSetComplete}
-        />
-    </div>
-
-    {/* Layer 3: UI Label (อยู่บนสุด) */}
-    <div className="video-label">กล้องของคุณ</div>
-
-    {/* Loading / Error States */}
-    {cameraStatus === "loading" && (
-        <div className="wp-overlay wp-overlay--muted">
-            <div className="wp-overlay-card">กำลังเตรียมกล้อง...</div>
-        </div>
-    )}
-    {cameraStatus === "error" && (
-        <div className="wp-overlay wp-overlay--error">
-            <div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div>
-        </div>
-    )}
-</div>
+              {/* วิดีโอกล้องจริง */}
+              <video
+                ref={videoRef}
+                className="video-player"
+                autoPlay
+                muted
+                playsInline
+                style={{ transform: 'scaleX(-1)' }} /* กลับด้านกระจกเงาเพื่อให้ user ไม่งง */
+              />
+              
+              <div className="video-label">กล้องของคุณ</div>
+            
+              {/* Loading / Error States ของกล้อง */}
+              {cameraStatus === "loading" && (
+                <div className="wp-overlay wp-overlay--muted">
+                  <div className="wp-overlay-card">กำลังเตรียมกล้อง...</div>
+                </div>
+              )}
+              {cameraStatus === "error" && (
+                <div className="wp-overlay wp-overlay--error">
+                  <div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div>
+                </div>
+              )}
+            </div>
 
           </div>
         </main>
@@ -1056,22 +1061,20 @@ export default function WorkoutPlayer() {
         </main>
       )}
 
-      {/* Controls: แสดงเฉพาะเมื่อไม่ได้โชว์ feedback modal */}
-      {!showFeedbackModal && (
-        <Controls
-          onPrev={handlePrev}
-          onNext={handleNext}
-          onTogglePause={togglePause}
-          isPaused={isPaused}
-          canPrev={currentExercise > 0}
-          mainButtonLabel={isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านนี้" : "ถัดไป"}
-          showPlayPause={isResting || isPlaying}
-        />
-      )}
+      <Controls
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onTogglePause={togglePause}
+        isPaused={isPaused}
+        canPrev={currentExercise > 0}
+        mainButtonLabel={isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านนี้" : "ถัดไป"}
+        showPlayPause={isResting || isPlaying}
+      />
       {showFeedbackModal && (
         <div className="wp-overlay wp-overlay--dark" role="dialog" aria-modal="true">
           <div className="wp-feedback-card" onClick={(e) => e.stopPropagation()}>
             <h2 className="wp-feedback-title">ให้คะแนนความยากของโปรแกรมนี้</h2>
+
             <div className="wp-feedback-actions">
               <button
                 className="wp-feedback-btn wp-feedback-btn--easy"
@@ -1083,6 +1086,7 @@ export default function WorkoutPlayer() {
                 </div>
                 ง่ายมาก
               </button>
+
               <button
                 className="wp-feedback-btn wp-feedback-btn--medium"
                 disabled={sendingFeedback}
@@ -1093,6 +1097,7 @@ export default function WorkoutPlayer() {
                 </div>
                 ปานกลาง
               </button>
+
               <button
                 className="wp-feedback-btn wp-feedback-btn--hard"
                 disabled={sendingFeedback}
@@ -1104,6 +1109,7 @@ export default function WorkoutPlayer() {
                 ยากมาก
               </button>
             </div>
+
             {sendingFeedback && <div className="wp-feedback-loading">กำลังบันทึก...</div>}
           </div>
         </div>

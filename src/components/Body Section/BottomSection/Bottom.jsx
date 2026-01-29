@@ -277,7 +277,7 @@ function Bottom() {
         <div className="header-content">
           <div>
             <h1 className="header-title">
-              <Target size={24} /> แผนการออกกำลังกายประจำวัน
+               แผนการออกกำลังกายประจำวัน
             </h1>
           </div>
         </div>

@@ -77,7 +77,7 @@ const Sidebar = () => {
   // เมนูหลัก (ล่าสุด/กราฟ BMI แนบ uid, หน้าแรกไม่ต้อง)
   const menuItems = [
     { icon: <FaHome className='icon' />, text: 'หน้าแรก', path: '/home' },
-    { icon: <FaHistory className='icon' />, text: 'ประวัติ', path: buildPath('/recent') },
+    { icon: <FaHistory className='icon' />, text: 'ประวัติ', path: buildPath('/history') },
     // { icon: <FaChartLine className='icon' />, text: 'กราฟ BMI', path: buildPath('/bmi-graph') },
     // โปรไฟล์ถูกย้ายไปคลิกที่การ์ด user-profile ด้านล่าง
   ];

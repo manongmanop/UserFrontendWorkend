@@ -935,7 +935,6 @@ export default function WorkoutPlayer() {
 
       {isPlaying && (
         <main className="wp-main">
-          {/* ส่วน Header บอกชื่อท่าและเวลา คงเดิมไว้ */}
           <div className="wp-exercise-header">
             <h2 className="wp-current-exercise-name">{current?.name}</h2>
             <div className="wp-exercise-stats">
@@ -946,62 +945,35 @@ export default function WorkoutPlayer() {
               <ProgressRing progress={exerciseProgress} />
             </div>
           </div>
-
-          {/* ✅ เปลี่ยนส่วนแสดงผลวิดีโอตรงนี้ เป็น Layout ใหม่ */}
-          <div className="media-content">
-            
-            {/* 1. วิดีโอท่าออกกำลังกาย */}
-            <div className="video-wrapper exercise-video">
-              {current?.video || current?.imageUrl ? (
-                <video
-                  className="video-player"
-                  src={current?.video}
-                  poster={current?.imageUrl}
-                  autoPlay
-                  muted
-                  playsInline
-                  loop
-                />
-              ) : (
+          <div className="wp-media-container">
+            <div className="wp-media-column">
+              {current?.video || current?.imageUrl ?
+                <video className="wp-exercise-video wp-exercise-video--primary" src={current?.video} poster={current?.imageUrl} autoPlay muted playsInline loop /> :
                 <div className="wp-placeholder-video"><span>ไม่มีวิดีโอ</span></div>
-              )}
-              <div className="video-label">ท่าตัวอย่าง</div>
+              }
             </div>
-
-            {/* 2. กล้องผู้ใช้ + AI Overlay */}
-<div className="video-wrapper camera-video-wrapper">
-
-    {/* Layer 1: วิดีโอกล้องจริง (อยู่ล่างสุด) */}
-    
-
-    {/* Layer 2: AI Logic Overlay (ทับอยู่ข้างบน) */}
-    {/* ต้องมี pointer-events-none เพื่อให้คลิกทะลุได้ (ถ้าจำเป็น) */}
-    <div className="ai-overlay" style={{ pointerEvents: 'none' }}>
-        <ExerciseCameraManager
-            exerciseName={current?.name}
-            isActive={isPlaying && !isPaused}
-            targetReps={current?.value || 10}
-            onRepComplete={handleRepComplete}
-            onSetComplete={handleSetComplete}
-        />
-    </div>
-
-    {/* Layer 3: UI Label (อยู่บนสุด) */}
-    <div className="video-label">กล้องของคุณ</div>
-
-    {/* Loading / Error States */}
-    {cameraStatus === "loading" && (
-        <div className="wp-overlay wp-overlay--muted">
-            <div className="wp-overlay-card">กำลังเตรียมกล้อง...</div>
-        </div>
-    )}
-    {cameraStatus === "error" && (
-        <div className="wp-overlay wp-overlay--error">
-            <div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div>
-        </div>
-    )}
-</div>
-
+            <div className="wp-media-column">
+              <ExerciseCameraManager
+                exerciseName={current?.name}
+                isActive={isPlaying && !isPaused}
+                targetReps={current?.value || 10}
+                onRepComplete={handleRepComplete}
+                onSetComplete={handleSetComplete}
+              />
+            </div>
+            <div className="wp-media-column">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="wp-camera-feed"
+              />
+              {/* <video ref={exerciseVideoRef} className="hidden" playsInline muted width="640" height="480" /> */}
+            </div>
+            {cameraStatus === "loading" && <div className="wp-overlay wp-overlay--muted"><div className="wp-overlay-card">กำลังเตรียมกล้อง...</div></div>}
+            {cameraStatus === "error" && <div className="wp-overlay wp-overlay--error"><div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div></div>}
+            {/* {renderOverlay()} */}
           </div>
         </main>
       )}
@@ -1056,22 +1028,20 @@ export default function WorkoutPlayer() {
         </main>
       )}
 
-      {/* Controls: แสดงเฉพาะเมื่อไม่ได้โชว์ feedback modal */}
-      {!showFeedbackModal && (
-        <Controls
-          onPrev={handlePrev}
-          onNext={handleNext}
-          onTogglePause={togglePause}
-          isPaused={isPaused}
-          canPrev={currentExercise > 0}
-          mainButtonLabel={isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านนี้" : "ถัดไป"}
-          showPlayPause={isResting || isPlaying}
-        />
-      )}
+      <Controls
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onTogglePause={togglePause}
+        isPaused={isPaused}
+        canPrev={currentExercise > 0}
+        mainButtonLabel={isResting ? "ข้ามพัก" : isCounting ? "เริ่มเลย" : isPlaying ? "จบท่านนี้" : "ถัดไป"}
+        showPlayPause={isResting || isPlaying}
+      />
       {showFeedbackModal && (
         <div className="wp-overlay wp-overlay--dark" role="dialog" aria-modal="true">
           <div className="wp-feedback-card" onClick={(e) => e.stopPropagation()}>
             <h2 className="wp-feedback-title">ให้คะแนนความยากของโปรแกรมนี้</h2>
+
             <div className="wp-feedback-actions">
               <button
                 className="wp-feedback-btn wp-feedback-btn--easy"
@@ -1083,6 +1053,7 @@ export default function WorkoutPlayer() {
                 </div>
                 ง่ายมาก
               </button>
+
               <button
                 className="wp-feedback-btn wp-feedback-btn--medium"
                 disabled={sendingFeedback}
@@ -1093,6 +1064,7 @@ export default function WorkoutPlayer() {
                 </div>
                 ปานกลาง
               </button>
+
               <button
                 className="wp-feedback-btn wp-feedback-btn--hard"
                 disabled={sendingFeedback}
@@ -1104,6 +1076,7 @@ export default function WorkoutPlayer() {
                 ยากมาก
               </button>
             </div>
+
             {sendingFeedback && <div className="wp-feedback-loading">กำลังบันทึก...</div>}
           </div>
         </div>
@@ -1153,76 +1126,25 @@ const Header = ({ title, current, total, progress, onBack, onGuide }) => (
   </header>
 );
 
-const Controls = ({ 
-  onPrev, 
-  onNext, 
-  onTogglePause, 
-  isPaused, 
-  canPrev, 
-  mainButtonLabel, 
-  showPlayPause 
-}) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const controlsRef = useRef(null);
+const Controls = ({ onPrev, onNext, onTogglePause, isPaused, canPrev, mainButtonLabel, showPlayPause }) => (
+  <footer className="wp-controls">
+    <button className="wp-control-btn wp-control-btn-secondary" onClick={onPrev} disabled={!canPrev}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="19 20 9 12 19 4 19 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <span>ก่อนหน้า</span>
+    </button>
+    {showPlayPause && (
+      <button className={`wp-control-btn ${isPaused ? "wp-control-btn-play" : "wp-control-btn-pause"}`} onClick={(e) => { e.stopPropagation(); onTogglePause(); }}>
+        {isPaused ?
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg> :
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="6" y="4" width="4" height="16" stroke="currentColor" strokeWidth="2" /><rect x="14" y="4" width="4" height="16" stroke="currentColor" strokeWidth="2" /></svg>
+        }
+        <span>{isPaused ? "เล่น" : "หยุด"}</span>
+      </button>
+    )}
+    <button className="wp-control-btn wp-control-btn-primary" onClick={onNext}>
+      <span>{mainButtonLabel}</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polygon points="5 4 15 12 5 20 5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </button>
+  </footer>
 
-  return (
-    <footer
-      ref={controlsRef}
-      className={`wp-controls ${isCollapsed ? 'is-collapsed' : ''}`}
-    >
-      {/* --- Buttons Area --- */}
-      <div className="wp-controls-body">
-        {/* ปุ่มย้อนกลับ */}
-        <button 
-          className="wp-control-btn wp-control-btn-secondary" 
-          onClick={onPrev} 
-          disabled={!canPrev}
-          style={{ position: 'relative', zIndex: 10 }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="19 20 9 12 19 4 19 20" />
-            <line x1="5" y1="19" x2="5" y2="5" />
-          </svg>
-          <span>ก่อนหน้า</span>
-        </button>
-
-        {/* ปุ่ม Play/Pause */}
-        {showPlayPause && (
-          <button 
-            className={`wp-control-btn wp-control-btn-circle ${isPaused ? "play" : "pause"}`} 
-            onClick={(e) => { 
-                e.stopPropagation(); 
-                onTogglePause(); 
-            }}
-            style={{ position: 'relative', zIndex: 10 }}
-          >
-            {isPaused ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="5 3 19 12 5 21 5 3" />
-              </svg>
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-            )}
-          </button>
-        )}
-
-        {/* ปุ่มถัดไป */}
-        <button 
-          className="wp-control-btn wp-control-btn-primary" 
-          onClick={onNext}
-          style={{ position: 'relative', zIndex: 10 }}
-        >
-          <span>{mainButtonLabel}</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="5 4 15 12 5 20 5 4" />
-            <line x1="19" y1="5" x2="19" y2="19" />
-          </svg>
-        </button>
-      </div>
-    </footer>
-  );
-};
+);

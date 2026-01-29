@@ -228,7 +228,7 @@ export const Top = () => {
                     </p>
 
                     <Link to={`/detail/${program?._id}`} className="start-workout-btn">
-                      <span>Start Workout</span>
+                      <span>สำรวจโปรแกรม</span>
                       <div className="btn-glow"></div>
                     </Link>
                   </div>

@@ -29,6 +29,7 @@ function Login() {
   const { logIn, googleSignIn, user } = useUserAuth();
   let navigate = useNavigate();
 
+  // ฟังก์ชันตรวจสอบสถานะผู้ใช้และนำทางไปยังหน้าที่เหมาะสม (รวม admin)
   const checkUserStatusAndNavigate = async (user) => {
     try {
       setIsLoading(true);
@@ -42,6 +43,17 @@ function Login() {
         },
       });
 
+      // ตรวจสอบว่าเป็น admin หรือไม่
+      const adminDocRef = doc(db, "admin", user.uid);
+      const adminSnap = await getDoc(adminDocRef);
+
+      if (adminSnap.exists()) {
+        Swal.close();
+        setIsLoading(false);
+        return navigate("/homeadmin");
+      }
+
+      // ถ้าไม่ใช่ admin → ไปเช็ค users ปกติ
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
@@ -285,7 +297,7 @@ function Login() {
               <span>หรือเข้าสู่ระบบด้วย</span>
             </div>
 
-             <div className="google-button-wrapper">
+            <div className="google-button-wrapper">
               <Button
                 onClick={handleGoogleSignIn}
                 variant="outline-dark"
@@ -295,6 +307,16 @@ function Login() {
                 <FcGoogle className="google-icon" />
                 <span>Google</span>
               </Button>
+            </div>
+
+            {/* Admin Register Link */}
+            <div className="admin-link-wrapper" style={{ marginTop: '1rem', textAlign: 'center' }}>
+              <span className="text" style={{ fontSize: '0.9rem', color: '#666' }}>
+                {" "}
+              </span>
+              <Link to="/admin-register" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+                Sign Up for Admin
+              </Link>
             </div>
           </Form>
 

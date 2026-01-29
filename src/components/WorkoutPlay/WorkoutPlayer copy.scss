@@ -584,44 +584,11 @@ body {
 }
 
 .camera-video-wrapper {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3; /* หรือสัดส่วนที่คุณต้องการ */
-  background-color: #000; /* สีดำรองพื้น */
-  overflow: hidden; /* ตัดส่วนเกินที่ล้นออก */
-  border-radius: 12px; /* มุมโค้ง */
+  flex: 1.8; /* ให้กล้องผู้ใช้ใหญ่กว่านิดหน่อย */
+  aspect-ratio: 4 / 3;
+  min-width: 0;
 }
-.camera-video-wrapper .video-player {
-  position: absolute; /* ลอยตัว ไม่ดันคนอื่น */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;  /* ขยายเต็มพื้นที่โดยไม่เสียสัดส่วน */
-  z-index: 1;         /* อยู่ชั้นล่าง */
-}
-.ai-overlay {
- position: absolute;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 5;
-  /* จัดการ Flex เพื่อให้เนื้อหาข้างในขยาย */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.ai-overlay video,
-.ai-overlay canvas,
-.ai-overlay > div { 
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important; /* ขยายเต็มกรอบโดยไม่เสียสัดส่วน */
-  position: absolute !important;
-  top: 0;
-  left: 0;
-}
+
 /* Class สำหรับ tag <video> */
 .video-player {
   width: 100%;
@@ -1294,7 +1261,7 @@ canvas.wp-media {
   display: grid;
   place-items: center;
   padding: var(--space-md);
-  z-index: 20;
+  z-index: var(--z-modal);
 }
 
 .wp-overlay--dark {

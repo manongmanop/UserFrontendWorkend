@@ -1,0 +1,17 @@
+/* นำเข้าฟอนต์ Montserrat จาก Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+  --font-primary: 'Montserrat', sans-serif;
+}
+
+/* ใช้ * (Wildcard) เพื่อบังคับทุก Element ให้ใช้ฟอนต์นี้ */
+/* รวมไปถึง Button, Input, Select ที่ปกติจะไม่ยอมเปลี่ยนตาม Body */
+* {
+  font-family: var(--font-primary) !important;
+}
+
+/* กำหนดที่ Body และ HTML เผื่อไว้ด้วย */
+body, html {
+  font-family: var(--font-primary) !important;
+}
