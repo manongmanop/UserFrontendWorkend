@@ -108,20 +108,20 @@ function FilterPanel({ filters, onFilterChange, histories }) {
   return (
     <div className="filter-panel-wrapper">
       {/* Dashboard Stats */}
-      <div className="stats-grid">
-        <div className="stat-card">
+      <div className="stats-grid-history">
+        <div className="stat-card-history">
           <div className="stat-value">{stats.totalWorkouts}</div>
           <div className="stat-label">จำนวนครั้ง</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card-history">
           <div className="stat-value">{stats.totalCalories}</div>
           <div className="stat-label">Kcal รวม</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card-history">
           <div className="stat-value">{Math.round(stats.totalSeconds / 60)}</div>
           <div className="stat-label">นาทีรวม</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card-history">
           <div className="stat-value">{stats.avgCalories}</div>
           <div className="stat-label">Avg Kcal</div>
         </div>
