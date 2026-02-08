@@ -44,6 +44,10 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+  font-family: var(--font-primary) !important;
+}
+body, html {
+  font-family: var(--font-primary) !important;
 }
 .text-success { color: var(--success-color); }
 .text-warning { color: #eab308; }

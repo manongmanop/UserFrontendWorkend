@@ -28,6 +28,11 @@
 
 * {
   box-sizing: border-box;
+  font-family: var(--font-primary) !important;
+}
+
+body, html {
+  font-family: var(--font-primary) !important;
 }
 
 .register-container {

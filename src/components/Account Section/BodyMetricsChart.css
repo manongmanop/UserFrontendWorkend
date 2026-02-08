@@ -1,4 +1,12 @@
 /* BodyMetricsChart.css */
+* {
+  font-family: var(--font-primary) !important;
+}
+
+body, html {
+  font-family: var(--font-primary) !important;
+}
+
 .chart-container {
   background-color: #ffffff;
   border-radius: 12px;

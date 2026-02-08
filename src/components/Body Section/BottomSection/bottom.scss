@@ -1,4 +1,8 @@
 /* Base Styles (Desktop) */
+html, body, * {
+  font-family: var(--font-primary) !important;
+}
+
 .bottom-container {
   padding: 1rem;
   background-color: #f8f9fa;

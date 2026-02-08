@@ -47,4 +47,11 @@
   body, .main-container {
     max-width: 100vw;
   }
+}
+* {
+  font-family: var(--font-primary) !important;
+}
+
+body, html {
+  font-family: var(--font-primary) !important;
 }/*# sourceMappingURL=body.css.map */

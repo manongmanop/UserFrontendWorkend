@@ -23,138 +23,125 @@ app.use(express.json());
 // const analyticsRoutes = require('./routes/analytics');
 
 const bodyMetricSchema = new Schema({
-    // ID ของผู้ใช้ที่เป็นเจ้าของข้อมูลนี้ (เชื่อมกับ Collection 'users')
-    userId: {
-        type: Schema.Types.String,
-        ref: 'User', // สมมติว่าคุณมีโมเดล User
-        required: true,
-        index: true // ทำ index เพื่อให้ค้นหาตาม userId ได้เร็วขึ้น
-    },
-    // วันที่และเวลาที่บันทึกข้อมูล
-    date: {
-        type: Date,
-        default: Date.now,
-        required: true
-    },
-    // น้ำหนัก (หน่วยเป็น กก.)
-    weight: {
-        type: Number,
-        required: true
-    },
-    // ส่วนสูง (หน่วยเป็น ซม.)
-    height: {
-        type: Number,
-        required: true
-    },
-    // ค่า BMI (คำนวณและเก็บไว้เลยเพื่อความเร็วในการดึงข้อมูล)
-    bmi: {
-        type: Number
-    },
-    // เปอร์เซ็นต์ไขมันในร่างกาย (ถ้ามี)
-    fatPercentage: {
-        type: Number
-    },
-    // มวลกล้ามเนื้อ (ถ้ามี, หน่วยเป็น กก.)
-    muscleMass: {
-        type: Number
-    }
+  // ID ของผู้ใช้ที่เป็นเจ้าของข้อมูลนี้ (เชื่อมกับ Collection 'users')
+  userId: {
+    type: Schema.Types.String,
+    ref: 'User', // สมมติว่าคุณมีโมเดล User
+    required: true,
+    index: true // ทำ index เพื่อให้ค้นหาตาม userId ได้เร็วขึ้น
+  },
+  // วันที่และเวลาที่บันทึกข้อมูล
+  date: {
+    type: Date,
+    default: Date.now,
+    required: true
+  },
+  // น้ำหนัก (หน่วยเป็น กก.)
+  weight: {
+    type: Number,
+    required: true
+  },
+  // ส่วนสูง (หน่วยเป็น ซม.)
+  height: {
+    type: Number,
+    required: true
+  },
+  // ค่า BMI (คำนวณและเก็บไว้เลยเพื่อความเร็วในการดึงข้อมูล)
+  bmi: {
+    type: Number
+  },
+  // เปอร์เซ็นต์ไขมันในร่างกาย (ถ้ามี)
+  fatPercentage: {
+    type: Number
+  },
+  // มวลกล้ามเนื้อ (ถ้ามี, หน่วยเป็น กก.)
+  muscleMass: {
+    type: Number
+  }
 }, {
-    // เพิ่ม field createdAt และ updatedAt อัตโนมัติ
-    timestamps: true
+  // เพิ่ม field createdAt และ updatedAt อัตโนมัติ
+  timestamps: true
 });
 
 // สร้าง Model จาก Schema
 const BodyMetric = mongoose.model('BodyMetric', bodyMetricSchema);
 app.post('/api/metrics', async (req, res) => {
-    // ในแอปจริง คุณควรจะดึง userId จาก Token ที่ผ่านการยืนยันตัวตนแล้ว
-    // เช่น const userId = req.user.id;
-    // แต่ในตัวอย่างนี้ เราจะรับจาก body ไปก่อน
-    const { userId, weight, height, fatPercentage, muscleMass } = req.body;
+  // ในแอปจริง คุณควรจะดึง userId จาก Token ที่ผ่านการยืนยันตัวตนแล้ว
+  // เช่น const userId = req.user.id;
+  // แต่ในตัวอย่างนี้ เราจะรับจาก body ไปก่อน
+  const { userId, weight, height, fatPercentage, muscleMass } = req.body;
 
-    if (!userId || !weight || !height) {
-        return res.status(400).json({ msg: 'กรุณากรอกข้อมูล userId, weight, และ height' });
-    }
+  if (!userId || !weight || !height) {
+    return res.status(400).json({ msg: 'กรุณากรอกข้อมูล userId, weight, และ height' });
+  }
 
-    try {
-        // คำนวณ BMI
-        const heightInMeters = height / 100;
-        const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(2);
+  try {
+    // คำนวณ BMI
+    const heightInMeters = height / 100;
+    const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(2);
 
-        const newMetric = new BodyMetric({
-            userId,
-            weight,
-            height,
-            bmi,
-            fatPercentage,
-            muscleMass
-        });
+    const newMetric = new BodyMetric({
+      userId,
+      weight,
+      height,
+      bmi,
+      fatPercentage,
+      muscleMass
+    });
 
-        const savedMetric = await newMetric.save();
-        res.status(201).json(savedMetric);
+    const savedMetric = await newMetric.save();
+    res.status(201).json(savedMetric);
 
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
-// async function verifyToken(req, res, next) {
-//     const authHeader = req.headers.authorization;
-//     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-//         return res.status(403).send('Unauthorized');
-//     }
-//     const token = authHeader.split(' ')[1];
-//     try {
-//         const decodedToken = await admin.auth().verifyIdToken(token);
-//         req.user = decodedToken; // ส่งข้อมูล user ที่ถอดรหัสแล้วไปกับ request
-//         next();
-//     } catch (error) {
-//         return res.status(403).send('Unauthorized: Invalid Token');
-//     }
-// }
+
 app.get('/api/metrics', async (req, res) => {
-    try {
-        // ใช้ userId จาก query parameter หรือ body แทน
-        const userId = req.query.userId; // เพิ่มบรรทัดนี้
-        
-        if (!userId) {
-            return res.status(400).json({ error: 'userId is required' });
-        }
+  try {
+    // ใช้ userId จาก query parameter หรือ body แทน
+    const userId = req.query.userId; // เพิ่มบรรทัดนี้
 
-        const { range } = req.query; 
-        let startDate;
-        const today = new Date();
-        
-        switch (range) {
-            case '1m':
-                startDate = new Date(new Date().setMonth(today.getMonth() - 1));
-                break;
-            case '3m':
-                startDate = new Date(new Date().setMonth(today.getMonth() - 3));
-                break;
-            case '6m':
-                startDate = new Date(new Date().setMonth(today.getMonth() - 6));
-                break;
-            case '1y':
-                startDate = new Date(new Date().setFullYear(today.getFullYear() - 1));
-                break;
-            case 'all':
-            default:
-                startDate = null;
-                break;
-        }
-
-        const query = { userId };
-        if (startDate) {
-            query.date = { $gte: startDate };
-        }
-
-        const metrics = await BodyMetric.find(query).sort({ date: 'asc' });
-        res.json(metrics);
-
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
     }
+
+    const { range } = req.query;
+    let startDate;
+    const today = new Date();
+
+    switch (range) {
+      case '1m':
+        startDate = new Date(new Date().setMonth(today.getMonth() - 1));
+        break;
+      case '3m':
+        startDate = new Date(new Date().setMonth(today.getMonth() - 3));
+        break;
+      case '6m':
+        startDate = new Date(new Date().setMonth(today.getMonth() - 6));
+        break;
+      case '1y':
+        startDate = new Date(new Date().setFullYear(today.getFullYear() - 1));
+        break;
+      case 'all':
+      default:
+        startDate = null;
+        break;
+    }
+
+    const query = { userId };
+    if (startDate) {
+      query.date = { $gte: startDate };
+    }
+
+    const metrics = await BodyMetric.find(query).sort({ date: 'asc' });
+    res.json(metrics);
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 
@@ -194,46 +181,10 @@ app.post('/api/workoutplan', async (req, res) => {
   }
 });
 // GET workout plan ของผู้ใช้
-// app.get('/api/workoutplan/:uid', async (req, res) => {
-//   try {
-//     const { uid } = req.params;
-    
-//     if (!uid) {
-//       return res.status(400).json({ message: 'ต้องระบุ userId' });
-//     }
-    
-//     const plan = await WorkoutPlan.findOne({ uid }).populate('plans.exercises.exercise');
-    
-//     if (!plan) {
-//       // สร้าง default plan เมื่อไม่พบข้อมูล
-//       const defaultPlan = {
-//         uid,
-//         plans: [
-//           { day: 'monday', exercises: [] },
-//           { day: 'tuesday', exercises: [] },
-//           { day: 'wednesday', exercises: [] },
-//           { day: 'thursday', exercises: [] },
-//           { day: 'friday', exercises: [] },
-//           { day: 'saturday', exercises: [] },
-//           { day: 'sunday', exercises: [] }
-//         ]
-//       };
-      
-//       return res.status(404).json({ 
-//         message: 'ไม่พบ workout plan ของผู้ใช้',
-//         defaultPlan 
-//       });
-//     }
-    
-//     res.json(plan);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// });
 app.get('/api/workoutplan/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
-    
+
     const workoutPlan = await WorkoutPlan.findOne({ uid }).populate('plans.exercises.exercise');
     if (!workoutPlan) {
       return res.status(404).json({ error: 'Workout plan not found' });
@@ -246,52 +197,13 @@ app.get('/api/workoutplan/:uid', async (req, res) => {
     res.status(500).json({ error: 'ไม่สามารถดึงแผนการออกกำลังกายได้' });
   }
 });
-// POST สร้างหรืออัปเดต workout plan ของผู้ใช้
-app.post('/api/workoutplan/:uid', async (req, res) => {
-  try {
-    const { uid } = req.params;
-    const { plans } = req.body;
 
-    if (!Array.isArray(plans)) {
-      return res.status(400).json({ message: 'plans ต้องเป็น array' });
-    }
-    
-    // ตรวจสอบโครงสร้าง plans
-    for (const plan of plans) {
-      if (!plan.day) {
-        return res.status(400).json({ message: 'แต่ละแผนต้องระบุวันด้วย day field' });
-      }
-      
-      if (!Array.isArray(plan.exercises)) {
-        return res.status(400).json({ message: 'exercises ต้องเป็น array' });
-      }
-    }
-
-    let workoutPlan = await WorkoutPlan.findOne({ uid });
-
-    if (workoutPlan) {
-      // อัปเดต plans เดิม
-      workoutPlan.plans = plans;
-    } else {
-      // สร้างใหม่
-      workoutPlan = new WorkoutPlan({ uid, plans });
-    }
-
-    await workoutPlan.save();
-
-    const populatedPlan = await WorkoutPlan.findOne({ uid }).populate('plans.exercises.exercise');
-    res.status(200).json(populatedPlan);
-  } catch (err) {
-    console.error('Error saving workout plan:', err);
-    res.status(500).json({ message: err.message });
-  }
-});
 
 // DELETE workout plan ของผู้ใช้
 app.delete('/api/workoutplan/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
-    
+
     const deletedPlan = await WorkoutPlan.findOneAndDelete({ uid });
     if (!deletedPlan) {
       return res.status(404).json({ error: 'Workout plan not found' });
@@ -392,24 +304,24 @@ app.post('/api/workoutplan/:uid/day/:day/exercise', async (req, res) => {
 app.delete('/api/workoutplan/:uid/day/:day/exercise/:index', async (req, res) => {
   try {
     const { uid, day, index } = req.params;
-    
+
     const workoutPlan = await WorkoutPlan.findOne({ uid });
     if (!workoutPlan) return res.status(404).json({ message: 'ไม่พบ workout plan ของผู้ใช้' });
-    
+
     const dayPlan = workoutPlan.plans.find(p => p.day === day);
     if (!dayPlan) return res.status(404).json({ message: `ไม่พบข้อมูลของวัน ${day}` });
-    
+
     // ตรวจสอบ index
     const exerciseIndex = parseInt(index);
     if (isNaN(exerciseIndex) || exerciseIndex < 0 || exerciseIndex >= dayPlan.exercises.length) {
       return res.status(400).json({ message: 'index ไม่ถูกต้อง' });
     }
-    
+
     // ลบท่าออกกำลังกาย
     dayPlan.exercises.splice(exerciseIndex, 1);
-    
+
     await workoutPlan.save();
-    
+
     const populatedPlan = await WorkoutPlan.findOne({ uid }).populate('plans.exercises.exercise');
     res.status(200).json(populatedPlan);
   } catch (err) {
@@ -457,7 +369,7 @@ app.put('/api/workoutplan/:uid/day/:day/exercise/:index', async (req, res) => {
 // สร้างโฟลเดอร์ uploads อัตโนมัติ
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+  fs.mkdirSync(uploadDir);
 }
 
 // Serve static files
@@ -471,18 +383,20 @@ const storage = multer.diskStorage({
 
 // กำหนด filter สำหรับไฟล์ที่อนุญาต
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
-      cb(null, true);
-  } else {
-      cb(new Error('ไม่อนุญาตให้อัปโหลดไฟล์ประเภทนี้! กรุณาอัปโหลดเฉพาะรูปภาพหรือวิดีโอ'), false);
-  }
+  if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('ไม่อนุญาตให้อัปโหลดไฟล์ประเภทนี้! กรุณาอัปโหลดเฉพาะรูปภาพหรือวิดีโอ'), false);
+  }
 };
 
 // ตั้งค่า Multer
-const upload = multer({ storage, fileFilter: (req, file, cb) => {
-  if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) cb(null, true);
-  else cb(new Error('Invalid file type'), false);
-}});
+const upload = multer({
+  storage, fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) cb(null, true);
+    else cb(new Error('Invalid file type'), false);
+  }
+});
 
 // เชื่อมต่อกับ MongoDB
 mongoose.connect('mongodb://127.0.0.1:27017/fitness_app')
@@ -576,23 +490,25 @@ app.put('/api/users/:uid', async (req, res) => {
 
 // PUT: อัปเดตสถิติผู้ใช้ (ใช้เมื่อทำ workout เสร็จ)
 app.put('/api/users/:uid/stats', async (req, res) => {
-  try {
-      const { caloriesToAdd, workoutsToAdd } = req.body;
-      const user = await User.findOneAndUpdate(
-          { uid: req.params.uid },
-          { $inc: { 
-              caloriesBurned: caloriesToAdd || 0,
-              workoutsDone: workoutsToAdd || 0
-          }},
-          { new: true }
-      );
-      if (!user) {
-          return res.status(404).json({ message: 'ไม่พบผู้ใช้งาน' });
-      }
-      res.status(200).json(user);
-  } catch (err) {
-      res.status(500).json({ message: err.message });
-  }
+  try {
+    const { caloriesToAdd, workoutsToAdd } = req.body;
+    const user = await User.findOneAndUpdate(
+      { uid: req.params.uid },
+      {
+        $inc: {
+          caloriesBurned: caloriesToAdd || 0,
+          workoutsDone: workoutsToAdd || 0
+        }
+      },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ message: 'ไม่พบผู้ใช้งาน' });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 app.put('/api/users/:uid/workoutPlan', async (req, res) => {
   const { workoutPlanId } = req.body;
@@ -612,7 +528,7 @@ const exerciseSchema = new mongoose.Schema({
   description: { type: String },
   imageUrl: { type: String },
   video: { type: String, default: null },     // path ไฟล์จริง
-  videoUrl: { type: String, default: null }, 
+  videoUrl: { type: String, default: null },
   type: { type: String, enum: ['reps', 'time'], required: true },
   value: { type: Number }, // target reps or duration in minutes
   duration: { type: Number }, // for time-based exercises (in seconds)
@@ -647,20 +563,20 @@ app.get('/api/exercises', async (req, res) => {
 
 // GET - ดึงข้อมูล Exercise ตาม _id
 app.get('/api/exercises/:id', async (req, res) => {
-  try {
-      const exercise = await Exercise.findById(req.params.id);
-      if (!exercise) {
-          return res.status(404).json({ message: 'ไม่พบข้อมูล Exercise ที่ระบุ' });
-      }
-      res.json(exercise);
-  } catch (err) {
-      res.status(500).json({ message: err.message });
-  }
+  try {
+    const exercise = await Exercise.findById(req.params.id);
+    if (!exercise) {
+      return res.status(404).json({ message: 'ไม่พบข้อมูล Exercise ที่ระบุ' });
+    }
+    res.json(exercise);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 // ตัวอย่าง Express
 app.post("/api/exercises/byIds", async (req, res) => {
   try {
-    const { ids } = req.body; 
+    const { ids } = req.body;
     const exercises = await Exercise.find({ _id: { $in: ids } });
     res.json(exercises);
   } catch (error) {
@@ -670,148 +586,148 @@ app.post("/api/exercises/byIds", async (req, res) => {
 
 // แก้ไข POST - เพิ่มข้อมูลใหม่พร้อมอัปโหลดไฟล์
 app.post('/api/exercises', upload.fields([
-  { name: 'image', maxCount: 1 },
-  { name: 'video', maxCount: 1 }
+  { name: 'image', maxCount: 1 },
+  { name: 'video', maxCount: 1 }
 ]), async (req, res) => {
-  try {
-    const { name, type, description, duration, caloriesBurned, value } = req.body;
-    
-    let imageUrl = null;
-    let videoUrl = null;
-    let imagePath = null;
-    let videoPath = null;
+  try {
+    const { name, type, description, duration, caloriesBurned, value } = req.body;
 
-    // ตรวจสอบไฟล์รูปภาพ
-    if (req.files && req.files.image && req.files.image[0]) {
-        imagePath = req.files.image[0].path; // path เต็ม
-        imageUrl = `/uploads/${req.files.image[0].filename}`; // URL สำหรับเข้าถึง
-    }
-    
-    // ตรวจสอบไฟล์วิดีโอ
-    if (req.files && req.files.video && req.files.video[0]) {
-        videoPath = req.files.video[0].path; // path เต็ม
-        videoUrl = `/uploads/${req.files.video[0].filename}`; // URL สำหรับเข้าถึง
-    }
+    let imageUrl = null;
+    let videoUrl = null;
+    let imagePath = null;
+    let videoPath = null;
 
-    // สร้าง Exercise ใหม่
-    const exercise = new Exercise({
-        name,
-        type,
-        description,
-        duration,
-        caloriesBurned: parseInt(caloriesBurned) || 0,
-        value: value ? JSON.parse(value) : null,
-        image: imagePath,     // เก็บ path
-        video: videoPath,     // เก็บ path
-        imageUrl: imageUrl,   // เก็บ URL
-        videoUrl: videoUrl    // เก็บ URL
-    });
+    // ตรวจสอบไฟล์รูปภาพ
+    if (req.files && req.files.image && req.files.image[0]) {
+      imagePath = req.files.image[0].path; // path เต็ม
+      imageUrl = `/uploads/${req.files.image[0].filename}`; // URL สำหรับเข้าถึง
+    }
 
-    const newExercise = await exercise.save();
-    res.status(201).json(newExercise);
-    
-  } catch (err) {
-      console.error('Error creating exercise:', err);
-      res.status(400).json({ message: err.message });
-  }
+    // ตรวจสอบไฟล์วิดีโอ
+    if (req.files && req.files.video && req.files.video[0]) {
+      videoPath = req.files.video[0].path; // path เต็ม
+      videoUrl = `/uploads/${req.files.video[0].filename}`; // URL สำหรับเข้าถึง
+    }
+
+    // สร้าง Exercise ใหม่
+    const exercise = new Exercise({
+      name,
+      type,
+      description,
+      duration,
+      caloriesBurned: parseInt(caloriesBurned) || 0,
+      value: value ? JSON.parse(value) : null,
+      image: imagePath,     // เก็บ path
+      video: videoPath,     // เก็บ path
+      imageUrl: imageUrl,   // เก็บ URL
+      videoUrl: videoUrl    // เก็บ URL
+    });
+
+    const newExercise = await exercise.save();
+    res.status(201).json(newExercise);
+
+  } catch (err) {
+    console.error('Error creating exercise:', err);
+    res.status(400).json({ message: err.message });
+  }
 });
 
 // แก้ไข PUT - อัพเดทข้อมูลพร้อมอัปโหลดไฟล์
 app.put('/api/exercises/:id', upload.fields([
-  { name: 'image', maxCount: 1 },
-  { name: 'video', maxCount: 1 }
+  { name: 'image', maxCount: 1 },
+  { name: 'video', maxCount: 1 }
 ]), async (req, res) => {
-  try {
-      const { name, type, description, duration, caloriesBurned, value } = req.body;
-      
-      // หาข้อมูลเดิม
-      const existingExercise = await Exercise.findById(req.params.id);
-      if (!existingExercise) {
-          return res.status(404).json({ message: 'ไม่พบข้อมูลการฝึก' });
-      }
-const existing = await Exercise.findById(req.params.id);
-      const updateData = { 
-name: name ?? existing.name,
-type: type ?? existing.type,
-description: description ?? existing.description,
-duration: (duration !== undefined ? Number(duration) : existing.duration),
-caloriesBurned: (caloriesBurned !== undefined ? Number(caloriesBurned) : existing.caloriesBurned),
-      };
+  try {
+    const { name, type, description, duration, caloriesBurned, value } = req.body;
 
-      // อัพเดทรูปภาพหากมีการอัปโหลดใหม่
-      if (req.files && req.files.image && req.files.image[0]) {
-          updateData.image = req.files.image[0].path;
-          updateData.imageUrl = `/uploads/${req.files.image[0].filename}`;
-          
-          // ลบไฟล์เดิม (ถ้าต้องการ)
-          if (existingExercise.image && fs.existsSync(existingExercise.image)) {
-              fs.unlinkSync(existingExercise.image);
-          }
-      }
-      
-      // อัพเดทวิดีโอหากมีการอัปโหลดใหม่
-      if (req.files && req.files.video && req.files.video[0]) {
-          updateData.video = req.files.video[0].path;
-          updateData.videoUrl = `/uploads/${req.files.video[0].filename}`;
-          
-          // ลบไฟล์เดิม (ถ้าต้องการ)
-          if (existingExercise.video && fs.existsSync(existingExercise.video)) {
-              fs.unlinkSync(existingExercise.video);
-          }
-      }
+    // หาข้อมูลเดิม
+    const existingExercise = await Exercise.findById(req.params.id);
+    if (!existingExercise) {
+      return res.status(404).json({ message: 'ไม่พบข้อมูลการฝึก' });
+    }
+    const existing = await Exercise.findById(req.params.id);
+    const updateData = {
+      name: name ?? existing.name,
+      type: type ?? existing.type,
+      description: description ?? existing.description,
+      duration: (duration !== undefined ? Number(duration) : existing.duration),
+      caloriesBurned: (caloriesBurned !== undefined ? Number(caloriesBurned) : existing.caloriesBurned),
+    };
 
-      const exercise = await Exercise.findByIdAndUpdate(req.params.id, updateData, { new: true });
-      res.json(exercise);
-      
-  } catch (err) {
-      console.error('Error updating exercise:', err);
-      res.status(400).json({ message: err.message });
-  }
+    // อัพเดทรูปภาพหากมีการอัปโหลดใหม่
+    if (req.files && req.files.image && req.files.image[0]) {
+      updateData.image = req.files.image[0].path;
+      updateData.imageUrl = `/uploads/${req.files.image[0].filename}`;
+
+      // ลบไฟล์เดิม (ถ้าต้องการ)
+      if (existingExercise.image && fs.existsSync(existingExercise.image)) {
+        fs.unlinkSync(existingExercise.image);
+      }
+    }
+
+    // อัพเดทวิดีโอหากมีการอัปโหลดใหม่
+    if (req.files && req.files.video && req.files.video[0]) {
+      updateData.video = req.files.video[0].path;
+      updateData.videoUrl = `/uploads/${req.files.video[0].filename}`;
+
+      // ลบไฟล์เดิม (ถ้าต้องการ)
+      if (existingExercise.video && fs.existsSync(existingExercise.video)) {
+        fs.unlinkSync(existingExercise.video);
+      }
+    }
+
+    const exercise = await Exercise.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json(exercise);
+
+  } catch (err) {
+    console.error('Error updating exercise:', err);
+    res.status(400).json({ message: err.message });
+  }
 });
 
 // แก้ไข DELETE - ลบข้อมูลพร้อมไฟล์
 app.delete('/api/exercises/:id', async (req, res) => {
-  try {
-      const exercise = await Exercise.findById(req.params.id);
-      if (!exercise) {
-          return res.status(404).json({ message: 'ไม่พบข้อมูลการฝึก' });
-      }
-      
-      // ลบไฟล์จริงออกจาก server
-      if (exercise.image && fs.existsSync(exercise.image)) {
-          fs.unlinkSync(exercise.image);
-      }
-      if (exercise.video && fs.existsSync(exercise.video)) {
-          fs.unlinkSync(exercise.video);
-      }
-      
-      await Exercise.findByIdAndDelete(req.params.id);
-      res.json({ message: 'ลบข้อมูลเรียบร้อย' });
-      
-  } catch (err) {
-      console.error('Error deleting exercise:', err);
-      res.status(500).json({ message: err.message });
-  }
+  try {
+    const exercise = await Exercise.findById(req.params.id);
+    if (!exercise) {
+      return res.status(404).json({ message: 'ไม่พบข้อมูลการฝึก' });
+    }
+
+    // ลบไฟล์จริงออกจาก server
+    if (exercise.image && fs.existsSync(exercise.image)) {
+      fs.unlinkSync(exercise.image);
+    }
+    if (exercise.video && fs.existsSync(exercise.video)) {
+      fs.unlinkSync(exercise.video);
+    }
+
+    await Exercise.findByIdAndDelete(req.params.id);
+    res.json({ message: 'ลบข้อมูลเรียบร้อย' });
+
+  } catch (err) {
+    console.error('Error deleting exercise:', err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // WorkoutProgram Schema และ Routes (ไม่เปลี่ยนแปลง)
 const workoutProgramSchema = new Schema({
-  name: String,
-  description: String,
-  duration: String,
-  caloriesBurned: Number,
-  image: String,
-  category: {
-    type: String,
-    enum: ['ความแข็งแรง', 'คาร์ดิโอ', 'ความยืดหยุ่น', 'HIIT'],
-    default: 'ความแข็งแรง'
-  },
-DataFeedback: {
+  name: String,
+  description: String,
+  duration: String,
+  caloriesBurned: Number,
+  image: String,
+  category: {
+    type: String,
+    enum: ['ความแข็งแรง', 'คาร์ดิโอ', 'ความยืดหยุ่น', 'HIIT'],
+    default: 'ความแข็งแรง'
+  },
+  DataFeedback: {
     easy: { type: Number, default: 0 },
     medium: { type: Number, default: 0 },
     hard: { type: Number, default: 0 },
   },
-  workoutList: [
+  workoutList: [
     {
       exercise: { type: mongoose.Schema.Types.ObjectId, ref: "Exercise", required: true },
     }
@@ -827,7 +743,7 @@ app.get('/api/workout_programs', async (req, res) => {
     let filter = {};
     if (category && category !== 'ทั้งหมด') filter.category = category;
     const programs = await WorkoutProgram.find(filter).populate('workoutList.exercise').lean();
-    
+
     // Normalize Data
     const formattedPrograms = programs.map(p => ({
       ...p,
@@ -869,128 +785,128 @@ app.get("/api/workout_programs/:id", async (req, res) => {
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 app.post('/api/workout_programs', upload.single('image'), async (req, res) => {
-  try {
-    const newProgram = new WorkoutProgram({
-      name: req.body.name,
-      description: req.body.description,
-      duration: req.body.duration,
-      caloriesBurned: req.body.caloriesBurned,
-      category: req.body.category || 'ความแข็งแรง', // เพิ่ม category field
-      image: req.file ? `/uploads/${req.file.filename}` : '', // แก้ไขให้ใช้ URL
-      workoutList: req.body.workoutList ? JSON.parse(req.body.workoutList) : []
-    });
+  try {
+    const newProgram = new WorkoutProgram({
+      name: req.body.name,
+      description: req.body.description,
+      duration: req.body.duration,
+      caloriesBurned: req.body.caloriesBurned,
+      category: req.body.category || 'ความแข็งแรง', // เพิ่ม category field
+      image: req.file ? `/uploads/${req.file.filename}` : '', // แก้ไขให้ใช้ URL
+      workoutList: req.body.workoutList ? JSON.parse(req.body.workoutList) : []
+    });
 
-    const savedProgram = await newProgram.save();
-    res.status(201).json(savedProgram);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+    const savedProgram = await newProgram.save();
+    res.status(201).json(savedProgram);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 app.put('/api/workout_programs/:id/add-workout', async (req, res) => {
-  try {
-    const programId = req.params.id;
-    const newWorkout = req.body.workout;
+  try {
+    const programId = req.params.id;
+    const newWorkout = req.body.workout;
 
-    const updatedProgram = await WorkoutProgram.findByIdAndUpdate(
-      programId,
-      { $push: { workoutList: newWorkout } },
-      { new: true }
-    ).populate({
-      path: 'workoutList.exercise',
-      select: 'name image imageUrl type value'
-    });
+    const updatedProgram = await WorkoutProgram.findByIdAndUpdate(
+      programId,
+      { $push: { workoutList: newWorkout } },
+      { new: true }
+    ).populate({
+      path: 'workoutList.exercise',
+      select: 'name image imageUrl type value'
+    });
 
-    res.json(updatedProgram);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    res.json(updatedProgram);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 app.put('/api/workout_programs/:id', upload.single('image'), async (req, res) => {
-  try {
-    const updatedData = {
-      name: req.body.name,
-      description: req.body.description,
-      duration: req.body.duration,
-      caloriesBurned: req.body.caloriesBurned,
-      category: req.body.category || 'ความแข็งแรง', // เพิ่ม category field
-      image: req.file ? `/uploads/${req.file.filename}` : '', // แก้ไขให้ใช้ URL
-      workoutList: req.body.workoutList ? JSON.parse(req.body.workoutList) : [],
-    };
+  try {
+    const updatedData = {
+      name: req.body.name,
+      description: req.body.description,
+      duration: req.body.duration,
+      caloriesBurned: req.body.caloriesBurned,
+      category: req.body.category || 'ความแข็งแรง', // เพิ่ม category field
+      image: req.file ? `/uploads/${req.file.filename}` : '', // แก้ไขให้ใช้ URL
+      workoutList: req.body.workoutList ? JSON.parse(req.body.workoutList) : [],
+    };
 
-    if (req.file) {
-      updatedData.image = `/uploads/${req.file.filename}`; // แก้ไขให้ใช้ URL
-    }
+    if (req.file) {
+      updatedData.image = `/uploads/${req.file.filename}`; // แก้ไขให้ใช้ URL
+    }
 
-    const updatedProgram = await WorkoutProgram.findByIdAndUpdate(
-      req.params.id,
-      updatedData,
-      { new: true, runValidators: true }
-    );
+    const updatedProgram = await WorkoutProgram.findByIdAndUpdate(
+      req.params.id,
+      updatedData,
+      { new: true, runValidators: true }
+    );
 
-    if (!updatedProgram) {
-      return res.status(404).json({ error: 'Workout program not found' });
-    }
+    if (!updatedProgram) {
+      return res.status(404).json({ error: 'Workout program not found' });
+    }
 
-    res.json(updatedProgram);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+    res.json(updatedProgram);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 // API endpoint สำหรับดึงรายการหมวดหมู่ทั้งหมด
 app.get('/api/categories', async (req, res) => {
-  try {
-    const categories = ['ทั้งหมด', 'ความแข็งแรง', 'คาร์ดิโอ', 'ความยืดหยุ่น', 'HIIT'];
-    res.json(categories);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  try {
+    const categories = ['ทั้งหมด', 'ความแข็งแรง', 'คาร์ดิโอ', 'ความยืดหยุ่น', 'HIIT'];
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // API endpoint สำหรับอัปเดต category ของโปรแกรมที่มีอยู่
 app.patch('/api/workout_programs/:id/category', async (req, res) => {
-  try {
-    const { category } = req.body;
-    
-    if (!['ความแข็งแรง', 'คาร์ดิโอ', 'ความยืดหยุ่น', 'HIIT'].includes(category)) {
-      return res.status(400).json({ error: 'Invalid category' });
-    }
+  try {
+    const { category } = req.body;
 
-    const updatedProgram = await WorkoutProgram.findByIdAndUpdate(
-      req.params.id,
-      { category },
-      { new: true, runValidators: true }
-    );
+    if (!['ความแข็งแรง', 'คาร์ดิโอ', 'ความยืดหยุ่น', 'HIIT'].includes(category)) {
+      return res.status(400).json({ error: 'Invalid category' });
+    }
 
-    if (!updatedProgram) {
-      return res.status(404).json({ error: 'Workout program not found' });
-    }
+    const updatedProgram = await WorkoutProgram.findByIdAndUpdate(
+      req.params.id,
+      { category },
+      { new: true, runValidators: true }
+    );
 
-    res.json(updatedProgram);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+    if (!updatedProgram) {
+      return res.status(404).json({ error: 'Workout program not found' });
+    }
+
+    res.json(updatedProgram);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 app.delete('/api/workout_programs/:id', async (req, res) => {
-  try {
-    const program = await WorkoutProgram.findByIdAndDelete(req.params.id);
-    if (!program) {
-      return res.status(404).json({ error: 'Workout program not found' });
-    }
-    res.json({ message: 'ลบโปรแกรมเรียบร้อย' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  try {
+    const program = await WorkoutProgram.findByIdAndDelete(req.params.id);
+    if (!program) {
+      return res.status(404).json({ error: 'Workout program not found' });
+    }
+    res.json({ message: 'ลบโปรแกรมเรียบร้อย' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ================== Workout History (replaces "Recent") ==================
 // ================== Histories (collection: histories) ==================
 const historySchema = new mongoose.Schema({
   uid: { type: String, required: true, index: true },
-  programId: { type: String }, 
+  programId: { type: String },
   programName: { type: String, default: "" },
   totalSeconds: { type: Number, default: 0 },
   caloriesBurned: { type: Number, default: 0 },
@@ -1004,59 +920,11 @@ const History = mongoose.model("History", historySchema, "histories");
 // ================== CRUD API ==================
 
 // Create
-// app.post("/api/workouthistory", async (req, res) => {
-//   try {
-//     const record = new Workouthistory(req.body);
-//     await record.save();
-//     res.status(201).json(record);
-//   } catch (err) {
-//     res.status(400).json({ error: err.message });
-//   }
-// });
 
-// Read All
-// app.get("/api/workouthistory", async (req, res) => {
-//   try {
-//     const records = await Workouthistory.find().sort({ completedAt: -1 });
-//     res.json(records);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// Read By User
-// app.get("/api/workouthistory/user/:uid", async (req, res) => {
-//   try {
-//     const records = await Workouthistory.find({ uid: req.params.uid }).sort({ completedAt: -1 });
-//     res.json(records);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// Update
-// app.put("/api/workouthistory/:id", async (req, res) => {
-//   try {
-//     const updated = await Workouthistory.findByIdAndUpdate(req.params.id, req.body, { new: true });
-//     res.json(updated);
-//   } catch (err) {
-//     res.status(400).json({ error: err.message });
-//   }
-// });
-
-// Delete
-// app.delete("/api/workouthistory/:id", async (req, res) => {
-//   try {
-//     await Workouthistory.findByIdAndDelete(req.params.id);
-//     res.json({ message: "Deleted successfully" });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
 app.get('/api/workout-plans/templates/:level', async (req, res) => {
   try {
     const { level } = req.params;
-    
+
     // ตัวอย่างแผนการออกกำลังกายสำหรับแต่ละระดับ
     const templatePlans = {
       beginner: [
@@ -1384,7 +1252,7 @@ app.patch("/api/workout_programs/:id/feedback", async (req, res) => {
     );
 
     if (!updated) return res.status(404).json({ error: "Workout program not found" });
-    
+
     console.log("✅ Feedback Updated:", updated.DataFeedback);
     res.json({ ok: true, DataFeedback: updated.DataFeedback });
   } catch (err) {
@@ -1529,7 +1397,7 @@ const workoutSessionSchema = new mongoose.Schema({
   },
   snapshot: {
     programName: String,
-    exercises: [] 
+    exercises: []
   },
   logs: [workoutSessionLogSchema],
   startedAt: { type: Date, default: Date.now },
@@ -1565,7 +1433,7 @@ app.post("/api/workout_sessions/start", async (req, res) => {
     const session = await WorkoutSession.findOneAndUpdate(
       filter,
       update,
-      { 
+      {
         new: true,   // คืนค่า document หลังอัปเดต (หรือสร้างใหม่)
         upsert: true, // ถ้าไม่มีให้สร้างใหม่
         setDefaultsOnInsert: true // ใช้ default value จาก Schema
@@ -1573,7 +1441,7 @@ app.post("/api/workout_sessions/start", async (req, res) => {
     );
 
     console.log(`✅ Session Active: ${session._id} (Is New: ${session.createdAt === session.updatedAt})`);
-    
+
     return res.status(201).json({ _id: session._id });
 
   } catch (err) {
@@ -1590,25 +1458,25 @@ app.post("/api/workout_sessions/:id/log-exercise", async (req, res) => {
     // 1. ดึงค่าออกมาให้ชัดเจน
     const seconds = Math.max(0, Number(logData.performed?.seconds || 0));
     const reps = Math.max(0, Number(logData.performed?.reps || 0));
-    
+
     // 2. คำนวณแคลอรี่
-    let rawCalories = (seconds / 60) * 5; 
+    let rawCalories = (seconds / 60) * 5;
     const calories = seconds > 10 ? Math.ceil(rawCalories) : parseFloat(rawCalories.toFixed(2));
-    
+
     // 3. สร้าง Object Log ที่ถูกต้องตาม Schema เป๊ะๆ
     const newLog = {
-        order: logData.order,
-        exerciseId: logData.exerciseId,
-        name: logData.name,
-        target: logData.target,
-        performed: {
-            reps: reps,
-            seconds: seconds // บันทึกวินาทีที่ถูกต้องแน่นอน
-        },
-        status: logData.status,
-        calories: calories,
-        startedAt: logData.startedAt,
-        endedAt: logData.endedAt
+      order: logData.order,
+      exerciseId: logData.exerciseId,
+      name: logData.name,
+      target: logData.target,
+      performed: {
+        reps: reps,
+        seconds: seconds // บันทึกวินาทีที่ถูกต้องแน่นอน
+      },
+      status: logData.status,
+      calories: calories,
+      startedAt: logData.startedAt,
+      endedAt: logData.endedAt
     };
 
     console.log(`📝 Logging Order ${logData.order}: ${seconds}s`); // เพิ่ม Log ดูว่า Backend เห็นกี่วินาที
@@ -1618,8 +1486,8 @@ app.post("/api/workout_sessions/:id/log-exercise", async (req, res) => {
       $pull: { logs: { order: logData.order } }
     });
 
-    await WorkoutSession.findByIdAndUpdate(id, { 
-        $push: { logs: newLog } 
+    await WorkoutSession.findByIdAndUpdate(id, {
+      $push: { logs: newLog }
     });
 
     res.json({ success: true });
@@ -1643,7 +1511,7 @@ app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
     // Debug: ปริ้นท์ Log หลังจากมั่นใจว่า session มีอยู่จริง
     console.log("---- Session Logs Debug ----");
     if (session.logs) {
-        session.logs.forEach(l => console.log(`Order ${l.order}: ${l.performed?.seconds}s`));
+      session.logs.forEach(l => console.log(`Order ${l.order}: ${l.performed?.seconds}s`));
     }
     console.log("----------------------------");
 
@@ -1660,9 +1528,9 @@ app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
     // 3. คำนวณผลรวม (Logic ของคุณถูกต้องแล้วครับ)
     const totals = session.logs.reduce((acc, log) => {
       // แปลงเป็น Number อีกรอบกันเหนียว
-      const s = Number(log.performed?.seconds); 
+      const s = Number(log.performed?.seconds);
       const c = Number(log.calories);
-      
+
       // ถ้าเป็น NaN ให้เป็น 0
       acc.seconds += isNaN(s) ? 0 : s;
       acc.calories += isNaN(c) ? 0 : c;
@@ -1688,18 +1556,18 @@ app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
 
     // 5. อัปเดต User Stats
     await User.findOneAndUpdate(
-        { uid: session.uid },
-        { 
-            $inc: { 
-                caloriesBurned: totals.calories,
-                workoutsDone: 1 
-            }
+      { uid: session.uid },
+      {
+        $inc: {
+          caloriesBurned: totals.calories,
+          workoutsDone: 1
         }
+      }
     );
 
-    res.json({ 
-      sessionId: session._id, 
-      historyId: newHistory._id, 
+    res.json({
+      sessionId: session._id,
+      historyId: newHistory._id,
       msg: "Session finished and History saved",
       totals
     });
@@ -1713,9 +1581,9 @@ app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
 app.get("/api/__summary_internal/program/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    const latest = await WorkoutSession.findOne({ 
-      uid, 
-      finishedAt: { $ne: null } 
+    const latest = await WorkoutSession.findOne({
+      uid,
+      finishedAt: { $ne: null }
     }).sort({ finishedAt: -1 }).lean();
 
     if (!latest) return res.status(404).json({ error: "ไม่พบประวัติการเล่น" });

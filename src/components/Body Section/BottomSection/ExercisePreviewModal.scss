@@ -2,6 +2,12 @@
 :root {
   --header-btn-size: 40px; /* ปรับขนาดได้ตามจริงของปุ่มปิด */
 }
+* {
+  font-family: var(--font-primary) !important;
+}
+body, html {
+  font-family: var(--font-primary) !important;
+}
 .exercise-modal-overlay {
   position: fixed;
   top: 0;

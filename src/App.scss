@@ -1,12 +1,16 @@
-
 * {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-
+  font-family: var(--font-primary) !important;
 }
 
-//Root Variables for Global Styling */
+body,
+html {
+  font-family: var(--font-primary) !important;
+}
+
+/* Root Variables for Global Styling */
 :root {
   /* Color Palette */
   --primary-color: #349de3;
@@ -17,9 +21,9 @@
   --text-color: #333;
   --greyText: #898989;
   --inputColor: hsl(330, 12%, 97%);
-  --lightBlueColor:#ADD8E6;
-  --midnightBlueColor:#272757;
-  --darkRedColor:#950606;
+  --lightBlueColor: #ADD8E6;
+  --midnightBlueColor: #272757;
+  --darkRedColor: #950606;
   /* Typography */
   --biggestFontSize: 2.5rem;
   --h1FontSize: 1.5rem;
@@ -32,7 +36,6 @@
 
 .welcome-container {
   text-align: center;
-  font-family: Arial, sans-serif;
   margin-top: 30px;
 }
 
@@ -50,7 +53,8 @@
 }
 
 .highlight {
-  color: #00bfff; /* สีฟ้า */
+  color: #00bfff;
+  /* สีฟ้า */
 }
 
 .welcome-container p {
@@ -88,32 +92,40 @@
   display: flex;
   align-items: center;
 }
+
 .grid {
   display: grid;
   align-items: center;
   gap: 1.5rem;
 }
+
 html {
   font-size: 90%;
 }
+
 a {
   text-decoration: none;
 }
+
 li {
   list-style: none;
 }
+
 .icon {
   font-size: var(--h2FontSize);
   cursor: pointer;
 }
+
 img,
 video {
   height: auto;
   width: 100%;
 }
+
 .message {
   display: none;
 }
+
 .showMessage {
   display: block;
   color: var(--whiteColor);
@@ -130,65 +142,73 @@ video {
   padding: 0.8rem 1rem;
   color: var(--whiteColor);
 }
+
 .btn .icon {
   margin-left: 0.5rem;
 }
+
 .btn:hover {
   color: var(--primary-color);
   background-color: var(--hoverColor);
 }
+
 @media screen and (max-width: 602px) {
-  .loginPage, .registerPage{
-    .containers ,.registercontainer {
+
+  .loginPage,
+  .registerPage {
+
+    .containers,
+    .registercontainer {
       height: 100%;
       width: 100%;
       flex-direction: column;
       padding: 1.5rem;
 
-      .videoDiv{
+      .videoDiv {
         width: 100%;
-        .textDiv{
-          .title{
+
+        .textDiv {
+          .title {
             font-size: 20px;
           }
 
-          p{
+          p {
             padding: 1rem;
           }
         }
 
-        .footerDiv{
-          .text{
+        .footerDiv {
+          .text {
             font-size: 12px;
           }
 
-          .btn{
+          .btn {
             padding: .4rem 1.5rem;
           }
         }
       }
 
-      .formDiv{
-        gap:1rem;
+      .formDiv {
+        gap: 1rem;
         transform: translateY(-.5rem);
 
-        .headerDiv{
+        .headerDiv {
           padding: 1rem 0;
 
-          img{
+          img {
             width: 40px;
           }
 
-          h3{
-            font-size:20px ;
+          h3 {
+            font-size: 20px;
           }
         }
 
-        .form{
+        .form {
           gap: .5rem;
 
-          .inputDiv{
-            input{
+          .inputDiv {
+            input {
               width: 100%;
             }
           }
@@ -199,45 +219,49 @@ video {
 }
 
 @media screen and (max-width: 678px) {
-  .loginPage, .registerPage{
-    .containers , .registercontainer{
-     
-      .videoDiv{
-        .textDiv{
-          .title{
+
+  .loginPage,
+  .registerPage {
+
+    .containers,
+    .registercontainer {
+
+      .videoDiv {
+        .textDiv {
+          .title {
             font-size: 25px;
           }
 
-          p{
+          p {
             padding: 1rem;
           }
         }
 
-        .footerDiv{
-          .text{
+        .footerDiv {
+          .text {
             font-size: 12px;
           }
 
-          .btn{
+          .btn {
             padding: .8rem 1.5rem;
           }
         }
       }
 
-      .formDiv{
-        .headerDiv{
+      .formDiv {
+        .headerDiv {
           padding: 1.5rem 0;
 
 
-          h3{
-            font-size:20px ;
+          h3 {
+            font-size: 20px;
           }
         }
 
-        .form{
+        .form {
 
-          .inputDiv{
-            input{
+          .inputDiv {
+            input {
               width: 100%;
               max-width: 200px;
             }
@@ -249,9 +273,13 @@ video {
 }
 
 @media screen and (max-width: 927px) {
-  .loginPage, .registerPage{
-    .containers , .registercontainer{
-      width: 85% ;
+
+  .loginPage,
+  .registerPage {
+
+    .containers,
+    .registercontainer {
+      width: 85%;
     }
   }
 }

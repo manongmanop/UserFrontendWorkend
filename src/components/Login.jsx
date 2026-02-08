@@ -5,8 +5,9 @@ import { useUserAuth } from "../context/UserAuthContext";
 import { sendEmailVerification } from "firebase/auth";
 import { auth, db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import "./Login.css";
+import "./login.scss";
 import "../app.css";
+import "./style/global.css";
 import { 
   MdEmail, 
   MdLock, 
@@ -315,7 +316,7 @@ function Login() {
                 {" "}
               </span>
               <Link to="/admin-register" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
-                Sign Up for Admin
+                เข้าสู่ระบบในฐานะผู้ดูแลระบบ
               </Link>
             </div>
           </Form>

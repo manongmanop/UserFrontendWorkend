@@ -14,6 +14,14 @@ body {
   background: var(--background-color);
 }
 
+* {
+  font-family: var(--font-primary) !important;
+}
+
+body, html {
+  font-family: var(--font-primary) !important;
+}
+
 .training-card {
   max-width: 480px;
   margin: 2rem auto;
