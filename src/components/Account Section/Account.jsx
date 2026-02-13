@@ -31,6 +31,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import '../style/global.css'
+import axios from "axios";
 
 ChartJS.register(
   CategoryScale,
@@ -62,6 +63,8 @@ function Account() {
     fatPercentage: 0,
     muscleMass: 0
   });
+  const [totalCaloriesBurned, setTotalCaloriesBurned] = useState(0);
+  const [selectedMetric, setSelectedMetric] = useState('weight'); // State to track selected metric for chart
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -82,7 +85,7 @@ function Account() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setHeight(data.height || '');
-          // ไม่ต้อง setWeight ที่นี่ เพราะจะอัปเดตจาก metricsHistory แทน
+          setWeight(data.weight || 0); // ดึงน้ำหนักจาก firebase
           setGender(data.gender || '');
           setName(data.name || '');
           setDisplayName(data.name || '');
@@ -149,91 +152,74 @@ function Account() {
 
     } catch (error) {
       console.error("Error fetching metrics history:", error);
-      setMetricsHistory(generateDummyData());
+      setMetricsHistory([]); // ถ้า error ไม่ต้อง mockup
     } finally {
       setIsLoadingMetrics(false);
     }
   };
 
-  // ฟังก์ชันสร้างข้อมูลจำลองสำหรับตัวอย่างกราฟ
-  const generateDummyData = () => {
-    // สร้างข้อมูลย้อนหลัง 12 เดือน
-    const data = [];
-    const today = new Date();
+  // ดึง workout history และรวม kcal
+  useEffect(() => {
+    const fetchWorkoutHistory = async () => {
+      if (!user?.uid) return;
+      try {
+        const res = await axios.get(`http://10.198.200.52:5000/api/histories/user/${user.uid}`);
+        const histories = res.data || [];
+        const total = histories.reduce((sum, h) => sum + (h.caloriesBurned || 0), 0);
+        setTotalCaloriesBurned(total);
+        setWorkoutHistory(histories); // เก็บไว้ใช้กับกราฟ
+      } catch (err) {
+        setTotalCaloriesBurned(0);
+        setWorkoutHistory([]);
+      }
+    };
+    fetchWorkoutHistory();
+  }, [user]);
 
-    // สร้างข้อมูลเริ่มต้น
-    let currentWeight = parseFloat(weight) || 75;
-    let currentFat = 25;
-    let currentMuscle = 30;
+  // สำหรับ chart: ใช้ workoutHistory เป็นแหล่งข้อมูล kcal
+  const [workoutHistory, setWorkoutHistory] = useState([]);
 
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date(today);
-      date.setMonth(today.getMonth() - i);
-
-      // สุ่มค่าการเปลี่ยนแปลงเล็กน้อย
-      const weightChange = (Math.random() * 2 - 1) * 0.7;
-      const fatChange = -Math.random() * 0.8; // มีแนวโน้มลดลง
-      const muscleChange = Math.random() * 0.6; // มีแนวโน้มเพิ่มขึ้น
-
-      currentWeight += weightChange;
-      currentFat += fatChange;
-      currentMuscle += muscleChange;
-
-      data.push({
-        date: date,
-        weight: parseFloat(currentWeight.toFixed(1)),
-        fatPercentage: parseFloat(currentFat.toFixed(1)),
-        muscleMass: parseFloat(currentMuscle.toFixed(1))
-      });
-    }
-
-    return data;
-  };
-
-  // แปลงข้อมูลประวัติเป็นรูปแบบที่ใช้กับ Chart.js
+  // Prepare chart data for selected metric only, using metricsData
   const prepareChartData = () => {
-    if (!metricsHistory.length) return null;
-
-    // ใช้ filteredData แทนการกรองใหม่
-    const dataToUse = filteredData.length > 0 ? filteredData : filterDataByTimeRange(metricsHistory, timeRange);
-
-    const labels = dataToUse.map(metric => {
-      const date = new Date(metric.date);
-      return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear().toString().substr(2, 2)}`;
-    });
-
+    let data = [];
+    let labels = [];
+    let label = '';
+    let borderColor = '';
+    let backgroundColor = '';
+    if (selectedMetric === 'weight') {
+      // ใช้ filteredData (ที่อิง firebase) เพื่อให้ตรงกับ stat
+      if (!filteredData.length) return null;
+      const sorted = [...filteredData].sort((a, b) => new Date(a.date) - new Date(b.date));
+      labels = sorted.map(item => {
+        const date = new Date(item.date);
+        return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear().toString().substr(2, 2)}`;
+      });
+      data = sorted.map(item => item.weight || null);
+      label = 'น้ำหนัก';
+      borderColor = '#349de3';
+      backgroundColor = 'rgba(52, 157, 227, 0.1)';
+    } else if (selectedMetric === 'calories') {
+      if (!workoutHistory.length) return null;
+      const sorted = [...workoutHistory].sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt));
+      labels = sorted.map(item => {
+        const date = new Date(item.finishedAt);
+        return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear().toString().substr(2, 2)}`;
+      });
+      data = sorted.map(item => item.caloriesBurned || 0);
+      label = 'แคลอรี่ที่เผาผลาญ';
+      borderColor = '#ed8936';
+      backgroundColor = 'rgba(237, 137, 54, 0.1)';
+    }
     return {
       labels,
       datasets: [
         {
-          label: 'น้ำหนัก',
-          data: dataToUse.map(metric => metric.weight),
-          borderColor: '#349de3',
-          backgroundColor: 'rgba(52, 157, 227, 0.1)',
+          label,
+          data,
+          borderColor,
+          backgroundColor,
           fill: false,
-          pointBackgroundColor: '#349de3',
-          borderWidth: 2,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        },
-        {
-          label: 'ไขมันในร่างกาย',
-          data: dataToUse.map(metric => metric.fatPercentage),
-          borderColor: '#ed8936',
-          backgroundColor: 'rgba(237, 137, 54, 0.1)',
-          fill: false,
-          pointBackgroundColor: '#ed8936',
-          borderWidth: 2,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        },
-        {
-          label: 'มวลกล้ามเนื้อ',
-          data: dataToUse.map(metric => metric.muscleMass),
-          borderColor: '#48bb78',
-          backgroundColor: 'rgba(72, 187, 120, 0.1)',
-          fill: false,
-          pointBackgroundColor: '#48bb78',
+          pointBackgroundColor: borderColor,
           borderWidth: 2,
           pointRadius: 3,
           pointHoverRadius: 5
@@ -242,64 +228,72 @@ function Account() {
     };
   };
 
-  // ฟังก์ชันกรองข้อมูลตามช่วงเวลา
-  const filterDataByTimeRange = (data, range) => {
+  // ฟังก์ชันกรองข้อมูลตามช่วงเวลา (รองรับทั้ง weight และ calories)
+  const filterDataByTimeRange = (data, range, type = 'weight') => {
     const today = new Date();
     let filtered = [...data];
 
     switch (range) {
-      case '1m':
-        const oneMonthAgo = new Date(today);
-        oneMonthAgo.setMonth(today.getMonth() - 1);
-        filtered = filtered.filter(item => new Date(item.date) >= oneMonthAgo);
+      case '1m': {
+        // เฉพาะเดือนปัจจุบัน
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        filtered = filtered.filter(item => {
+          const d = new Date(type === 'weight' ? item.date : item.finishedAt);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
         break;
-
-      case '3m':
-        const threeMonthsAgo = new Date(today);
-        threeMonthsAgo.setMonth(today.getMonth() - 3);
-        filtered = filtered.filter(item => new Date(item.date) >= threeMonthsAgo);
+      }
+      case '3m': {
+        // 2 เดือนก่อนหน้า + เดือนปัจจุบัน
+        const start = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+        filtered = filtered.filter(item => new Date(type === 'weight' ? item.date : item.finishedAt) >= start);
         break;
-
-      case '6m':
-        const sixMonthsAgo = new Date(today);
-        sixMonthsAgo.setMonth(today.getMonth() - 6);
-        filtered = filtered.filter(item => new Date(item.date) >= sixMonthsAgo);
+      }
+      case '6m': {
+        // 5 เดือนก่อนหน้า + เดือนปัจจุบัน
+        const start = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+        filtered = filtered.filter(item => new Date(type === 'weight' ? item.date : item.finishedAt) >= start);
         break;
-
-      case '1y':
-        const oneYearAgo = new Date(today);
-        oneYearAgo.setFullYear(today.getFullYear() - 1);
-        filtered = filtered.filter(item => new Date(item.date) >= oneYearAgo);
+      }
+      case '1y': {
+        // เฉพาะปีปัจจุบัน
+        const currentYear = today.getFullYear();
+        filtered = filtered.filter(item => new Date(type === 'weight' ? item.date : item.finishedAt).getFullYear() === currentYear);
         break;
-
+      }
       case 'all':
       default:
-        filtered = filtered;
+        // ไม่กรอง
         break;
     }
 
-    // อัปเดต filteredData state
-    setFilteredData(filtered);
-
-    // อัปเดตค่าล่าสุดจากข้อมูลที่กรองแล้ว
-    if (filtered.length > 0) {
-      const latest = filtered[filtered.length - 1];
-      setLatestMetrics({
-        weight: latest.weight,
-        fatPercentage: latest.fatPercentage,
-        muscleMass: latest.muscleMass
-      });
-      // อัปเดต weight state ด้วย
-      setWeight(latest.weight);
+    if (type === 'weight') {
+      setFilteredData(filtered);
+      if (filtered.length > 0) {
+        const latest = filtered[filtered.length - 1];
+        setLatestMetrics({
+          weight: latest.weight,
+          fatPercentage: latest.fatPercentage,
+          muscleMass: latest.muscleMass
+        });
+        setWeight(latest.weight);
+      }
+    } else if (type === 'calories') {
+      setFilteredCaloriesData(filtered);
     }
 
     return filtered;
   };
 
+  // State สำหรับ calories
+  const [filteredCaloriesData, setFilteredCaloriesData] = useState([]);
+
+  // ปรับ handleTimeRangeChange ให้กรองทั้งสองชุดข้อมูล
   const handleTimeRangeChange = (range) => {
     setTimeRange(range);
-    // กรองข้อมูลใหม่และอัปเดต states
-    filterDataByTimeRange(metricsHistory, range);
+    filterDataByTimeRange(metricsHistory, range, 'weight');
+    filterDataByTimeRange(workoutHistory, range, 'calories');
   };
 
   const calculateBMI = () => {
@@ -623,31 +617,34 @@ function Account() {
   const chartData = prepareChartData();
   const currentFatPercentage = metricsHistory.length > 0 ? metricsHistory[metricsHistory.length - 1].fatPercentage : 0;
   const fatValueColorType = getFatPercentageColor(currentFatPercentage, gender);
+  // ดึงข้อมูลล่าสุดจาก filteredData หรือ metricsHistory
+  const latestData = (filteredData.length > 0 ? filteredData : metricsHistory);
+  const latest = latestData.length > 0 ? latestData[latestData.length - 1] : null;
+
   const metricsData = [
-    {
-      id: 'fat',
-      icon: 'fat',
-      title: 'ไขมันในร่างกาย',
-      value: `${latestMetrics.fatPercentage}%`,
-      valueColorType: getFatPercentageColor(latestMetrics.fatPercentage, gender),
-      status: getChangeText(changes.fatChange, '%', 'fat').text,
-      statusType: getChangeText(changes.fatChange, '%', 'fat').type,
-    },
-    {
-      id: 'muscle',
-      icon: 'muscle',
-      title: 'มวลกล้ามเนื้อ',
-      value: `${latestMetrics.muscleMass} %`,
-      status: getChangeText(changes.muscleChange, '%', 'muscle').text,
-      statusType: getChangeText(changes.muscleChange, '%', 'muscle').type,
-    },
     {
       id: 'weight',
       icon: 'weight',
       title: 'น้ำหนัก',
-      value: `${latestMetrics.weight} กก.`, // ใช้ latestMetrics แทน
+      value: latest ? `${latest.weight} กก.` : '0 กก.',
       status: getChangeText(changes.weightChange, 'กก.', 'weight').text,
       statusType: getChangeText(changes.weightChange, 'กก.', 'weight').type,
+    },
+    {
+      id: 'height',
+      icon: 'height',
+      title: 'ส่วนสูง',
+      value: `${height} ซม.`,
+      status: '',
+      statusType: 'default',
+    },
+    {
+      id: 'calories',
+      icon: 'calories',
+      title: 'แคลอรี่ที่เผาผลาญ',
+      value: `${totalCaloriesBurned} kcal`,
+      status: '',
+      statusType: 'default',
     }
   ];
   const getGenderDisplay = (gender) => {
@@ -813,44 +810,124 @@ function Account() {
             <div className="col-md-8">
               {/* ส่วนกราฟแสดงข้อมูลร่างกาย */}
               <div className="metrics-section">
-                <h5 className="section-title">ภาพรวมความก้าวหน้า</h5>
-                {isLoadingMetrics ? (
-                  <div className="loading-chart">กำลังโหลดข้อมูล...</div>
-                ) : (
-                  <>
-                    <div className="chart-container">
-                      <div className="chart-time-filter">
-                        {/* <button
-                          className={timeRange === '1m' ? 'active' : ''}
-                          onClick={() => handleTimeRangeChange('1m')}
-                        >
-                          1 เดือน
-                        </button> */}
-                        <button
-                          className={timeRange === '3m' ? 'active' : ''}
-                          onClick={() => handleTimeRangeChange('3m')}
-                        >
-                          3 เดือน
-                        </button>
-                        <button
-                          className={timeRange === '6m' ? 'active' : ''}
-                          onClick={() => handleTimeRangeChange('6m')}
-                        >
-                          6 เดือน
-                        </button>
-                        <button
-                          className={timeRange === '1y' ? 'active' : ''}
-                          onClick={() => handleTimeRangeChange('1y')}
-                        >
-                          1 ปี
-                        </button>
-                        <button
-                          className={timeRange === 'all' ? 'active' : ''}
-                          onClick={() => handleTimeRangeChange('all')}
-                        >
-                          ทั้งหมด
-                        </button>
-                      </div>
+                
+                <div className="chart-container">
+                  <h5 className="section-title">ภาพรวมความก้าวหน้า</h5>
+                  {/* Time range selection */}
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <button
+                      onClick={() => handleTimeRangeChange('1m')}
+                      style={{
+                        padding: '0.3rem 0.9rem',
+                        borderRadius: '6px',
+                        border: timeRange === '1m' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: timeRange === '1m' ? '#e6f3ff' : '#fff',
+                        color: timeRange === '1m' ? '#2563eb' : '#2d3748',
+                        fontWeight: 500,
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        boxShadow: timeRange === '1m' ? '0 2px 8px rgba(52,157,227,0.08)' : 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    >1 เดือน</button>
+                    <button
+                      onClick={() => handleTimeRangeChange('3m')}
+                      style={{
+                        padding: '0.3rem 0.9rem',
+                        borderRadius: '6px',
+                        border: timeRange === '3m' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: timeRange === '3m' ? '#e6f3ff' : '#fff',
+                        color: timeRange === '3m' ? '#2563eb' : '#2d3748',
+                        fontWeight: 500,
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        boxShadow: timeRange === '3m' ? '0 2px 8px rgba(52,157,227,0.08)' : 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    >3 เดือน</button>
+                    <button
+                      onClick={() => handleTimeRangeChange('6m')}
+                      style={{
+                        padding: '0.3rem 0.9rem',
+                        borderRadius: '6px',
+                        border: timeRange === '6m' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: timeRange === '6m' ? '#e6f3ff' : '#fff',
+                        color: timeRange === '6m' ? '#2563eb' : '#2d3748',
+                        fontWeight: 500,
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        boxShadow: timeRange === '6m' ? '0 2px 8px rgba(52,157,227,0.08)' : 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    >6 เดือน</button>
+                    <button
+                      onClick={() => handleTimeRangeChange('1y')}
+                      style={{
+                        padding: '0.3rem 0.9rem',
+                        borderRadius: '6px',
+                        border: timeRange === '1y' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: timeRange === '1y' ? '#e6f3ff' : '#fff',
+                        color: timeRange === '1y' ? '#2563eb' : '#2d3748',
+                        fontWeight: 500,
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        boxShadow: timeRange === '1y' ? '0 2px 8px rgba(52,157,227,0.08)' : 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    >1 ปี</button>
+                    <button
+                      onClick={() => handleTimeRangeChange('all')}
+                      style={{
+                        padding: '0.3rem 0.9rem',
+                        borderRadius: '6px',
+                        border: timeRange === 'all' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: timeRange === 'all' ? '#e6f3ff' : '#fff',
+                        color: timeRange === 'all' ? '#2563eb' : '#2d3748',
+                        fontWeight: 500,
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        boxShadow: timeRange === 'all' ? '0 2px 8px rgba(52,157,227,0.08)' : 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    >ทั้งหมด</button>
+                  </div>
+                  {/* Metric selection buttons */}
+                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                    <button
+                      onClick={() => setSelectedMetric('weight')}
+                      style={{
+                        padding: '0.5rem 1.2rem',
+                        borderRadius: '8px',
+                        border: selectedMetric === 'weight' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: selectedMetric === 'weight' ? '#e6f3ff' : '#fff',
+                        color: selectedMetric === 'weight' ? '#2563eb' : '#2d3748',
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        boxShadow: selectedMetric === 'weight' ? '0 2px 8px rgba(52,157,227,0.08)' : 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    >น้ำหนัก</button>
+                    <button
+                      onClick={() => setSelectedMetric('calories')}
+                      style={{
+                        padding: '0.5rem 1.2rem',
+                        borderRadius: '8px',
+                        border: selectedMetric === 'calories' ? '2px solid #ed8936' : '1px solid #e2e8f0',
+                        background: selectedMetric === 'calories' ? '#fffaf0' : '#fff',
+                        color: selectedMetric === 'calories' ? '#ed8936' : '#2d3748',
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        boxShadow: selectedMetric === 'calories' ? '0 2px 8px rgba(237,137,54,0.08)' : 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    >แคลอรี่ที่เผาผลาญ</button>
+                  </div>
+                  {isLoadingMetrics ? (
+                    <div className="loading-chart">กำลังโหลดข้อมูล...</div>
+                  ) : (
+                    <>
                       <div className="chart-wrapper">
                         {chartData && <Line options={{
                           responsive: true,
@@ -862,15 +939,7 @@ function Account() {
                           tension: 0.3,
                           plugins: {
                             legend: {
-                              position: 'top',
-                              labels: {
-                                font: {
-                                  family: "'Inter', sans-serif",
-                                  size: 12
-                                },
-                                usePointStyle: true,
-                                padding: 20
-                              }
+                              display: false // hide legend since only one metric
                             },
                             tooltip: {
                               backgroundColor: 'rgba(255, 255, 255, 0.9)',
@@ -888,11 +957,15 @@ function Account() {
                                     label += ': ';
                                   }
                                   if (context.parsed.y !== null) {
-                                    // ตรวจสอบว่า label มีคำว่า 'ไขมัน' หรือ 'มวลกล้ามเนื้อ' หรือไม่
-                                    if (label.includes('ไขมัน') || label.includes('มวลกล้ามเนื้อ')) {
-                                      label += context.parsed.y + '%';
-                                    } else {
-                                      label += context.parsed.y + ' กก.';
+                                    if (selectedMetric === 'weight') {
+                                      // ใช้ latestMetrics.weight สำหรับ tooltip จุดล่าสุด
+                                      if (context.dataIndex === context.dataset.data.length - 1) {
+                                        label += latestMetrics.weight + ' กก.';
+                                      } else {
+                                        label += context.parsed.y + ' กก.';
+                                      }
+                                    } else if (selectedMetric === 'calories') {
+                                      label += context.parsed.y + ' kcal';
                                     }
                                   }
                                   return label;
@@ -904,6 +977,17 @@ function Account() {
                             x: {
                               grid: {
                                 display: false
+                              },
+                              title: {
+                                display: true,
+                                text: 'วันที่ออกกำลังกาย',
+                                font: {
+                                  family: "'Inter', sans-serif",
+                                  size: 13,
+                                  weight: 'bold'
+                                },
+                                color: '#2563eb',
+                                padding: { top: 10 }
                               },
                               ticks: {
                                 font: {
@@ -917,6 +1001,17 @@ function Account() {
                               grid: {
                                 color: 'rgba(226, 232, 240, 0.6)'
                               },
+                              title: {
+                                display: true,
+                                text: selectedMetric === 'weight' ? 'น้ำหนัก (กก.)' : 'แคลอรี่ที่เผาผลาญ (kcal)',
+                                font: {
+                                  family: "'Inter', sans-serif",
+                                  size: 13,
+                                  weight: 'bold'
+                                },
+                                color: '#2563eb',
+                                padding: { right: 10 }
+                              },
                               ticks: {
                                 font: {
                                   family: "'Inter', sans-serif",
@@ -928,25 +1023,13 @@ function Account() {
                           }
                         }} data={chartData} height={300} />}
                       </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* ส่วนแสดงเมทริกซ์ร่างกาย */}
-              <div className="metrics-section">
-                <h5 className="section-title">ข้อมูลร่างกายโดยละเอียด</h5>
-                <div className="metrics-grid-refreshed">
-                  {metricsData.map((metric) => (
-                    <MetricCard
-                      key={metric.id}
-                      icon={metric.icon}
-                      title={metric.title}
-                      value={metric.value}
-                      status={metric.status}
-                      statusType={metric.statusType}
-                    />
-                  ))}
+                      {/* คำอธิบายแกนกราฟ */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: '0.95rem', color: '#2563eb', fontWeight: 500 }}>
+                        <span>แกน X: วันที่ออกกำลังกาย</span>
+                        <span>แกน Y: {selectedMetric === 'weight' ? 'น้ำหนัก (กก.)' : 'แคลอรี่ที่เผาผลาญ (kcal)'}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

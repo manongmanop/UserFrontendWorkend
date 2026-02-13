@@ -17,11 +17,16 @@ export const useDumbbellCamera = ({
   const [counterLeft, setCounterLeft] = useState(0);
   const [counterRight, setCounterRight] = useState(0);
   const [sets, setSets] = useState(0);
-  // const [resting, setResting] = useState(false);
-  // const [restTimeRemaining, setRestTimeRemaining] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+  const [postureTilt, setPostureTilt] = useState('Straight');
+  const [leftArmPosition, setLeftArmPosition] = useState('Neutral');
+  const [rightArmPosition, setRightArmPosition] = useState('Neutral');
+  const [landmarksValid, setLandmarksValid] = useState(false);
+  // const [legStance, setLegStance] = useState('Normal');
+  // const [ankleDistance, setAnkleDistance] = useState(0);
+  // const [kneeDistance, setKneeDistance] = useState(0);
 
   // Refs for tracking state
   const stageLeft = useRef(null);
@@ -59,38 +64,6 @@ export const useDumbbellCamera = ({
     {
       role: "model",
       parts: [{ text: "มุม 30 องศา! ดีมาก! ถ้าต้องการปรับค่า, ทำตามนี้เลย: * **ค่าเกิน:** ลดลง [จำนวนที่เกิน] องศา * **ค่าขาด:** เพิ่มขึ้น [จำนวนที่ขาด] องศา คุณทำได้! ลุย!" }]
-    },
-    {
-      role: "user",
-      parts: [{ text: "20" }]
-    },
-    {
-      role: "model",
-      parts: [{ text: "เหลืออีก 10 องศา! เพิ่มอีกหน่อยนะ!" }]
-    },
-    {
-      role: "user",
-      parts: [{ text: "33" }]
-    },
-    {
-      role: "model",
-      parts: [{ text: "เก่งมาก! เกินมา 3 องศา! ลดลงอีกหน่อย แล้วคุณจะไปถึงเป้าหมาย!" }]
-    },
-    {
-      role: "user",
-      parts: [{ text: "100" }]
-    },
-    {
-      role: "model",
-      parts: [{ text: "โอ้โห! เกินมาเยอะเลย! ลดลง 70 องศานะ! สู้ๆ!" }]
-    },
-    {
-      role: "user",
-      parts: [{ text: "29" }]
-    },
-    {
-      role: "model",
-      parts: [{ text: "ยอดเยี่ยม! อีกนิดเดียว! เพิ่มอีก 1 องศา คุณก็ถึงเป้าหมายแล้ว!" }]
     }
   ]);
 
@@ -112,6 +85,17 @@ export const useDumbbellCamera = ({
       return '#FFFF00'; // Yellow
     }
     return '#ffffffff'; // White
+  };
+
+  // ฟังก์ชันตรวจสอบตำแหน่งแขน (Wide/Narrow/Neutral)
+  const getArmPosition = (dist) => {
+    if (dist > 0.25) {
+      return "Wide";
+    } else if (dist < 0.08) {
+      return "Narrow";
+    } else {
+      return "Neutral";
+    }
   };
 
   // Save session data to database
@@ -396,6 +380,88 @@ export const useDumbbellCamera = ({
               if (results.poseLandmarks) {
                 const landmarks = results.poseLandmarks;
 
+                // ตรวจสอบความพร้อมของจุดสำคัญ 4 จุด
+                const requiredLandmarks = [
+                  11, // LEFT_SHOULDER
+                  12, // RIGHT_SHOULDER
+                  13, // LEFT_ELBOW
+                  14, // RIGHT_ELBOW
+                ];
+
+                // ตรวจสอบว่าแต่ละจุดมี visibility สูงพอ (> 0.8)
+                const valid = requiredLandmarks.every(
+                  idx => landmarks[idx] && landmarks[idx].visibility > 0.8
+                );
+                setLandmarksValid(valid);
+
+                // ถ้า landmarks ไม่ valid ให้ข้ามการประมวลผล
+                if (!valid) {
+                  canvasCtx.restore();
+                  return;
+                }
+
+                // Get coordinates
+                const leftShoulder = landmarks[11];
+                const rightShoulder = landmarks[12];
+                const leftElbow = landmarks[13];
+                const rightElbow = landmarks[14];
+                const leftWrist = landmarks[15];
+                const rightWrist = landmarks[16];
+
+                // Get lower body landmark positions
+                // const leftAnkle = landmarks[27];  // LEFT_ANKLE
+                // const rightAnkle = landmarks[28]; // RIGHT_ANKLE
+                // const leftHip = landmarks[23];    // LEFT_HIP
+                // const rightHip = landmarks[24];   // RIGHT_HIP
+                // const leftKnee = landmarks[25];   // LEFT_KNEE
+                // const rightKnee = landmarks[26];  // RIGHT_KNEE
+
+                // คำนวณระยะทาง (normalized coordinates)
+                // const shoulderWristDistanceLeft = Math.abs(leftShoulder.x - leftWrist.x);
+                // const shoulderWristDistanceRight = Math.abs(rightShoulder.x - rightWrist.x);
+                // const elbowDistanceLR = Math.abs(leftElbow.x - rightElbow.x);
+                // const wristDistanceLR = Math.abs(leftWrist.x - rightWrist.x);
+                const leftHandDist = Math.abs(leftWrist.x - leftShoulder.x);
+                const rightHandDist = Math.abs(rightWrist.x - rightShoulder.x);
+
+                // คำนวณตัวเลขแบบ normalized สำหรับส่วนล่าง
+                // const ankleDistanceNorm = Math.abs(leftAnkle.x - rightAnkle.x);
+                // const kneeDistanceNorm = Math.abs(leftKnee.x - rightKnee.x);
+                // const hipAnkleDistanceLeft = Math.abs(leftHip.x - leftAnkle.x);
+                // const hipAnkleDistanceRight = Math.abs(rightHip.x - rightAnkle.x);
+
+                // บันทึกค่าระยะห่าง
+                // setAnkleDistance(ankleDistanceNorm);
+                // setKneeDistance(kneeDistanceNorm);
+
+                // ตัดสินว่า stance แบบไหน (ข้อเท้า)
+                // let stance = "Normal";
+                // if (ankleDistanceNorm > 0.10) {
+                //   stance = "Wide";
+                // } else if (ankleDistanceNorm < 0.04) {
+                //   stance = "Narrow";
+                // }
+                // setLegStance(stance);
+
+                // คำนวณความต่างของแกน y ระหว่างไหล่
+                const shoulderDiffY = leftShoulder.y - rightShoulder.y;
+                const threshold = 0.03;
+
+                // ตัดสินว่าตัวเอียงด้านไหน
+                let tilt = "Straight";
+                if (shoulderDiffY > threshold) {
+                  tilt = "Leaning Right";
+                } else if (shoulderDiffY < -threshold) {
+                  tilt = "Leaning Left";
+                }
+                setPostureTilt(tilt);
+
+                // กำหนดสถานะตำแหน่งแขน
+                const leftPosition = getArmPosition(leftHandDist);
+                const rightPosition = getArmPosition(rightHandDist);
+                setLeftArmPosition(leftPosition);
+                setRightArmPosition(rightPosition);
+
                 // Left arm processing
                 const shoulderLeft = landmarks[11];
                 const elbowLeft = landmarks[13];
@@ -593,7 +659,14 @@ export const useDumbbellCamera = ({
     workoutComplete,
     saveStatus,
     angleDataLeft: angleDataLeft.current,
-    angleDataRight: angleDataRight.current
+    angleDataRight: angleDataRight.current,
+    postureTilt,
+    leftArmPosition,
+    rightArmPosition,
+    landmarksValid
+    // legStance,
+    // ankleDistance,
+    // kneeDistance
   };
 };
 
