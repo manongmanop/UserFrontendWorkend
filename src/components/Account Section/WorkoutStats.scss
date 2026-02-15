@@ -2,6 +2,13 @@
     margin-bottom: 2rem;
     font-family: 'Inter', sans-serif;
 
+    // Add requested styling
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    padding: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
     h4 {
         color: #2d3748;
         font-size: 1.25rem;
@@ -57,7 +64,6 @@
             background: #f7fafc;
             padding: 0.8rem;
             border-radius: 50%;
-            margin-bottom: 0.8rem;
             font-size: 1.5rem;
             display: flex;
             align-items: center;

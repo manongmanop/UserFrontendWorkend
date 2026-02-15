@@ -69,7 +69,7 @@ function Account() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user) return;
+      if (!user?.uid) return; // ✅ Check UID specifically
 
       Swal.fire({
         title: 'กำลังโหลดข้อมูล...',
@@ -112,12 +112,14 @@ function Account() {
     };
 
     fetchUserData();
-    fetchMetricsHistory();
+    if (user?.uid) {
+      fetchMetricsHistory();
+    }
   }, [user]);
 
   // ฟังก์ชันดึงข้อมูลประวัติการวัดร่างกายจาก Firebase โดยตรง
   const fetchMetricsHistory = async () => {
-    if (!user) return;
+    if (!user?.uid) return; // ✅ Check UID specifically
 
     setIsLoadingMetrics(true);
 
@@ -154,7 +156,8 @@ function Account() {
     const fetchWorkoutHistory = async () => {
       if (!user?.uid) return;
       try {
-        const res = await axios.get(`http://10.198.200.52:5000/api/histories/user/${user.uid}`);
+        // ✅ Use relative path to leverage Vite proxy (Fixes Mixed Content)
+        const res = await axios.get(`/api/histories/user/${user.uid}`);
         const histories = res.data || [];
         const total = histories.reduce((sum, h) => sum + (h.caloriesBurned || 0), 0);
         setTotalCaloriesBurned(total);

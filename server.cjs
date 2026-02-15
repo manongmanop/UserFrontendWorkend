@@ -1269,16 +1269,18 @@ app.get("/api/stats/dashboard/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
 
-    // 1. Fetch User Data for Summary Stats (Total Calories, Workouts, Goal)
+    // 1. Fetch User Data for Summary Stats (Total Calories, Goal) - workoutsDone removed
     const user = await User.findOne({ uid }).lean();
 
     // Default values if user fields are missing
-    const totalWorkouts = user?.workoutsDone || 0;
     const totalCalories = user?.caloriesBurned || 0;
-    const weeklyGoal = user?.weeklyGoal || 3; // Use user's goal or default to 3
+    const weeklyGoal = user?.weeklyGoal || 3;
 
     // 2. Fetch history for Weekly Progress & Heatmap (sorted by date)
     const histories = await History.find({ uid }).sort({ finishedAt: 1 }).lean();
+
+    // ✅ Count workouts directly from history as requested
+    const totalWorkouts = histories.length;
 
     // 3. Weekly Progress Calculation
     const now = new Date();

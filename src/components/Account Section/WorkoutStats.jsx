@@ -43,8 +43,8 @@ const WorkoutStats = () => {
         const fetchStats = async () => {
             if (!user?.uid) return;
             try {
-                const API_BASE = import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000";
-                const res = await axios.get(`${API_BASE}/api/stats/dashboard/${user.uid}`);
+                // ✅ Use relative path for Proxy
+                const res = await axios.get(`/api/stats/dashboard/${user.uid}`);
                 setStats(res.data);
             } catch (err) {
                 console.error("Failed to fetch stats:", err);
