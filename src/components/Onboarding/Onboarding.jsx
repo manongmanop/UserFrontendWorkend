@@ -49,7 +49,7 @@ const Onboarding = () => {
                 showConfirmButton: false
             });
 
-            navigate('/account');
+            navigate('/home');
 
         } catch (err) {
             console.error("Onboarding Error:", err);
@@ -67,7 +67,7 @@ const Onboarding = () => {
                         ...formData,
                         weeklyGoal
                     });
-                    navigate('/account');
+                    navigate('/home');
                 } catch (e) {
                     Swal.fire('Error', 'Failed to save profile', 'error');
                 }

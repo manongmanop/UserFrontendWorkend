@@ -469,6 +469,39 @@ app.post('/api/users', async (req, res) => {
     console.error('Error creating user:', error);
     res.status(500).json({ error: 'ไม่สามารถสร้างผู้ใช้ได้' });
   }
+  res.status(500).json({ error: 'ไม่สามารถสร้างผู้ใช้ได้' });
+}
+});
+
+// PUT: อัปเดตข้อมูลผู้ใช้ (ใช้สำหรับ Onboarding หรือแก้ไขโปรไฟล์)
+app.put('/api/users/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const updateData = req.body;
+
+    // ป้องกันการแก้ไข uid
+    delete updateData.uid;
+
+    const updatedUser = await User.findOneAndUpdate(
+      { uid },
+      {
+        $set: {
+          ...updateData,
+          updatedAt: new Date()
+        }
+      },
+      { new: true } // คืนค่าข้อมูลใหม่หลังอัปเดต
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้' });
+  }
 });
 
 // GET: ดึงข้อมูลผู้ใช้ตาม UID
