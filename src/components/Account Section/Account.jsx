@@ -57,7 +57,7 @@ function Account() {
   const [metricsHistory, setMetricsHistory] = useState([]);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
   const navigate = useNavigate();
-  const[filteredData, setFilteredData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [latestMetrics, setLatestMetrics] = useState({
     weight: 0,
     fatPercentage: 0,
@@ -111,48 +111,38 @@ function Account() {
     };
 
     fetchUserData();
-    fetchMetricsHistory(timeRange);
-  }, [user, timeRange]);
+    fetchMetricsHistory();
+  }, [user]);
 
-  // ฟังก์ชันดึงข้อมูลประวัติการวัดร่างกาย
-  const fetchMetricsHistory = async (timeRange) => {
+  // ฟังก์ชันดึงข้อมูลประวัติการวัดร่างกายจาก Firebase โดยตรง
+  const fetchMetricsHistory = async () => {
     if (!user) return;
 
     setIsLoadingMetrics(true);
 
     try {
-      console.log("ค่า user.uid ก่อนเรียก API:", user?.uid);
-      console.log("ค่า timeRange ก่อนเรียก API:", timeRange);
+      const metricsRef = collection(db, 'bodyMetrics');
+      const q = query(
+        metricsRef,
+        where('userId', '==', user.uid),
+        orderBy('date', 'asc') // เรียงตามวันที่จากอดีต->ปัจจุบัน
+      );
 
-      // ถ้า user.uid ไม่มีค่า ให้หยุดทำงานไปก่อน
-      if (!user?.uid) {
-        console.error("ไม่สามารถเรียก API ได้เพราะไม่มี user.uid");
-        return;
-      }
-      // เปลี่ยนจาก Authorization header เป็น query parameter
-      const response = await fetch(`http://localhost:5000/api/metrics?userId=${user.uid}&range=${timeRange}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-          // ลบ Authorization header ออก
-        }
+      const querySnapshot = await getDocs(q);
+      const metricsData = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        metricsData.push({
+          ...data,
+          // แปลง Timestamp ของ Firestore เป็น Date object ของ JS
+          date: data.date.toDate ? data.date.toDate() : new Date(data.date)
+        });
       });
 
-      if (!response.ok) {
-        throw new Error('ไม่สามารถดึงข้อมูลได้');
-      }
-
-      const data = await response.json();
-      const formattedData = data.map(metric => ({
-        ...metric,
-        date: new Date(metric.date)
-      }));
-
-      setMetricsHistory(formattedData);
-
+      setMetricsHistory(metricsData);
     } catch (error) {
       console.error("Error fetching metrics history:", error);
-      setMetricsHistory([]); // ถ้า error ไม่ต้อง mockup
+      setMetricsHistory([]);
     } finally {
       setIsLoadingMetrics(false);
     }
@@ -199,8 +189,8 @@ function Account() {
       borderColor = '#349de3';
       backgroundColor = 'rgba(52, 157, 227, 0.1)';
     } else if (selectedMetric === 'calories') {
-      if (!workoutHistory.length) return null;
-      const sorted = [...workoutHistory].sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt));
+      if (!filteredCaloriesData.length) return null; // ใช้ filteredCaloriesData แทน workoutHistory ตรงๆ
+      const sorted = [...filteredCaloriesData].sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt));
       labels = sorted.map(item => {
         const date = new Date(item.finishedAt);
         return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear().toString().substr(2, 2)}`;
@@ -233,6 +223,9 @@ function Account() {
     const today = new Date();
     let filtered = [...data];
 
+    // Helper ในการหา first day of month
+    const getStartOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
+
     switch (range) {
       case '1m': {
         // เฉพาะเดือนปัจจุบัน
@@ -245,19 +238,21 @@ function Account() {
         break;
       }
       case '3m': {
-        // 2 เดือนก่อนหน้า + เดือนปัจจุบัน
+        // 2 เดือนก่อนหน้า + เดือนปัจจุบัน (รวม 3 เดือน)
+        // เช่น วันนี้เดือน 5 (May). เอา 5, 4, 3 (March, April, May).
+        // 1st March = today - 2 months (index wise)
         const start = new Date(today.getFullYear(), today.getMonth() - 2, 1);
         filtered = filtered.filter(item => new Date(type === 'weight' ? item.date : item.finishedAt) >= start);
         break;
       }
       case '6m': {
-        // 5 เดือนก่อนหน้า + เดือนปัจจุบัน
+        // 5 เดือนก่อนหน้า + เดือนปัจจุบัน (รวม 6 เดือน)
         const start = new Date(today.getFullYear(), today.getMonth() - 5, 1);
         filtered = filtered.filter(item => new Date(type === 'weight' ? item.date : item.finishedAt) >= start);
         break;
       }
       case '1y': {
-        // เฉพาะปีปัจจุบัน
+        // เฉพาะปีปัจจุบัน (Yearly)
         const currentYear = today.getFullYear();
         filtered = filtered.filter(item => new Date(type === 'weight' ? item.date : item.finishedAt).getFullYear() === currentYear);
         break;
@@ -289,11 +284,9 @@ function Account() {
   // State สำหรับ calories
   const [filteredCaloriesData, setFilteredCaloriesData] = useState([]);
 
-  // ปรับ handleTimeRangeChange ให้กรองทั้งสองชุดข้อมูล
+  // ปรับ handleTimeRangeChange ให้แค่เปลี่ยน state, ส่วน logic กรองให้ useEffect จัดการ
   const handleTimeRangeChange = (range) => {
     setTimeRange(range);
-    filterDataByTimeRange(metricsHistory, range, 'weight');
-    filterDataByTimeRange(workoutHistory, range, 'calories');
   };
 
   const calculateBMI = () => {
@@ -669,9 +662,17 @@ function Account() {
   useEffect(() => {
     if (metricsHistory.length > 0) {
       // กรองข้อมูลตาม timeRange ปัจจุบัน
-      filterDataByTimeRange(metricsHistory, timeRange);
+      filterDataByTimeRange(metricsHistory, timeRange, 'weight');
+    } else {
+      setFilteredData([]);
     }
-  }, [metricsHistory, timeRange]);
+
+    if (workoutHistory.length > 0) {
+      filterDataByTimeRange(workoutHistory, timeRange, 'calories');
+    } else {
+      setFilteredCaloriesData([]);
+    }
+  }, [metricsHistory, workoutHistory, timeRange]);
 
   return (
     <div className="dashboard-container">
@@ -810,7 +811,7 @@ function Account() {
             <div className="col-md-8">
               {/* ส่วนกราฟแสดงข้อมูลร่างกาย */}
               <div className="metrics-section">
-                
+
                 <div className="chart-container">
                   <h5 className="section-title">ภาพรวมความก้าวหน้า</h5>
                   {/* Time range selection */}

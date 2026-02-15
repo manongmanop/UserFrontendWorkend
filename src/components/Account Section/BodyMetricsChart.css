@@ -1,62 +1,58 @@
-/* BodyMetricsChart.css */
-* {
-  font-family: var(--font-primary) !important;
-}
-
-body, html {
-  font-family: var(--font-primary) !important;
-}
+/* BodyMetricsChart.css - Themed */
 
 .chart-container {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  background-color: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   transition: all 0.3s ease;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
 .chart-container:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
 }
 
 .chart-wrapper {
   position: relative;
-  height: 300px;
+  height: 350px;
   width: 100%;
 }
 
 .chart-time-filter {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 .chart-time-filter button {
-  background: #f7fafc;
+  background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.813rem;
+  border-radius: var(--radius-md);
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
   font-weight: 500;
-  color: #718096;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .chart-time-filter button:hover {
-  background: #edf2f7;
-  color: #2d3748;
+  background: #f8fafc;
+  color: var(--text-main);
+  border-color: #cbd5e1;
 }
 
 .chart-time-filter button.active {
-  background: #349de3;
-  color: #ffffff;
-  border-color: #349de3;
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 /* Responsive adjustments */
@@ -64,19 +60,20 @@ body, html {
   .chart-container {
     padding: 1rem;
   }
+
   .chart-wrapper {
     height: 250px;
   }
+
   .chart-time-filter {
     justify-content: center;
+    width: 100%;
+  }
+
+  .chart-time-filter button {
+    flex: 1;
+    text-align: center;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
   }
 }
-@media (max-width: 480px) {
-  .chart-wrapper {
-    height: 200px;
-  }
-  .chart-time-filter button {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.75rem;
-  }
-}/*# sourceMappingURL=BodyMetricsChart.css.map */

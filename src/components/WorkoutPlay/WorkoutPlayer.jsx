@@ -139,11 +139,14 @@ export default function WorkoutPlayer() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
+
+
   // --- State: Guide & Flow ---
   const [showGuide, setShowGuide] = useState(true);
   const [guideMode, setGuideMode] = useState("gate");
   const pausedPhaseRef = useRef(null);
   const overlayResumeArmedRef = useRef(false);
+  const [weight, setWeight] = useState(""); // State สำหรับน้ำหนัก
 
   // --- State: Workout Progress ---
   const [currentExercise, setCurrentExercise] = useState(0);
@@ -257,10 +260,20 @@ export default function WorkoutPlayer() {
 
     setSendingFeedback(true);
     try {
-      // ✅ จบ session แบบครั้งเดียว
-      await finishSession();  // ให้ฟังก์ชันนี้ guard เอง
+      // 1. ✅ จบ session (เพื่อให้ได้ finishedAt)
+      const finishedSessionId = await finishSession();
+      console.log("🏁 finishedSessionId returned:", finishedSessionId);
 
-      // ✅ ส่ง feedback ครั้งเดียว
+      // 2. ✅ ส่ง feedback และน้ำหนักไปที่ History API (MongoDB)
+      if (finishedSessionId) {
+        await axios.patch(`/api/histories/${finishedSessionId}/feedback`, {
+          feedback: level, // ส่ง level เป็น feedback (เช่น "hard")
+          weight: weight ? parseFloat(weight) : undefined
+        });
+        console.log(`✅ History updated with Feedback=${level}, Weight=${weight}`);
+      }
+
+      // 3. ✅ ส่ง feedback โปรแกรม (Counter)
       await submitProgramFeedback(programId, level);
 
       setShowFeedbackModal(false);
@@ -500,7 +513,7 @@ export default function WorkoutPlayer() {
     // ✅ เพิ่มการคำนวณแคลอรี่ตรงนี้
     // สูตรสมมติ: 5 kcal ต่อ 1 นาที (ปรับเปลี่ยนตัวเลข 5 ได้ตามความหนักเบา)
     const rawCalories = (Number(performedSeconds) / 60) * 5;
-    
+
     // ✅ แปลงเป็นทศนิยม 2 ตำแหน่ง (และแปลงกลับเป็น Number เพื่อไม่ให้เป็น String)
     const calories = Number(rawCalories.toFixed(2));
 
@@ -949,7 +962,7 @@ export default function WorkoutPlayer() {
 
           {/* ✅ เปลี่ยนส่วนแสดงผลวิดีโอตรงนี้ เป็น Layout ใหม่ */}
           <div className="media-content">
-            
+
             {/* 1. วิดีโอท่าออกกำลังกาย */}
             <div className="video-wrapper exercise-video">
               {current?.video || current?.imageUrl ? (
@@ -969,38 +982,38 @@ export default function WorkoutPlayer() {
             </div>
 
             {/* 2. กล้องผู้ใช้ + AI Overlay */}
-<div className="video-wrapper camera-video-wrapper">
+            <div className="video-wrapper camera-video-wrapper">
 
-    {/* Layer 1: วิดีโอกล้องจริง (อยู่ล่างสุด) */}
-    
+              {/* Layer 1: วิดีโอกล้องจริง (อยู่ล่างสุด) */}
 
-    {/* Layer 2: AI Logic Overlay (ทับอยู่ข้างบน) */}
-    {/* ต้องมี pointer-events-none เพื่อให้คลิกทะลุได้ (ถ้าจำเป็น) */}
-    <div className="ai-overlay" style={{ pointerEvents: 'none' }}>
-        <ExerciseCameraManager
-            exerciseName={current?.name}
-            isActive={isPlaying && !isPaused}
-            targetReps={current?.value || 10}
-            onRepComplete={handleRepComplete}
-            onSetComplete={handleSetComplete}
-        />
-    </div>
 
-    {/* Layer 3: UI Label (อยู่บนสุด) */}
-    <div className="video-label">กล้องของคุณ</div>
+              {/* Layer 2: AI Logic Overlay (ทับอยู่ข้างบน) */}
+              {/* ต้องมี pointer-events-none เพื่อให้คลิกทะลุได้ (ถ้าจำเป็น) */}
+              <div className="ai-overlay" style={{ pointerEvents: 'none' }}>
+                <ExerciseCameraManager
+                  exerciseName={current?.name}
+                  isActive={isPlaying && !isPaused}
+                  targetReps={current?.value || 10}
+                  onRepComplete={handleRepComplete}
+                  onSetComplete={handleSetComplete}
+                />
+              </div>
 
-    {/* Loading / Error States */}
-    {cameraStatus === "loading" && (
-        <div className="wp-overlay wp-overlay--muted">
-            <div className="wp-overlay-card">กำลังเตรียมกล้อง...</div>
-        </div>
-    )}
-    {cameraStatus === "error" && (
-        <div className="wp-overlay wp-overlay--error">
-            <div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div>
-        </div>
-    )}
-</div>
+              {/* Layer 3: UI Label (อยู่บนสุด) */}
+              <div className="video-label">กล้องของคุณ</div>
+
+              {/* Loading / Error States */}
+              {cameraStatus === "loading" && (
+                <div className="wp-overlay wp-overlay--muted">
+                  <div className="wp-overlay-card">กำลังเตรียมกล้อง...</div>
+                </div>
+              )}
+              {cameraStatus === "error" && (
+                <div className="wp-overlay wp-overlay--error">
+                  <div className="wp-overlay-card">เปิดกล้องไม่สำเร็จ</div>
+                </div>
+              )}
+            </div>
 
           </div>
         </main>
@@ -1071,7 +1084,29 @@ export default function WorkoutPlayer() {
       {showFeedbackModal && (
         <div className="wp-overlay wp-overlay--dark" role="dialog" aria-modal="true">
           <div className="wp-feedback-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="wp-feedback-title">ให้คะแนนความยากของโปรแกรมนี้</h2>
+            <h2 className="wp-feedback-title">บันทึกผลการฝึก</h2>
+
+            <div className="wp-feedback-input-group" style={{ marginBottom: '20px', textAlign: 'center' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>น้ำหนักหลังออกกำลังกาย (กก.)</label>
+              <input
+                type="number"
+                placeholder="ระบุน้ำหนัก (เช่น 70.5)"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                style={{
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: '1px solid #444',
+                  background: '#222',
+                  color: '#fff',
+                  width: '80%',
+                  fontSize: '1.2rem',
+                  textAlign: 'center'
+                }}
+              />
+            </div>
+
+            <h3 className="wp-feedback-subtitle" style={{ fontSize: '1rem', color: '#aaa', marginBottom: '15px' }}>ความยากของโปรแกรมนี้</h3>
             <div className="wp-feedback-actions">
               <button
                 className="wp-feedback-btn wp-feedback-btn--easy"
@@ -1153,14 +1188,14 @@ const Header = ({ title, current, total, progress, onBack, onGuide }) => (
   </header>
 );
 
-const Controls = ({ 
-  onPrev, 
-  onNext, 
-  onTogglePause, 
-  isPaused, 
-  canPrev, 
-  mainButtonLabel, 
-  showPlayPause 
+const Controls = ({
+  onPrev,
+  onNext,
+  onTogglePause,
+  isPaused,
+  canPrev,
+  mainButtonLabel,
+  showPlayPause
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
@@ -1174,9 +1209,9 @@ const Controls = ({
       {/* --- Buttons Area --- */}
       <div className="wp-controls-body">
         {/* ปุ่มย้อนกลับ */}
-        <button 
-          className="wp-control-btn wp-control-btn-secondary" 
-          onClick={onPrev} 
+        <button
+          className="wp-control-btn wp-control-btn-secondary"
+          onClick={onPrev}
           disabled={!canPrev}
           style={{ position: 'relative', zIndex: 10 }}
         >
@@ -1189,11 +1224,11 @@ const Controls = ({
 
         {/* ปุ่ม Play/Pause */}
         {showPlayPause && (
-          <button 
-            className={`wp-control-btn wp-control-btn-circle ${isPaused ? "play" : "pause"}`} 
-            onClick={(e) => { 
-                e.stopPropagation(); 
-                onTogglePause(); 
+          <button
+            className={`wp-control-btn wp-control-btn-circle ${isPaused ? "play" : "pause"}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePause();
             }}
             style={{ position: 'relative', zIndex: 10 }}
           >
@@ -1211,8 +1246,8 @@ const Controls = ({
         )}
 
         {/* ปุ่มถัดไป */}
-        <button 
-          className="wp-control-btn wp-control-btn-primary" 
+        <button
+          className="wp-control-btn wp-control-btn-primary"
           onClick={onNext}
           style={{ position: 'relative', zIndex: 10 }}
         >

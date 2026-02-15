@@ -21,7 +21,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user) return;
+      if (!user || !user.uid) return; // FIX: Ensure uid exists before creating doc ref
       try {
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);

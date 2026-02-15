@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import * as Pose from '@mediapipe/pose';
 import * as cam from '@mediapipe/camera_utils';
 
-export const usePlankCamera = ({ 
-  videoRef, 
-  canvasRef, 
+export const usePlankCamera = ({
+  videoRef,
+  canvasRef,
   isActive,
   targetSets = 3,
   targetTimePerSet = 30, // เวลาเป้าหมายต่อเซ็ต (วินาที)
@@ -192,10 +192,10 @@ export const usePlankCamera = ({
         if (totalElapsed >= targetTimePerSet) {
           setSetsCompleted(prev => {
             const newSets = prev + 1;
-            
+
             if (newSets >= targetSets) {
               setWorkoutComplete(true);
-              
+
               // Prepare session data
               const sessionData = {
                 timestamp: new Date().toLocaleString('th-TH', {
@@ -214,7 +214,7 @@ export const usePlankCamera = ({
                   }
                 }
               };
-              
+
               if (onWorkoutComplete) {
                 onWorkoutComplete(sessionData);
               }
@@ -225,10 +225,10 @@ export const usePlankCamera = ({
               // เริ่มเซ็ตใหม่ทันที
               setCurrentSet(newSets + 1);
             }
-            
+
             return newSets;
           });
-          
+
           plankElapsedTime.current = 0;
           plankStartTime.current = null;
           setPlankState("not_in_position");
@@ -301,7 +301,9 @@ export const usePlankCamera = ({
           videoRef.current.style.display = 'block';
 
           videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play();
+            if (!videoRef.current) return; // ✅ Safety check
+            videoRef.current.play().catch(e => console.log("Play interrupted:", e)); // ✅ Catch play error
+
             const pose = new Pose.Pose({
               locateFile: (file) => {
                 return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
@@ -429,7 +431,7 @@ export const usePlankCamera = ({
                 width: 640,
                 height: 480
               });
-              
+
               cameraRef.current = camera;
               camera.start();
             }
@@ -447,7 +449,7 @@ export const usePlankCamera = ({
     return () => {
       console.log('🧹 Cleaning up camera...');
       isCleanedUp = true;
-      
+
       if (cameraRef.current) {
         try {
           cameraRef.current.stop();

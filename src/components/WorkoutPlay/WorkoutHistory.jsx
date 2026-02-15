@@ -7,7 +7,7 @@ import {
   AlertCircle,
   Activity,
   Target,
-  Flame, 
+  Flame,
   Timer,
   Calendar,
   ArrowLeft,
@@ -15,12 +15,13 @@ import {
   X,
   Search,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Scale
 } from "lucide-react";
 
-import "./WorkoutHistory.css"; 
+import "./WorkoutHistory.css";
 
-const API_BASE = "http://10.198.200.52:5000"; 
+const API_BASE = "http://10.198.200.52:5000";
 
 /* ========== Helper Functions ========== */
 const formatDuration = (totalSeconds) => {
@@ -52,8 +53,8 @@ function HistoryCard({ data, index }) {
   const iconBg = isHard ? '#fee2e2' : '#d1fae5';
 
   return (
-    <Card 
-      className="history-item" 
+    <Card
+      className="history-item"
       style={{ animationDelay: `${index * 0.05}s` }}
     >
       <div className="history-item-content">
@@ -71,7 +72,7 @@ function HistoryCard({ data, index }) {
               <span>{formatDate(data.finishedAt)}</span>
             </div>
           </div>
-          
+
           <div className="history-stats-row">
             <div className="stat-pill-timer">
               <Timer size={14} />
@@ -85,6 +86,12 @@ function HistoryCard({ data, index }) {
               <Dumbbell size={14} />
               <span>{data.totalExercises} ท่า</span>
             </div>
+            {data.weight > 0 && (
+              <div className="stat-pill-weight" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '12px', background: '#f0f9ff', color: '#0ea5e9', fontSize: '12px', fontWeight: '500' }}>
+                <Scale size={14} />
+                <span>{data.weight} kg</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -128,7 +135,7 @@ function FilterPanel({ filters, onFilterChange, histories }) {
       </div>
 
       {/* Toggle Button */}
-      <button 
+      <button
         className={`filter-toggle-btn ${showFilters ? 'active' : ''}`}
         onClick={() => setShowFilters(!showFilters)}
       >
@@ -142,7 +149,7 @@ function FilterPanel({ filters, onFilterChange, histories }) {
       {/* Filter Controls Area */}
       {showFilters && (
         <div className="filter-controls fade-in">
-          
+
           {/* Search */}
           <div className="filter-group full-width">
             <div className="search-input-wrapper">
@@ -207,7 +214,7 @@ function FilterPanel({ filters, onFilterChange, histories }) {
           {/* Sort Select */}
           <div className="filter-group">
             <label className="filter-label">เรียงลำดับ</label>
-            <select 
+            <select
               className="filter-select"
               value={filters.sortBy}
               onChange={(e) => onFilterChange('sortBy', e.target.value)}
@@ -241,7 +248,7 @@ function FilterPanel({ filters, onFilterChange, histories }) {
 
           {/* Actions */}
           <div className="filter-actions">
-            <button 
+            <button
               className="clear-filters-btn"
               onClick={() => onFilterChange('reset', true)}
             >

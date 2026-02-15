@@ -6,6 +6,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+console.log("🚀 SERVER STARTING - VERSION: WITH_SESSION_ID_AND_FEEDBACK_FIXED"); // Unique Log
 const PORT = process.env.PORT || 5000;
 // const admin = require('firebase-admin');
 const bodyMetricsData = require('./test-bodymetrics.json');
@@ -906,15 +907,18 @@ app.delete('/api/workout_programs/:id', async (req, res) => {
 // ================== Histories (collection: histories) ==================
 const historySchema = new mongoose.Schema({
   uid: { type: String, required: true, index: true },
+  sessionId: { type: String, index: true }, // ✅ เพิ่ม field sessionId เพื่อใช้เชื่อมโยงตอน update feedback
   programId: { type: String },
   programName: { type: String, default: "" },
   totalSeconds: { type: Number, default: 0 },
   caloriesBurned: { type: Number, default: 0 },
   feedbackLevel: { type: String, default: "" },
+  feedback: { type: String, default: "" }, // ✅ Added per user request
+  weight: { type: Number, default: null }, // ✅ เพิ่ม field น้ำหนัก
   totalExercises: { type: Number, default: 0 },
   finishedAt: { type: Date, default: Date.now },
 }, { timestamps: true });
-const History = mongoose.model("History", historySchema, "histories");
+const History = mongoose.models.History || mongoose.model("History", historySchema, "histories");
 
 
 // ================== CRUD API ==================
@@ -1263,15 +1267,34 @@ app.patch("/api/workout_programs/:id/feedback", async (req, res) => {
 // ================== /api/histories ==================
 app.patch("/api/histories/:sessionId/feedback", async (req, res) => {
   const { sessionId } = req.params;
-  const { level } = req.body;
+  const { feedback, weight } = req.body; // Expect 'feedback' and 'weight'
 
-  const updated = await History.findOneAndUpdate(
-    { sessionId },
-    { $set: { feedbackLevel: level } },
-    { new: true }
-  );
+  console.log(`� [Feedback] Session: ${sessionId}, Feedback: ${feedback}, Weight: ${weight}`);
 
-  res.json(updated);
+  const updateFields = {};
+  if (feedback) updateFields.feedback = feedback;
+  if (weight !== undefined && weight !== null) updateFields.weight = Number(weight);
+
+  // Also update feedbackLevel for backward compatibility if needed, or just leave it.
+  // The user requested 'feedback', so we focus on that.
+
+  try {
+    const updated = await History.findOneAndUpdate(
+      { sessionId },
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!updated) {
+      console.log("❌ History not found for feedback update");
+      return res.status(404).json({ error: "History not found" });
+    }
+
+    console.log("✅ Feedback updated:", updated);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 // CREATE: บันทึกประวัติ (default 0 ได้เลย)
 app.post("/api/histories", async (req, res) => {
@@ -1295,6 +1318,7 @@ app.get("/api/histories/latest/:uid", async (req, res) => {
     const { uid } = req.params;
     const latest = await History.findOne({ uid }).sort({ finishedAt: -1, createdAt: -1 }).lean();
     if (!latest) return res.status(404).json({ error: "no history" });
+    console.log("🔍 [DEBUG] Latest History Fetch:", latest);
     res.json(latest);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -1543,6 +1567,7 @@ app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
     // 4. สร้าง History ถาวร
     const historyData = {
       uid: session.uid,
+      sessionId: session._id, // ✅ บันทึก sessionId ลงไปด้วย
       programId: session.origin?.programId,
       programName: session.snapshot?.programName || "Unknown Program",
       totalSeconds: totals.seconds,
@@ -1552,7 +1577,7 @@ app.patch("/api/workout_sessions/:id/finish", async (req, res) => {
     };
 
     const newHistory = await History.create(historyData);
-    console.log("✅ History Created:", newHistory._id);
+    console.log("✅ History Created (Full):", newHistory);
 
     // 5. อัปเดต User Stats
     await User.findOneAndUpdate(
