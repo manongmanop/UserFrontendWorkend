@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './Account.css';
 import '../../App.css';
 import { CiEdit } from "react-icons/ci";
+import WorkoutStats from './WorkoutStats';
 import { FaGoogle, FaEnvelope, FaShieldAlt, FaVenusMars, FaMars, FaVenus } from "react-icons/fa";
 import { MdToggleOff, MdToggleOn } from "react-icons/md";
 import Sidebar from "../Sidebar Section/Sidebar.jsx";
@@ -177,14 +178,20 @@ function Account() {
     let borderColor = '';
     let backgroundColor = '';
     if (selectedMetric === 'weight') {
-      // ใช้ filteredData (ที่อิง firebase) เพื่อให้ตรงกับ stat
-      if (!filteredData.length) return null;
-      const sorted = [...filteredData].sort((a, b) => new Date(a.date) - new Date(b.date));
-      labels = sorted.map(item => {
-        const date = new Date(item.date);
+      // ✅ ใช้ workoutHistory แทน filteredData (Firebase)
+      // กรองเฉพาะที่มีน้ำหนัก
+      const weightHistory = (filteredData.length > 0 ? filteredData : [])
+        .filter(item => item.weight && item.weight > 0)
+        .sort((a, b) => new Date(a.finishedAt || a.date) - new Date(b.finishedAt || b.date));
+
+      if (!weightHistory.length) return null;
+
+      labels = weightHistory.map(item => {
+        const date = new Date(item.finishedAt || item.date);
         return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear().toString().substr(2, 2)}`;
       });
-      data = sorted.map(item => item.weight || null);
+      data = weightHistory.map(item => item.weight);
+
       label = 'น้ำหนัก';
       borderColor = '#349de3';
       backgroundColor = 'rgba(52, 157, 227, 0.1)';
@@ -264,15 +271,58 @@ function Account() {
     }
 
     if (type === 'weight') {
-      setFilteredData(filtered);
-      if (filtered.length > 0) {
-        const latest = filtered[filtered.length - 1];
-        setLatestMetrics({
-          weight: latest.weight,
-          fatPercentage: latest.fatPercentage,
-          muscleMass: latest.muscleMass
-        });
-        setWeight(latest.weight);
+      // ✅ Use workoutHistory as source for weight if available, falling back to metricsHistory
+      // But we want to prefer workoutHistory now. 
+      // Actually, let's merge or just use workoutHistory if we want to show that.
+      // The user wants "from histories", so we should use workoutHistory.
+
+      const source = workoutHistory.length > 0 ? workoutHistory : metricsHistory;
+      let filteredWeight = [...source];
+
+      // Filter logic (same as above but applied to source)
+      switch (range) {
+        case '1m': {
+          const currentMonth = today.getMonth();
+          const currentYear = today.getFullYear();
+          filteredWeight = filteredWeight.filter(item => {
+            const d = new Date(item.finishedAt || item.date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          });
+          break;
+        }
+        case '3m': {
+          const start = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+          filteredWeight = filteredWeight.filter(item => new Date(item.finishedAt || item.date) >= start);
+          break;
+        }
+        case '6m': {
+          const start = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+          filteredWeight = filteredWeight.filter(item => new Date(item.finishedAt || item.date) >= start);
+          break;
+        }
+        case '1y': {
+          const currentYear = today.getFullYear();
+          filteredWeight = filteredWeight.filter(item => new Date(item.finishedAt || item.date).getFullYear() === currentYear);
+          break;
+        }
+      }
+
+      setFilteredData(filteredWeight);
+      if (filteredWeight.length > 0) {
+        // Find latest with weight
+        const validWeights = filteredWeight.filter(i => i.weight > 0);
+        if (validWeights.length > 0) {
+          const latest = validWeights[validWeights.length - 1]; // sorted? we should sort first
+          // Sort by date just to be sure
+          const sorted = validWeights.sort((a, b) => new Date(a.finishedAt || a.date) - new Date(b.finishedAt || b.date));
+          const latestVal = sorted[sorted.length - 1];
+
+          setLatestMetrics(prev => ({
+            ...prev,
+            weight: latestVal.weight
+          }));
+          setWeight(latestVal.weight);
+        }
       }
     } else if (type === 'calories') {
       setFilteredCaloriesData(filtered);
@@ -660,8 +710,10 @@ function Account() {
   };
   const genderDisplay = getGenderDisplay(gender);
   useEffect(() => {
-    if (metricsHistory.length > 0) {
-      // กรองข้อมูลตาม timeRange ปัจจุบัน
+    if (workoutHistory.length > 0) {
+      // ✅ Trigger weight filter too using workoutHistory
+      filterDataByTimeRange(workoutHistory, timeRange, 'weight');
+    } else if (metricsHistory.length > 0) {
       filterDataByTimeRange(metricsHistory, timeRange, 'weight');
     } else {
       setFilteredData([]);
@@ -809,6 +861,10 @@ function Account() {
 
             {/* คอลัมน์ด้านขวา - ข้อมูลเพิ่มเติมและเมทริกซ์ร่างกาย */}
             <div className="col-md-8">
+
+              {/* ✅ New Statistics Dashboard */}
+              <WorkoutStats />
+
               {/* ส่วนกราฟแสดงข้อมูลร่างกาย */}
               <div className="metrics-section">
 

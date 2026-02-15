@@ -1264,7 +1264,85 @@ app.patch("/api/workout_programs/:id/feedback", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// ================== /api/histories ==================
+// ================== Stats Dashboard Endpoint ==================
+app.get("/api/stats/dashboard/:uid", async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    // 1. Fetch all history for user (sorted by date)
+    const histories = await History.find({ uid }).sort({ finishedAt: 1 }).lean();
+
+    // 2. Summary Stats
+    const totalWorkouts = histories.length;
+    const totalCalories = histories.reduce((sum, h) => sum + (h.caloriesBurned || 0), 0);
+
+    // 3. Weekly Progress
+    const now = new Date();
+    // Get start of week (Sunday or Monday? Let's assume Monday as 0 or use ISO)
+    // Simple approach: Set to last Monday
+    const startOfWeek = new Date(now);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const weeklyWorkouts = histories.filter(h => {
+      const d = new Date(h.finishedAt);
+      return d >= startOfWeek && d <= endOfWeek;
+    });
+
+    const weeklyGoal = 4; // Default goal
+    const workoutsDoneThisWeek = weeklyWorkouts.length;
+
+    // Map workouts to day of week (0-6, Mon-Sun)
+    // JS getDay(): 0=Sun, 1=Mon. Let's map to Mon=0, ..., Sun=6
+    const weeklyWorkoutDays = weeklyWorkouts.map(h => {
+      const d = new Date(h.finishedAt).getDay(); // 0-6 (Sun-Sat)
+      return d === 0 ? 6 : d - 1; // Convert to Mon=0...Sun=6
+    });
+
+    // 4. Heatmap Data (Map date string -> count/intensity)
+    // Format: "YYYY-MM-DD"
+    const heatmapMap = {};
+    histories.forEach(h => {
+      const d = new Date(h.finishedAt);
+      const dateStr = d.toISOString().split('T')[0];
+      heatmapMap[dateStr] = (heatmapMap[dateStr] || 0) + 1;
+    });
+
+    const heatmap = Object.keys(heatmapMap).map(date => ({
+      date,
+      count: heatmapMap[date],
+      intensity: heatmapMap[date] >= 2 ? 2 : 1 // Simple intensity
+    }));
+
+    res.json({
+      summary: {
+        totalWorkouts,
+        totalCalories,
+        weeklyGoal
+      },
+      weekly: {
+        total: workoutsDoneThisWeek,
+        goal: weeklyGoal,
+        percent: Math.min((workoutsDoneThisWeek / weeklyGoal) * 100, 100),
+        days: weeklyWorkoutDays, // Indicies of days worked
+        remainingDays: 7 - ((now.getDay() === 0 ? 7 : now.getDay())) // Days left in week including today? or remaining?
+      },
+      heatmap
+    });
+
+  } catch (err) {
+    console.error("Stats Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ================== Workout History (CRUD) ==================
 app.patch("/api/histories/:sessionId/feedback", async (req, res) => {
   const { sessionId } = req.params;
   const { feedback, weight } = req.body; // Expect 'feedback' and 'weight'
