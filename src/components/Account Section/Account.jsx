@@ -59,6 +59,7 @@ function Account() {
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
   const navigate = useNavigate();
   const [filteredData, setFilteredData] = useState([]);
+  const [userData, setUserData] = useState(null); // ✅ Store MongoDB User Data
   const [latestMetrics, setLatestMetrics] = useState({
     weight: 0,
     fatPercentage: 0,
@@ -114,6 +115,10 @@ function Account() {
     fetchUserData();
     if (user?.uid) {
       fetchMetricsHistory();
+      // ✅ Fetch Extra User Data from MongoDB (Goals, Fitness Level)
+      axios.get(`/api/users/${user.uid}`)
+        .then(res => setUserData(res.data))
+        .catch(err => console.error("Failed to fetch MongoDB user data:", err));
     }
   }, [user]);
 
@@ -770,6 +775,26 @@ function Account() {
                         </div>
                         <div className="stat-divider"></div>
                         <div className="stat-item">
+                          <span className="email">{user?.email}</span>
+
+                          {/* ✅ Display Fitness Goal Info from MongoDB */}
+                          <div className="fitness-badges" style={{ marginTop: '10px', display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            {userData?.fitnessLevel && (
+                              <span className="badge" style={{ background: '#ebf8ff', color: '#4299e1', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', border: '1px solid #bee3f8' }}>
+                                {userData.fitnessLevel}
+                              </span>
+                            )}
+                            {userData?.primaryGoal && (
+                              <span className="badge" style={{ background: '#f0fff4', color: '#48bb78', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', border: '1px solid #c6f6d5' }}>
+                                {userData.primaryGoal}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="stat-divider"></div>
+
+                        <div className="stat-item">
                           <span className="stat-number">{bmi || '0'}</span>
                           <span className="stat-label">BMI</span>
                         </div>
@@ -779,6 +804,7 @@ function Account() {
                           <span className="stat-label">{genderDisplay.text}</span>
                         </div>
                       </div>
+
                       <div className="profile-action-buttons">
                         {editing ? (
                           <>

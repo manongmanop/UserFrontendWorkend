@@ -11,9 +11,10 @@ import Login from './components/Login.jsx'
 import Register from './components/Register.jsx'
 import ForgotPassword from "./components/ForgotPassword.jsx"
 import ProtectedRoute from './auth/ProtectedRoute.jsx'
+import Onboarding from './components/Onboarding/Onboarding.jsx'
 
 // Main App
-import Main from './components/Website/Main'       
+import Main from './components/Website/Main'
 import Account from './components/Account Section/Account.jsx'
 import AddInfo from './components/Website/AddInfo.jsx'
 import UpdateInfo from './components/Website/updateInfo.jsx'
@@ -21,7 +22,7 @@ import Detail from './components/Detail Section/Detail/Detail.jsx'
 
 // Workout & History
 import WorkoutPlayer from './components/WorkoutPlay/WorkoutPlayer.jsx'
-import SummaryProgram  from './components/WorkoutPlay/SummaryProgram.jsx'
+import SummaryProgram from './components/WorkoutPlay/SummaryProgram.jsx'
 import WorkoutHistory from './components/WorkoutPlay/WorkoutHistory.jsx' // ✅ ตรวจสอบ path ให้ถูก
 import SingleExercisePlayer from './components/Body Section/BottomSection/SingleExercisePlayer.jsx'
 // Pose Detectors (ถ้ายังใช้อยู่)
@@ -45,7 +46,7 @@ const router = createBrowserRouter([
   { path: "/profile", element: <ProtectedRoute><Account /></ProtectedRoute> },
   { path: "/addinfo", element: <ProtectedRoute><AddInfo /></ProtectedRoute> },
   { path: "/updateinfo", element: <ProtectedRoute><UpdateInfo /></ProtectedRoute> },
-  
+
   // Detail
   { path: "/detail", element: <ProtectedRoute><Detail /></ProtectedRoute> },
   { path: "/detail/:id", element: <ProtectedRoute><Detail /></ProtectedRoute> },
@@ -54,7 +55,7 @@ const router = createBrowserRouter([
   { path: "/WorkoutPlayer/:programId", element: <ProtectedRoute><WorkoutPlayer /></ProtectedRoute> },
   { path: "/summary/program/:uid", element: <ProtectedRoute><SummaryProgram /></ProtectedRoute> },
   { path: "/history/:uid", element: <ProtectedRoute><WorkoutHistory /></ProtectedRoute> }, // ✅ Route นี้ถูกต้อง เชื่อมกับปุ่มในหน้า Summary
-  {path: "/play-exercise/:exerciseId", element: <SingleExercisePlayer />},
+  { path: "/play-exercise/:exerciseId", element: <SingleExercisePlayer /> },
 
   // Specific Detectors (ถ้าจำเป็น)
   { path: "/PoseDetector", element: <ProtectedRoute><PoseDetector /></ProtectedRoute> },
@@ -64,6 +65,8 @@ const router = createBrowserRouter([
   { path: "/Plank", element: <ProtectedRoute><Plank /></ProtectedRoute> },
   { path: "/Push_ups", element: <ProtectedRoute><Push_ups /></ProtectedRoute> },
   { path: "/Squat", element: <ProtectedRoute><Squat /></ProtectedRoute> },
+  // Onboarding
+  { path: "/onboarding", element: <ProtectedRoute><Onboarding /></ProtectedRoute> },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(

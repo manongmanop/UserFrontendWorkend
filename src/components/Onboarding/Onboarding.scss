@@ -1,0 +1,259 @@
+.onboarding-container {
+    min-height: 100vh;
+    background: #f7fafc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+
+    .onboarding-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px;
+        padding: 2.5rem;
+        position: relative;
+        overflow: hidden;
+
+        @media (max-width: 640px) {
+            padding: 1.5rem;
+        }
+    }
+
+    .progress-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 6px;
+        background: #edf2f7;
+        width: 100%;
+
+        .progress-fill {
+            height: 100%;
+            background: #4299e1;
+            transition: width 0.4s ease;
+        }
+    }
+
+    .step-content {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    p {
+        color: #718096;
+        text-align: center;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .selection-grid {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .fitness-level-card {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        &:hover {
+            border-color: #cbd5e0;
+            background: #f7fafc;
+        }
+
+        &.selected {
+            border-color: #4299e1;
+            background: #ebf8ff;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
+
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            h3 {
+                margin: 0;
+                font-size: 1.1rem;
+                color: #2d3748;
+            }
+
+            .level-icon {
+                font-size: 1.5rem;
+            }
+        }
+
+        .level-details {
+            font-size: 0.9rem;
+            color: #718096;
+            display: flex;
+            gap: 1rem;
+        }
+    }
+
+    .goal-option {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &.selected {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        input[type="radio"] {
+            transform: scale(1.2);
+        }
+    }
+
+    .days-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+
+        .day-checkbox {
+            position: relative;
+
+            input {
+                position: absolute;
+                opacity: 0;
+                cursor: pointer;
+            }
+
+            label {
+                display: block;
+                padding: 1rem;
+                background: #fff;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                text-align: center;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+
+                &:hover {
+                    background: #f7fafc;
+                }
+            }
+
+            input:checked+label {
+                border-color: #4299e1;
+                background: #4299e1;
+                color: white;
+            }
+        }
+    }
+
+    .summary-box {
+        background: #f7fafc;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #e2e8f0;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            strong {
+                color: #2d3748;
+            }
+
+            span {
+                color: #4a5568;
+            }
+        }
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+
+        button {
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+
+            &:active {
+                transform: scale(0.98);
+            }
+
+            &.btn-primary {
+                background: #4299e1;
+                color: white;
+                border: none;
+
+                &:hover {
+                    background: #3182ce;
+                }
+
+                &:disabled {
+                    background: #cbd5e0;
+                    cursor: not-allowed;
+                }
+            }
+
+            &.btn-secondary {
+                background: transparent;
+                color: #718096;
+                border: 2px solid #e2e8f0;
+
+                &:hover {
+                    border-color: #cbd5e0;
+                    color: #4a5568;
+                }
+            }
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

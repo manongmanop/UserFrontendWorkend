@@ -411,6 +411,12 @@ const userSchema = new mongoose.Schema({
   workoutsDone: { type: Number, default: 0 },
   weeklyGoal: { type: Number, default: 3 },
   workoutPlanId: { type: mongoose.Schema.Types.ObjectId, ref: 'WorkoutPlan', default: null },
+
+  // ✅ Onboarding Fields
+  fitnessLevel: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'], default: 'Beginner' },
+  primaryGoal: { type: String, default: '' },
+  preferredDays: [{ type: String }], // e.g. ["Monday", "Wednesday"]
+
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
@@ -421,7 +427,16 @@ const User = mongoose.model('User', userSchema, 'users');
 // POST: สร้างหรืออัปเดตผู้ใช้ (ใช้สำหรับตอน login/register)
 app.post('/api/users', async (req, res) => {
   try {
-    const { uid, caloriesBurned = 0, workoutsDone = 0, weeklyGoal = 3, workoutPlanId = null } = req.body;
+    const {
+      uid,
+      caloriesBurned = 0,
+      workoutsDone = 0,
+      weeklyGoal = 3,
+      workoutPlanId = null,
+      fitnessLevel = 'Beginner',
+      primaryGoal = '',
+      preferredDays = []
+    } = req.body;
 
     if (!uid) {
       return res.status(400).json({ error: 'UID is required' });
@@ -440,6 +455,9 @@ app.post('/api/users', async (req, res) => {
       workoutsDone,
       weeklyGoal,
       workoutPlanId,
+      fitnessLevel,
+      primaryGoal,
+      preferredDays,
       createdAt: new Date(),
       updatedAt: new Date()
     });
