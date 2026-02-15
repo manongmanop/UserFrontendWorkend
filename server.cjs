@@ -1269,17 +1269,20 @@ app.get("/api/stats/dashboard/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
 
-    // 1. Fetch all history for user (sorted by date)
+    // 1. Fetch User Data for Summary Stats (Total Calories, Workouts, Goal)
+    const user = await User.findOne({ uid }).lean();
+
+    // Default values if user fields are missing
+    const totalWorkouts = user?.workoutsDone || 0;
+    const totalCalories = user?.caloriesBurned || 0;
+    const weeklyGoal = user?.weeklyGoal || 3; // Use user's goal or default to 3
+
+    // 2. Fetch history for Weekly Progress & Heatmap (sorted by date)
     const histories = await History.find({ uid }).sort({ finishedAt: 1 }).lean();
 
-    // 2. Summary Stats
-    const totalWorkouts = histories.length;
-    const totalCalories = histories.reduce((sum, h) => sum + (h.caloriesBurned || 0), 0);
-
-    // 3. Weekly Progress
+    // 3. Weekly Progress Calculation
     const now = new Date();
-    // Get start of week (Sunday or Monday? Let's assume Monday as 0 or use ISO)
-    // Simple approach: Set to last Monday
+    // Get start of week (Monday)
     const startOfWeek = new Date(now);
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
@@ -1295,18 +1298,15 @@ app.get("/api/stats/dashboard/:uid", async (req, res) => {
       return d >= startOfWeek && d <= endOfWeek;
     });
 
-    const weeklyGoal = 4; // Default goal
     const workoutsDoneThisWeek = weeklyWorkouts.length;
 
     // Map workouts to day of week (0-6, Mon-Sun)
-    // JS getDay(): 0=Sun, 1=Mon. Let's map to Mon=0, ..., Sun=6
     const weeklyWorkoutDays = weeklyWorkouts.map(h => {
-      const d = new Date(h.finishedAt).getDay(); // 0-6 (Sun-Sat)
-      return d === 0 ? 6 : d - 1; // Convert to Mon=0...Sun=6
+      const d = new Date(h.finishedAt).getDay();
+      return d === 0 ? 6 : d - 1;
     });
 
-    // 4. Heatmap Data (Map date string -> count/intensity)
-    // Format: "YYYY-MM-DD"
+    // 4. Heatmap Data
     const heatmapMap = {};
     histories.forEach(h => {
       const d = new Date(h.finishedAt);
@@ -1317,21 +1317,21 @@ app.get("/api/stats/dashboard/:uid", async (req, res) => {
     const heatmap = Object.keys(heatmapMap).map(date => ({
       date,
       count: heatmapMap[date],
-      intensity: heatmapMap[date] >= 2 ? 2 : 1 // Simple intensity
+      intensity: heatmapMap[date] >= 2 ? 2 : 1
     }));
 
     res.json({
       summary: {
-        totalWorkouts,
-        totalCalories,
-        weeklyGoal
+        totalWorkouts, // From User collection
+        totalCalories, // From User collection
+        weeklyGoal     // From User collection
       },
       weekly: {
         total: workoutsDoneThisWeek,
         goal: weeklyGoal,
         percent: Math.min((workoutsDoneThisWeek / weeklyGoal) * 100, 100),
-        days: weeklyWorkoutDays, // Indicies of days worked
-        remainingDays: 7 - ((now.getDay() === 0 ? 7 : now.getDay())) // Days left in week including today? or remaining?
+        days: weeklyWorkoutDays,
+        remainingDays: 7 - ((now.getDay() === 0 ? 7 : now.getDay()))
       },
       heatmap
     });
