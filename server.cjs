@@ -1353,7 +1353,16 @@ app.patch("/api/histories/:sessionId/feedback", async (req, res) => {
 
   const updateFields = {};
   if (feedback) updateFields.feedback = feedback;
-  if (weight !== undefined && weight !== null) updateFields.weight = Number(weight);
+
+  // ✅ Validate Weight: Must be a positive integer only (No decimals, No negatives)
+  if (weight !== undefined && weight !== null && weight !== "") {
+    const numWeight = Number(weight);
+    if (Number.isInteger(numWeight) && numWeight > 0) {
+      updateFields.weight = numWeight;
+    } else {
+      console.log(`⚠️ Invalid weight received: ${weight} (Must be positive integer)`);
+    }
+  }
 
   // Also update feedbackLevel for backward compatibility if needed, or just leave it.
   // The user requested 'feedback', so we focus on that.

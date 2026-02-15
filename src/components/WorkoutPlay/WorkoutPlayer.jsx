@@ -1089,10 +1089,24 @@ export default function WorkoutPlayer() {
             <div className="wp-feedback-input-group" style={{ marginBottom: '20px', textAlign: 'center' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>น้ำหนักหลังออกกำลังกาย (กก.)</label>
               <input
-                type="number"
-                placeholder="ระบุน้ำหนัก (เช่น 70.5)"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="ระบุน้ำหนัก (กก.)"
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Allow only digits
+                  if (/^\d*$/.test(val)) {
+                    setWeight(val);
+                  }
+                }}
+                onKeyPress={(e) => {
+                  // Prevent non-numeric keys (dot, hyphen, e)
+                  if (!/[0-9]/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
                 style={{
                   padding: '10px',
                   borderRadius: '8px',
