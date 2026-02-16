@@ -92,6 +92,36 @@ const Onboarding = () => {
         });
     };
 
+    // Translation Helpers
+    const translations = {
+        levels: {
+            Beginner: { label: 'ผู้เริ่มต้น', sub: '3 วัน/สัปดาห์', details: ['20-30 นาที', 'เน้นสร้างนิสัย'] },
+            Intermediate: { label: 'ปานกลาง', sub: '5 วัน/สัปดาห์', details: ['35-45 นาที', 'เน้นสร้างกล้ามเนื้อ'] },
+            Advanced: { label: 'ขั้นสูง', sub: '7 วัน/สัปดาห์', details: ['45-60 นาที', 'เน้นประสิทธิภาพสูงสุด'] }
+        },
+        goals: {
+            'Lose Weight': 'ลดน้ำหนัก',
+            'Build Muscle': 'สร้างกล้ามเนื้อ',
+            'Stay Healthy': 'รักษาสุขภาพ',
+            'Increase Strength': 'เพิ่มความแข็งแกร่ง',
+            'Improve Endurance': 'เพิ่มความอึด'
+        },
+        days: {
+            Monday: 'จันทร์',
+            Tuesday: 'อังคาร',
+            Wednesday: 'พุธ',
+            Thursday: 'พฤหัสบดี',
+            Friday: 'ศุกร์',
+            Saturday: 'เสาร์',
+            Sunday: 'อาทิตย์',
+            // Short names
+            Mon: 'จ.', Tue: 'อ.', Wed: 'พ.', Thu: 'พฤ.', Fri: 'ศ.', Sat: 'ส.', Sun: 'อา.'
+        }
+    };
+
+    const getDayLabel = (day) => translations.days[day] || day;
+    const getShortDayLabel = (day) => translations.days[day.slice(0, 3)] || translations.days[day] || day;
+
     return (
         <div className="onboarding-container">
             <div className="onboarding-card">
@@ -102,13 +132,13 @@ const Onboarding = () => {
                 {/* Step 1: Welcome */}
                 {step === 1 && (
                     <div className="step-content">
-                        <h1>Welcome to Fitness App!</h1>
-                        <p>Let's create your personalized workout plan in just a few steps.</p>
+                        <h1>ยินดีต้อนรับสู่ Fitness App!</h1>
+                        <p>มาสร้างแผนการออกกำลังกายส่วนตัวของคุณในไม่กี่ขั้นตอนกันเถอะ</p>
                         <div style={{ textAlign: 'center', marginTop: '3rem' }}>
                             <img src="https://cdni.iconscout.com/illustration/premium/thumb/workout-plan-4439126-3728639.png" alt="Workout" style={{ maxWidth: '200px' }} />
                         </div>
                         <div className="action-buttons">
-                            <button className="btn-primary" onClick={nextStep}>Get Started</button>
+                            <button className="btn-primary" onClick={nextStep}>เริ่มต้นเลย</button>
                         </div>
                     </div>
                 )}
@@ -116,19 +146,19 @@ const Onboarding = () => {
                 {/* Step 2: Fitness Level */}
                 {step === 2 && (
                     <div className="step-content">
-                        <h2>Your Fitness Level</h2>
+                        <h2>ระดับความฟิตของคุณ</h2>
                         <div className="selection-grid">
                             <div
                                 className={`fitness-level-card ${formData.fitnessLevel === 'Beginner' ? 'selected' : ''}`}
                                 onClick={() => updateData('fitnessLevel', 'Beginner')}
                             >
                                 <div className="level-header">
-                                    <h3>🌱 Beginner</h3>
-                                    <span className="level-icon">3 Days/Week</span>
+                                    <h3>🌱 {translations.levels.Beginner.label}</h3>
+                                    <span className="level-icon">{translations.levels.Beginner.sub}</span>
                                 </div>
                                 <div className="level-details">
-                                    <span>20-30 Mins</span>
-                                    <span>Build Habit</span>
+                                    <span>{translations.levels.Beginner.details[0]}</span>
+                                    <span>{translations.levels.Beginner.details[1]}</span>
                                 </div>
                             </div>
 
@@ -137,12 +167,12 @@ const Onboarding = () => {
                                 onClick={() => updateData('fitnessLevel', 'Intermediate')}
                             >
                                 <div className="level-header">
-                                    <h3>🔥 Intermediate</h3>
-                                    <span className="level-icon">5 Days/Week</span>
+                                    <h3>🔥 {translations.levels.Intermediate.label}</h3>
+                                    <span className="level-icon">{translations.levels.Intermediate.sub}</span>
                                 </div>
                                 <div className="level-details">
-                                    <span>35-45 Mins</span>
-                                    <span>Build Muscle</span>
+                                    <span>{translations.levels.Intermediate.details[0]}</span>
+                                    <span>{translations.levels.Intermediate.details[1]}</span>
                                 </div>
                             </div>
 
@@ -151,18 +181,18 @@ const Onboarding = () => {
                                 onClick={() => updateData('fitnessLevel', 'Advanced')}
                             >
                                 <div className="level-header">
-                                    <h3>💎 Advanced</h3>
-                                    <span className="level-icon">7 Days/Week</span>
+                                    <h3>💎 {translations.levels.Advanced.label}</h3>
+                                    <span className="level-icon">{translations.levels.Advanced.sub}</span>
                                 </div>
                                 <div className="level-details">
-                                    <span>45-60 Mins</span>
-                                    <span>Max Performance</span>
+                                    <span>{translations.levels.Advanced.details[0]}</span>
+                                    <span>{translations.levels.Advanced.details[1]}</span>
                                 </div>
                             </div>
                         </div>
                         <div className="action-buttons">
-                            <button className="btn-secondary" onClick={prevStep}>Back</button>
-                            <button className="btn-primary" onClick={nextStep}>Next</button>
+                            <button className="btn-secondary" onClick={prevStep}>ย้อนกลับ</button>
+                            <button className="btn-primary" onClick={nextStep}>ถัดไป</button>
                         </div>
                     </div>
                 )}
@@ -170,7 +200,7 @@ const Onboarding = () => {
                 {/* Step 3: Primary Goal */}
                 {step === 3 && (
                     <div className="step-content">
-                        <h2>What is your main goal?</h2>
+                        <h2>เป้าหมายหลักของคุณคืออะไร?</h2>
                         <div className="selection-grid">
                             {['Lose Weight', 'Build Muscle', 'Stay Healthy', 'Increase Strength', 'Improve Endurance'].map(goal => (
                                 <div
@@ -184,13 +214,13 @@ const Onboarding = () => {
                                         checked={formData.primaryGoal === goal}
                                         readOnly
                                     />
-                                    <label>{goal}</label>
+                                    <label>{translations.goals[goal]}</label>
                                 </div>
                             ))}
                         </div>
                         <div className="action-buttons">
-                            <button className="btn-secondary" onClick={prevStep}>Back</button>
-                            <button className="btn-primary" disabled={!formData.primaryGoal} onClick={nextStep}>Next</button>
+                            <button className="btn-secondary" onClick={prevStep}>ย้อนกลับ</button>
+                            <button className="btn-primary" disabled={!formData.primaryGoal} onClick={nextStep}>ถัดไป</button>
                         </div>
                     </div>
                 )}
@@ -198,8 +228,8 @@ const Onboarding = () => {
                 {/* Step 4: Preferred Days */}
                 {step === 4 && (
                     <div className="step-content">
-                        <h2>Which days do you workout?</h2>
-                        <p>Select the days you prefer to exercise.</p>
+                        <h2>คุณออกกำลังกายวันไหนบ้าง?</h2>
+                        <p>เลือกวันที่คุณสะดวกออกกำลังกาย</p>
                         <div className="days-grid">
                             {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                                 <div key={day} className="day-checkbox">
@@ -209,13 +239,13 @@ const Onboarding = () => {
                                         checked={formData.preferredDays.includes(day)}
                                         onChange={() => toggleDay(day)}
                                     />
-                                    <label htmlFor={day}>{day.slice(0, 3)}</label>
+                                    <label htmlFor={day}>{getDayLabel(day)}</label>
                                 </div>
                             ))}
                         </div>
                         <div className="action-buttons">
-                            <button className="btn-secondary" onClick={prevStep}>Back</button>
-                            <button className="btn-primary" onClick={nextStep}>Next</button>
+                            <button className="btn-secondary" onClick={prevStep}>ย้อนกลับ</button>
+                            <button className="btn-primary" onClick={nextStep}>ถัดไป</button>
                         </div>
                     </div>
                 )}
@@ -223,29 +253,29 @@ const Onboarding = () => {
                 {/* Step 5: Summary */}
                 {step === 5 && (
                     <div className="step-content">
-                        <h2>Your Personalized Plan</h2>
+                        <h2>แผนส่วนตัวของคุณ</h2>
                         <div className="summary-box">
                             <div className="summary-item">
-                                <strong>Level</strong>
-                                <span>{formData.fitnessLevel}</span>
+                                <strong>ระดับ</strong>
+                                <span>{translations.levels[formData.fitnessLevel]?.label || formData.fitnessLevel}</span>
                             </div>
                             <div className="summary-item">
-                                <strong>Weekly Goal</strong>
-                                <span>{formData.fitnessLevel === 'Beginner' ? 3 : formData.fitnessLevel === 'Intermediate' ? 5 : 7} Workouts</span>
+                                <strong>เป้าหมายรายสัปดาห์</strong>
+                                <span>{formData.fitnessLevel === 'Beginner' ? 3 : formData.fitnessLevel === 'Intermediate' ? 5 : 7} ครั้ง/สัปดาห์</span>
                             </div>
                             <div className="summary-item">
-                                <strong>Main Goal</strong>
-                                <span>{formData.primaryGoal}</span>
+                                <strong>เป้าหมายหลัก</strong>
+                                <span>{translations.goals[formData.primaryGoal] || formData.primaryGoal}</span>
                             </div>
                             <div className="summary-item">
-                                <strong>Schedule</strong>
-                                <span>{formData.preferredDays.length > 0 ? formData.preferredDays.join(', ') : 'Flexible'}</span>
+                                <strong>ตารางฝึก</strong>
+                                <span>{formData.preferredDays.length > 0 ? formData.preferredDays.map(d => getDayLabel(d)).join(', ') : 'ยืดหยุ่น'}</span>
                             </div>
                         </div>
                         <div className="action-buttons">
-                            <button className="btn-secondary" onClick={prevStep}>Edit</button>
+                            <button className="btn-secondary" onClick={prevStep}>แก้ไข</button>
                             <button className="btn-primary" onClick={handleFinish} disabled={loading}>
-                                {loading ? 'Creating Plan...' : 'Confirm & Start'}
+                                {loading ? 'กำลังสร้างแผน...' : 'ยืนยันและเริ่มต้น'}
                             </button>
                         </div>
                     </div>
