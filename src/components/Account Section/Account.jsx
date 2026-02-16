@@ -751,7 +751,7 @@ function Account() {
                         src={
                           user?.photoURL ||
                           user?.providerData?.[0]?.photoURL ||
-                          "https://media.tenor.com/mzIscFHY8L0AAAAM/blue-box-ao-no-hako.gif"
+                          "https://png.pngtree.com/png-vector/20221125/ourmid/pngtree-no-image-available-icon-flatvector-illustration-pic-design-profile-vector-png-image_40966566.jpg"
                         }
                         alt="Profile"
                         className="profile-avatar"

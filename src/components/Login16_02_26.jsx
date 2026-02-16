@@ -315,7 +315,7 @@ function Login() {
               <span className="text" style={{ fontSize: '0.9rem', color: '#666' }}>
                 {" "}
               </span>
-              <Link to="/AdminRegister" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+              <Link to="/admin-register" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
                 เข้าสู่ระบบในฐานะผู้ดูแลระบบ
               </Link>
             </div>

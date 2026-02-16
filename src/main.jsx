@@ -33,6 +33,8 @@ import Leg_Raises from './Leg_Raises.jsx'
 import Plank from './Plank.jsx'
 import Push_ups from './Push_ups.jsx'
 import Squat from './Squat.jsx'
+import LinkEmailPassword from "./components/LinkEmailPassword";
+import AdminRegister from './components/AdminRegister.jsx'
 
 const router = createBrowserRouter([
   // --- Public Routes ---
@@ -67,6 +69,9 @@ const router = createBrowserRouter([
   { path: "/Squat", element: <ProtectedRoute><Squat /></ProtectedRoute> },
   // Onboarding
   { path: "/onboarding", element: <ProtectedRoute><Onboarding /></ProtectedRoute> },
+  { path: "/set-password", element: <ProtectedRoute><LinkEmailPassword /></ProtectedRoute> },
+  { path: "/AdminRegister", element: <ProtectedRoute><AdminRegister /></ProtectedRoute> },
+
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
