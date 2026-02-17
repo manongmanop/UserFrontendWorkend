@@ -1,0 +1,222 @@
+.onboarding-container {
+  min-height: 100vh;
+  background: #f7fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: "Inter", sans-serif;
+}
+.onboarding-container .onboarding-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  padding: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .onboarding-container .onboarding-card {
+    padding: 1.5rem;
+  }
+}
+.onboarding-container .progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 6px;
+  background: #edf2f7;
+  width: 100%;
+}
+.onboarding-container .progress-bar .progress-fill {
+  height: 100%;
+  background: #4299e1;
+  transition: width 0.4s ease;
+}
+.onboarding-container .step-content {
+  animation: fadeIn 0.5s ease-out;
+}
+.onboarding-container h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.onboarding-container h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.onboarding-container p {
+  color: #718096;
+  text-align: center;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+.onboarding-container .selection-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.onboarding-container .fitness-level-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.onboarding-container .fitness-level-card:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+.onboarding-container .fitness-level-card.selected {
+  border-color: #4299e1;
+  background: #ebf8ff;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+}
+.onboarding-container .fitness-level-card .level-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.onboarding-container .fitness-level-card .level-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #2d3748;
+}
+.onboarding-container .fitness-level-card .level-header .level-icon {
+  font-size: 1.5rem;
+}
+.onboarding-container .fitness-level-card .level-details {
+  font-size: 0.9rem;
+  color: #718096;
+  display: flex;
+  gap: 1rem;
+}
+.onboarding-container .goal-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.onboarding-container .goal-option.selected {
+  border-color: #48bb78;
+  background: #f0fff4;
+}
+.onboarding-container .goal-option input[type=radio] {
+  transform: scale(1.2);
+}
+.onboarding-container .days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+.onboarding-container .days-grid .day-checkbox {
+  position: relative;
+}
+.onboarding-container .days-grid .day-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+.onboarding-container .days-grid .day-checkbox label {
+  display: block;
+  padding: 1rem;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.onboarding-container .days-grid .day-checkbox label:hover {
+  background: #f7fafc;
+}
+.onboarding-container .days-grid .day-checkbox input:checked + label {
+  border-color: #4299e1;
+  background: #4299e1;
+  color: white;
+}
+.onboarding-container .summary-box {
+  background: #f7fafc;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+.onboarding-container .summary-box .summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+.onboarding-container .summary-box .summary-item:last-child {
+  border-bottom: none;
+}
+.onboarding-container .summary-box .summary-item strong {
+  color: #2d3748;
+}
+.onboarding-container .summary-box .summary-item span {
+  color: #4a5568;
+}
+.onboarding-container .action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+.onboarding-container .action-buttons button {
+  padding: 0.8rem 2rem;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.onboarding-container .action-buttons button:active {
+  transform: scale(0.98);
+}
+.onboarding-container .action-buttons button.btn-primary {
+  background: #4299e1;
+  color: white;
+  border: none;
+}
+.onboarding-container .action-buttons button.btn-primary:hover {
+  background: #3182ce;
+}
+.onboarding-container .action-buttons button.btn-primary:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+}
+.onboarding-container .action-buttons button.btn-secondary {
+  background: transparent;
+  color: #718096;
+  border: 2px solid #e2e8f0;
+}
+.onboarding-container .action-buttons button.btn-secondary:hover {
+  border-color: #cbd5e0;
+  color: #4a5568;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}/*# sourceMappingURL=Onboarding.css.map */

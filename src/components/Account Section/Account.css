@@ -110,8 +110,7 @@ body {
   width: 260px;
   height: 100vh;
   z-index: 100;
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .content-section {

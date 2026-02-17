@@ -109,8 +109,7 @@ body {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .wp-header-content {
@@ -361,8 +360,7 @@ body {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.9);
-  -webkit-backdrop-filter: blur(20px);
-          backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -589,8 +587,7 @@ body {
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
-  -webkit-backdrop-filter: blur(4px);
-          backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   z-index: 10;
 }
 
@@ -1418,8 +1415,7 @@ canvas.wp-media {
   height: 44px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  -webkit-backdrop-filter: blur(2px);
-          backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
 }
 
 .lightbox .guide-nav--left {

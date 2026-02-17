@@ -904,7 +904,8 @@ function Account() {
             <div className="col-md-8">
 
               {/* ✅ New Statistics Dashboard */}
-              <WorkoutStats />
+              {/* ✅ New Statistics Dashboard */}
+              <WorkoutStats userData={userData} workoutHistory={workoutHistory} />
 
               {/* ส่วนกราฟแสดงข้อมูลร่างกาย */}
               <div className="metrics-section">

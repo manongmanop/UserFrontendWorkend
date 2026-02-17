@@ -1,0 +1,515 @@
+.stats-dashboard {
+  font-family: "Inter", "Prompt", sans-serif;
+  background: transparent;
+}
+.stats-dashboard .section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.stats-dashboard .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.stats-dashboard .stat-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+.stats-dashboard .stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.stats-dashboard .stat-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+.stats-dashboard .stat-card .card-header .icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+.stats-dashboard .stat-card .card-header .icon-wrapper.fire-pulse {
+  background: #FBE9E7;
+  color: #FF5722;
+  animation: pulse-red 2s infinite;
+}
+.stats-dashboard .stat-card .card-header .icon-wrapper.blue-glow {
+  background: #E3F2FD;
+  color: #2196F3;
+}
+.stats-dashboard .stat-card .card-header .header-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #FFC107;
+}
+.stats-dashboard .stat-card .card-content .main-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2d3748;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+.stats-dashboard .stat-card .card-content .label {
+  font-size: 0.9rem;
+  color: #718096;
+  margin-bottom: 1rem;
+}
+.stats-dashboard .stat-card .card-content .divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 1rem 0;
+}
+.stats-dashboard .stat-card .card-content .secondary-info {
+  font-size: 0.85rem;
+  color: #718096;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+.stats-dashboard .stat-card .card-content .secondary-info .trend.positive {
+  color: #4CAF50;
+  font-weight: 600;
+}
+.stats-dashboard .stat-card .card-content .goal-stats-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.stats-dashboard .stat-card .card-content .goal-stats-row .goal-stat-box {
+  flex: 1;
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 0.75rem;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+.stats-dashboard .stat-card .card-content .goal-stats-row .goal-stat-box .box-label {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-bottom: 0.25rem;
+}
+.stats-dashboard .stat-card .card-content .goal-stats-row .goal-stat-box .box-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+.stats-dashboard .stat-card .card-content .goal-message {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+.stats-dashboard .stat-card .card-content .goal-message .msg-title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+.stats-dashboard .stat-card .card-content .goal-message .msg-subtitle {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+.stats-dashboard .stat-card .card-content .progress-bar-mini {
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.stats-dashboard .stat-card .card-content .progress-bar-mini .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF6B6B, #FF8E53);
+  border-radius: 3px;
+}
+.stats-dashboard .stat-card .card-content .progress-bar-large {
+  height: 12px;
+  background: #f0f0f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+.stats-dashboard .stat-card .card-content .progress-bar-large .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #66BB6A);
+  border-radius: 6px;
+  transition: width 1s ease-out;
+}
+.stats-dashboard .stat-card .card-content .progress-bar-large .percent-text {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+.stats-dashboard .stat-card .card-content .goal-status {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+.stats-dashboard .stat-card .card-content .goal-dots {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 10px;
+}
+.stats-dashboard .stat-card .card-content .goal-dots .dot-label {
+  font-size: 0.8rem;
+  width: 50px;
+  color: #718096;
+}
+.stats-dashboard .stat-card .card-content .goal-dots .dots-container {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.stats-dashboard .stat-card .card-content .goal-dots .dots-container .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e0e0e0;
+}
+.stats-dashboard .stat-card .card-content .goal-dots .dots-container .dot.filled {
+  background: #4CAF50;
+}
+.stats-dashboard .stat-card .card-content .goal-dots .dots-container .dot.target {
+  background: transparent;
+  border: 2px solid #FFC107;
+  box-sizing: border-box;
+}
+.stats-dashboard .stat-card.state-not-started .goal-stat-box {
+  background: #FAFAFA;
+}
+.stats-dashboard .stat-card.state-not-started .box-value {
+  color: #BDBDBD;
+}
+.stats-dashboard .stat-card.state-not-started .progress-bar-large {
+  background: #eee;
+}
+.stats-dashboard .stat-card.state-not-started .progress-bar-large .fill {
+  background: #bdbdbd;
+}
+.stats-dashboard .stat-card.state-not-started .goal-message {
+  background: transparent;
+  color: #2196F3;
+  border: 1px dashed rgba(33, 150, 243, 0.3);
+}
+.stats-dashboard .stat-card.state-progress {
+  background: radial-gradient(circle at top right, #fffde7 0%, #fff 40%);
+}
+.stats-dashboard .stat-card.state-progress .goal-stat-box {
+  background: #FFF9C4;
+  border-color: rgba(255, 193, 7, 0.3);
+}
+.stats-dashboard .stat-card.state-progress .goal-stat-box .box-value {
+  color: #F57C00;
+}
+.stats-dashboard .stat-card.state-progress .progress-bar-large .fill {
+  background: linear-gradient(90deg, #FFC107, #FF9800);
+}
+.stats-dashboard .stat-card.state-progress .goal-message {
+  background: #FFF9C4;
+  color: #F57C00;
+}
+.stats-dashboard .stat-card.state-achieved {
+  background: radial-gradient(circle at top right, #e8f5e9 0%, #fff 40%);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.15);
+}
+.stats-dashboard .stat-card.state-achieved .goal-stat-box {
+  background: #E8F5E9;
+  border-color: rgba(76, 175, 80, 0.3);
+}
+.stats-dashboard .stat-card.state-achieved .goal-stat-box .box-value {
+  color: #2E7D32;
+}
+.stats-dashboard .stat-card.state-achieved .progress-bar-large .fill {
+  background: linear-gradient(90deg, #4CAF50, #00C853);
+}
+.stats-dashboard .stat-card.state-achieved .goal-message {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+.stats-dashboard .stat-card .weekly-progress {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+.stats-dashboard .stat-card .weekly-progress .section-title-sm {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  color: #2d3748;
+}
+.stats-dashboard .stat-card .weekly-progress .stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+  color: #718096;
+  flex-wrap: wrap;
+}
+.stats-dashboard .stat-card .weekly-progress .stats-bar strong {
+  color: #2d3748;
+  font-weight: 700;
+}
+.stats-dashboard .stat-card .weekly-progress .stats-bar .separator {
+  color: #e2e8f0;
+}
+.stats-dashboard .stat-card .weekly-progress .day-circles {
+  display: flex;
+  justify-content: space-between;
+  padding: 24px 0;
+  margin: 24px 0;
+  border-top: 1px solid #F0F0F0;
+  border-bottom: 1px solid #F0F0F0;
+}
+.stats-dashboard .stat-card .weekly-progress .day-circles .day-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 48px;
+}
+.stats-dashboard .stat-card .weekly-progress .day-circles .day-circle .day-label {
+  font-size: 0.85rem;
+  color: #718096;
+}
+.stats-dashboard .stat-card .weekly-progress .day-circles .day-circle .day-mark {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #718096;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.stats-dashboard .stat-card .weekly-progress .day-circles .day-circle.done .day-mark {
+  color: #4CAF50;
+}
+.stats-dashboard .stat-card .weekly-progress .day-circles .day-circle.today .day-label {
+  color: #2196F3;
+  font-weight: 700;
+}
+.stats-dashboard .stat-card .weekly-progress .progress-section .progress-bar-large {
+  height: 12px;
+  background: #f0f0f0;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+.stats-dashboard .stat-card .weekly-progress .progress-section .progress-bar-large .fill {
+  height: 100%;
+  background: #2196F3;
+  border-radius: 6px;
+  transition: width 1s ease;
+}
+.stats-dashboard .stat-card .weekly-progress .progress-section .progress-bar-large .percent-text {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+.stats-dashboard .stat-card .weekly-progress .progress-section .timeline-message .msg-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  color: #2d3748;
+}
+.stats-dashboard .stat-card .weekly-progress .progress-section .timeline-message .msg-sub {
+  font-size: 0.85rem;
+  color: #718096;
+}
+.stats-dashboard .stat-card .weekly-progress.state-not-started .progress-bar-large .fill {
+  background: #bdbdbd;
+}
+.stats-dashboard .stat-card .weekly-progress.state-not-started .timeline-message .msg-title {
+  color: #2196F3;
+}
+.stats-dashboard .stat-card .weekly-progress.state-progress {
+  background: linear-gradient(to bottom, #fff, #fffde7 100%);
+  border-color: rgba(255, 193, 7, 0.5);
+}
+.stats-dashboard .stat-card .weekly-progress.state-progress .progress-bar-large .fill {
+  background: #FFC107;
+}
+.stats-dashboard .stat-card .weekly-progress.state-progress .timeline-message .msg-title {
+  color: #F57C00;
+}
+.stats-dashboard .stat-card .weekly-progress.state-achieved {
+  background: linear-gradient(to bottom, #fff, #e8f5e9 100%);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+.stats-dashboard .stat-card .weekly-progress.state-achieved .progress-bar-large .fill {
+  background: #4CAF50;
+}
+.stats-dashboard .stat-card .weekly-progress.state-achieved .timeline-message .msg-title {
+  color: #2E7D32;
+}
+.stats-dashboard .stat-card .activity-calendar-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-header h5 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-header .nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 600;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-header .nav-controls button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #718096;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-header .nav-controls button:hover {
+  color: #2196F3;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-grid {
+  display: none;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-grid-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-grid-days .cal-day-header {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #718096;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-grid-days .cal-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-grid-days .cal-cell:hover {
+  background: #f7fafc;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-grid-days .cal-cell.workout-done {
+  background: #4CAF50;
+  color: white;
+  font-weight: bold;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-grid-days .cal-cell.neutral {
+  color: #2d3748;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-legend {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #718096;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-legend .legend-item .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-legend .legend-item .dot.done {
+  background: #4CAF50;
+}
+.stats-dashboard .stat-card .activity-calendar-card .calendar-legend .legend-item .dot.today {
+  background: #2196F3;
+}
+
+@keyframes pulse-red {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(255, 87, 34, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 87, 34, 0);
+  }
+}
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-entry {
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+@media (max-width: 768px) {
+  .stats-dashboard {
+    padding: 1rem;
+  }
+  .stats-dashboard .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .stats-dashboard .timeline-container .timeline-line {
+    display: none;
+  }
+}/*# sourceMappingURL=WorkoutStats.css.map */

@@ -200,8 +200,7 @@ body {
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(20px);
-          backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   padding: 1rem 1rem;
   border-radius: 50px;
   border: 2px solid transparent;
@@ -268,8 +267,7 @@ body {
   cursor: pointer;
   transition: var(--transition);
   white-space: nowrap;
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .category-btn:hover {
@@ -454,8 +452,7 @@ body {
 
 .difficulty-badge {
   background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: var(--smallFontSize);
@@ -467,8 +464,7 @@ body {
   width: 40px;
   height: 40px;
   background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -802,8 +798,7 @@ body {
     width: 100%;
     padding: 0.75rem 1rem;
     box-shadow: none;
-    -webkit-backdrop-filter: none;
-            backdrop-filter: none;
+    backdrop-filter: none;
   }
   /* แท็บหมวดหมู่: เล็กลง & เลื่อนแนวนอน */
   .category-filter {

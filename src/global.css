@@ -2,7 +2,7 @@
 /* นำเข้าฟอนต์ Noto Sans Thai Looped จาก Google Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped:wght@100..900&display=swap");
 :root {
-  --font-primary: "Noto Sans Thai Looped", Arial, sans-serif;
+  --font-primary: 'Noto Sans Thai Looped', Arial, sans-serif;
 }
 
 /* ใช้ * (Wildcard) เพื่อบังคับทุก Element ให้ใช้ฟอนต์นี้ */
