@@ -778,7 +778,7 @@ function Account() {
                         {userData?.primaryGoal && (
                           <span className="badge" style={{ background: '#f0fff4', color: '#48bb78', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid #c6f6d5' }}>
                             {{
-                              'Lose Weight': 'ลดน้ำหนัก',
+                              'Lose Weight': 'ลกกก',
                               'Build Muscle': 'สร้างกล้ามเนื้อ',
                               'Stay Healthy': 'รักษาสุขภาพ',
                               'Increase Strength': 'เพิ่มความแข็งแกร่ง',
