@@ -331,19 +331,18 @@ $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .calendar-grid {
-            // Used for headers
-            display: none; // Hiding the old header loop from JSX if it conflicts
+            display: none;
         }
 
         .calendar-grid-days {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            gap: 4px; // tighter gap like GitHub
             margin-bottom: 1rem;
 
             .cal-day-header {
                 text-align: center;
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 color: $text-secondary;
                 font-weight: 600;
                 margin-bottom: 0.5rem;
@@ -354,57 +353,75 @@ $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 8px;
-                font-size: 0.9rem;
+                border-radius: 4px; // smaller radius
+                font-size: 0.8rem;
                 cursor: pointer;
                 transition: all 0.2s;
+                position: relative; // For tooltip
+                background: #ebedf0; // Default empty gray like GitHub
+                color: transparent; // Hide numbers by default unless hovered maybe? Or keep them. GitHub doesn't show numbers. User might want clarity though. Let's keep numbers but subtle.
+                color: #aaa;
 
                 &:hover {
-                    background: #f7fafc;
+                    border: 2px solid rgba(0,0,0,0.1);
+                    
+                    // Show Tooltip
+                    &::after {
+                        content: attr(data-tooltip);
+                        position: absolute;
+                        bottom: 100%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: rgba(0, 0, 0, 0.8);
+                        color: white;
+                        padding: 6px 10px;
+                        border-radius: 6px;
+                        font-size: 0.75rem;
+                        white-space: nowrap;
+                        pointer-events: none;
+                        z-index: 10;
+                        margin-bottom: 8px;
+                        font-family: 'Prompt', sans-serif;
+                    }
                 }
 
                 &.empty {
-                    // Blank placeholder
+                    background: transparent;
+                    pointer-events: none;
                 }
 
-                &.workout-done {
-                    background: $color-success;
-                    color: white;
-                    font-weight: bold;
-                }
+                // Intensity Levels
+                &.level-0 { background: #ebedf0; }
+                &.level-1 { background: #9be9a8; color: #2d3748; } // Lightest
+                &.level-2 { background: #40c463; color: white; }
+                &.level-3 { background: #30a14e; color: white; }
+                &.level-4 { background: #216e39; color: white; } // Darkest
 
-                &.neutral {
-                    // normal day
-                    color: $text-primary;
+                &.today {
+                    border: 2px solid $color-primary;
+                    // Keep background logic separate if possible, but if today has no workout, it shouldn't be green.
+                    // Implementation note: classes will be combined like "level-2 today"
                 }
             }
         }
 
         .calendar-legend {
             display: flex;
-            gap: 1rem;
+            gap: 6px;
             margin-top: 1rem;
             justify-content: flex-end;
+            align-items: center;
+            font-size: 0.8rem;
+            color: $text-secondary;
 
-            .legend-item {
+            .legend-squares {
                 display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-size: 0.8rem;
-                color: $text-secondary;
-
-                .dot {
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-
-                    &.done {
-                        background: $color-success;
-                    }
-
-                    &.today {
-                        background: $color-primary;
-                    }
+                gap: 3px;
+                
+                .square {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 2px;
                 }
             }
         }

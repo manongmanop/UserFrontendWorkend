@@ -221,15 +221,35 @@ const ActivityCalendar = ({ workoutHistory }) => {
     const totalSlots = [...blanks, ...days];
 
     // Helper to check status of a specific date
-    const getDateStatus = (day) => {
-        if (!day) return 'empty';
-        const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
+    const getDateInfo = (day) => {
+        if (!day) return { status: 'empty', intensity: 0, tooltip: '' };
+
+        const dateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+        const dateStr = dateObj.toDateString();
+        const now = new Date();
+        const isToday = dateStr === now.toDateString();
 
         const workoutsOnDay = workoutHistory.filter(h => new Date(h.finishedAt).toDateString() === dateStr);
-        if (workoutsOnDay.length > 0) return 'workout-done';
+        const count = workoutsOnDay.length;
+        const calories = workoutsOnDay.reduce((sum, h) => sum + (h.caloriesBurned || 0), 0);
 
-        // Can add logic for 'scheduled' or 'rest' if needed here
-        return 'neutral';
+        let intensity = 0;
+        if (count > 0) {
+            if (calories > 800) intensity = 4;
+            else if (calories > 500) intensity = 3;
+            else if (calories > 200) intensity = 2;
+            else intensity = 1;
+        }
+
+        const thaiMonth = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+        const dateTooltip = `${day} ${thaiMonth[currentDate.getMonth()]} ${currentDate.getFullYear() + 543}`;
+        const statsTooltip = count > 0 ? `\n${count} กิจกรรม (${calories} kcal)` : '\nไม่มีกิจกรรม';
+
+        return {
+            status: isToday ? 'today' : 'neutral',
+            intensity,
+            tooltip: `${dateTooltip}${statsTooltip}`
+        };
     };
 
     const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
@@ -246,22 +266,21 @@ const ActivityCalendar = ({ workoutHistory }) => {
             </div>
 
             <div className="calendar-grid">
-                {['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map(d => ( // Adjusted to match standard calendar view usually starts Sun for display or Mon depending on pref. Let's stick to standard Sun start for calendar visual? 
-                    // Wait, code above adjusted Mon=0. If visual calendar starts Mon, labeled headers should start Mon.
-                    // The logic `getFirstDayOfMonth` adjusted Mon=0.
-                    // So headers should be Mon...Sun
-                    <div key={d} className="cal-header">{d}</div>
-                ))}
+                {/* Headers handled in calendar-grid-days */}
             </div>
-            {/* Fix: Headers above are Sun..Sat but logic is Mon..Sun. Let's sync. */}
-            {/* If we use standard Grid, let's use Mon...Sun headers to match WeeklyTimeline */}
+
             <div className="calendar-grid-days">
                 {['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'].map(d => <div key={d} className="cal-day-header">{d}</div>)}
 
                 {totalSlots.map((day, index) => {
-                    const status = getDateStatus(day);
+                    const info = getDateInfo(day);
                     return (
-                        <div key={index} className={`cal-cell ${status}`}>
+                        <div
+                            key={index}
+                            className={`cal-cell ${info.status} ${day ? `level-${info.intensity}` : 'empty'}`}
+                            data-tooltip={info.tooltip}
+                        >
+                            {/* Visual tweak: if level > 0, hide number or make it white/subtle? SCSS handles color. */}
                             {day}
                         </div>
                     );
@@ -269,8 +288,15 @@ const ActivityCalendar = ({ workoutHistory }) => {
             </div>
 
             <div className="calendar-legend">
-                <div className="legend-item"><span className="dot done"></span> ออกกำลังกาย</div>
-                <div className="legend-item"><span className="dot today"></span> วันนี้</div>
+                <span>น้อย</span>
+                <div className="legend-squares">
+                    <div className="square level-0" style={{ background: '#ebedf0' }}></div>
+                    <div className="square level-1" style={{ background: '#9be9a8' }}></div>
+                    <div className="square level-2" style={{ background: '#40c463' }}></div>
+                    <div className="square level-3" style={{ background: '#30a14e' }}></div>
+                    <div className="square level-4" style={{ background: '#216e39' }}></div>
+                </div>
+                <span>มาก</span>
             </div>
         </div>
     );

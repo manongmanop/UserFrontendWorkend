@@ -765,10 +765,10 @@ function Account() {
 
                       {/* ✅ Badges moved here */}
                       {/* ✅ Badges moved here */}
-                      <div className="fitness-badges" style={{ marginTop: '5px', display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <div className="fitness-badges" style={{ margin: '10px', display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
                         {userData?.fitnessLevel && (
                           <span className="badge" style={{ background: '#ebf8ff', color: '#4299e1', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid #bee3f8' }}>
-                            {{
+                            ระดับ: {{
                               'Beginner': 'ผู้เริ่มต้น',
                               'Intermediate': 'ปานกลาง',
                               'Advanced': 'ขั้นสูง'
@@ -777,8 +777,8 @@ function Account() {
                         )}
                         {userData?.primaryGoal && (
                           <span className="badge" style={{ background: '#f0fff4', color: '#48bb78', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid #c6f6d5' }}>
-                            {{
-                              'Lose Weight': 'ลกกก',
+                            เป้าหมาย: {{
+                              'Lose Weight': 'ลดน้ำหนัก',
                               'Build Muscle': 'สร้างกล้ามเนื้อ',
                               'Stay Healthy': 'รักษาสุขภาพ',
                               'Increase Strength': 'เพิ่มความแข็งแกร่ง',
