@@ -115,41 +115,6 @@ const DashboardCards = ({ stats }) => {
                     </div>
                 </div>
             </div>
-
-            {/* Card 3: Weekly Goal */}
-            <div className="stat-card card-goal">
-                <div className="card-header">
-                    <div className="header-title">🏆</div>
-                </div>
-                <div className="card-content">
-                    <div className="goal-dots">
-                        <div className="dot-label">ทำแล้ว</div>
-                        <div className="dots-container">
-                            {Array.from({ length: stats.workoutsDoneWeek }).map((_, i) => (
-                                <span key={i} className="dot filled"></span>
-                            ))}
-                            {stats.workoutsDoneWeek === 0 && <span className="text-muted">-</span>}
-                        </div>
-                    </div>
-                    <div className="goal-dots">
-                        <div className="dot-label">เป้าหมาย</div>
-                        <div className="dots-container target">
-                            {Array.from({ length: stats.weeklyGoal }).map((_, i) => (
-                                <span key={i} className="dot target"></span>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="divider"></div>
-
-                    <div className="progress-bar-large">
-                        <div className="fill" style={{ width: `${Math.min((stats.workoutsDoneWeek / stats.weeklyGoal) * 100, 120)}%` }}></div>
-                    </div>
-                    <div className="goal-status">
-                        {stats.workoutsDoneWeek >= stats.weeklyGoal ? '✅ ยอดเยี่ยม! ตามเป้าหมาย' : `🔥 ขาดอีก ${stats.weeklyGoal - stats.workoutsDoneWeek} ครั้ง`}
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };
@@ -169,7 +134,7 @@ const WeeklyTimeline = ({ stats, preferredDays }) => {
             <div className="section-header">
                 <h5>📊 ความคืบหน้าสัปดาห์นี้</h5>
                 <div className="meta-info">
-                    {stats.workoutsDoneWeek} / {stats.weeklyGoal} ครั้ง
+                    เป้าหมาย: {stats.weeklyGoal} ครั้ง | ทำแล้ว: <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>{stats.workoutsDoneWeek}</span> ครั้ง
                 </div>
             </div>
 
@@ -198,6 +163,25 @@ const WeeklyTimeline = ({ stats, preferredDays }) => {
                             </div>
                         )
                     })}
+                </div>
+            </div>
+
+            <div className="divider" style={{ margin: '1.5rem 0', height: '1px', background: '#e2e8f0' }}></div>
+
+            <div className="goal-progress-section">
+                <div className="progress-bar-large" style={{ height: '12px', background: '#f0f0f0', borderRadius: '6px', overflow: 'hidden', marginBottom: '0.5rem' }}>
+                    <div className="fill" style={{
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #4CAF50, #66BB6A)',
+                        borderRadius: '6px',
+                        width: `${Math.min((stats.workoutsDoneWeek / stats.weeklyGoal) * 100, 100)}%`,
+                        transition: 'width 1s ease-out'
+                    }}></div>
+                </div>
+                <div className="goal-status" style={{ fontSize: '0.9rem', color: '#2d3748', textAlign: 'right' }}>
+                    {stats.workoutsDoneWeek >= stats.weeklyGoal
+                        ? '🎉 ยอดเยี่ยม! คุณทำตามเป้าหมายครบแล้ว'
+                        : `🔥 อีก ${stats.weeklyGoal - stats.workoutsDoneWeek} ครั้งจะถึงเป้าหมาย! สู้ๆ`}
                 </div>
             </div>
         </div>
