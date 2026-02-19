@@ -1,75 +1,58 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import "./detail.css";
+import { IoIosFitness, IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { AiFillFire } from "react-icons/ai";
 import { MdAccessTime } from "react-icons/md";
 import Swal from "sweetalert2";
 import axios from "axios";
 import Sidebar from "../../Sidebar Section/Sidebar.jsx";
-import { Link } from 'react-router-dom';
 
+// ---------- Helper Functions ----------
 const API_BASE = (import.meta.env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
-// Helper function to construct image URL
 export const getMediaUrl = (p) => {
-  if (!p) return ""; // null/undefined/"" → ""
+  if (!p) return "";
   let s = String(p).replace(/\\/g, "/");
-
-  // if already absolute url
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
-
-  // allow served static paths
   if (s.startsWith("/uploads/") || s.startsWith("/stream/")) {
-    // ถ้ามี API_BASE (ต่าง origin) ให้ prefix
     return API_BASE ? `${API_BASE}${s}` : s;
   }
-
   if (s.startsWith("uploads/")) {
     return API_BASE ? `${API_BASE}/${s}` : `/${s}`;
   }
-
-  // fallback: treat as plain filename under /uploads
   return API_BASE ? `${API_BASE}/uploads/${s}` : `/uploads/${s}`;
 };
 
-// คงตัวนี้ไว้ให้โค้ดเดิมเรียกได้ (เรียกใช้ getMediaUrl ภายใน)
 export const getImageUrl = (imageName) => getMediaUrl(imageName);
-const getDurationDisplay = (workout) => {
-  if (workout.type === "time") {
-    // ✅ เปลี่ยนจาก formatSecondsToTime เป็น formatTimeFromValue
-    return formatTimeFromValue(workout.value);
-  }
-
-  if (workout.type === "reps") {
-    return `${workout.value} ครั้ง`;
-  }
-
-  return String(workout.value || "");
-};
 
 const formatSecondsToTime = (totalSeconds) => {
   const secondsValue = Number(totalSeconds || 0);
-
-  if (secondsValue < 60) {
-    return `${secondsValue} วินาที`;
-  }
-
+  if (secondsValue < 60) return `${secondsValue} วินาที`;
   const minutes = Math.floor(secondsValue / 60);
   const seconds = secondsValue % 60;
-
-  if (seconds === 0) {
-    return `${minutes} นาที`;
-  } else {
-    return `${minutes} นาที ${seconds} วินาที`;
-  }
+  return seconds === 0 ? `${minutes} นาที` : `${minutes} นาที ${seconds} วินาที`;
 };
+
 const convertValueToSeconds = (value) => {
   return Math.round(Number(value || 0) * 60);
 };
+
 const formatTimeFromValue = (value) => {
   const totalSeconds = convertValueToSeconds(value);
   return formatSecondsToTime(totalSeconds);
 };
+
+const getDurationDisplay = (workout) => {
+  if (workout.type === "time") {
+    return formatTimeFromValue(workout.value);
+  }
+  if (workout.type === "reps") {
+    return `${workout.value} ครั้ง`;
+  }
+  return String(workout.value || "");
+};
+
 // ---------- Workout Modal Component ----------
 const WorkoutDetailModal = ({
   workout,
@@ -78,7 +61,6 @@ const WorkoutDetailModal = ({
   totalWorkouts,
   onPrev,
   onNext,
-  // onStartWorkout,
 }) => {
   if (!workout) return null;
 
@@ -87,79 +69,93 @@ const WorkoutDetailModal = ({
   const caloriesValue = workout.caloriesBurned || 0;
   const videoRef = useRef(null);
 
+  // Mock muscle tag for modal
+  const muscleGroups = ["Arms", "Legs", "Chest", "Core", "Core", "Core"];
+  const mockTag = workout.muscleGroup || muscleGroups[(currentIndex - 1) % muscleGroups.length];
+
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    // รีสตาร์ทและสั่งเล่น (muted + playsInline ช่วยให้ autoplay ได้บนมือถือ)
     const playNow = async () => {
       try {
         v.currentTime = 0;
         await v.play();
       } catch (e) {
-        // ถ้าเบราว์เซอร์บล็อก autoplay จะมาที่นี่
         console.debug('autoplay blocked:', e?.message || e);
       }
     };
     playNow();
-    return () => {
-      try { v.pause(); } catch { }
-    };
+    return () => { try { v.pause(); } catch { } };
   }, [workout]);
 
+  const progressPercentage = (currentIndex / totalWorkouts) * 100;
+
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true">
-      <div className="modal-container">
-        <div className="modal-content">
-          <div className="modal-media">
+    <div className="modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+
+        {/* Floating Close Button */}
+        <button className="modal-close-fab" onClick={onClose}>×</button>
+
+        <div className="modal-media-section">
+          <div className="media-wrapper">
             {workout?.videoUrl || workout?.video ? (
               <video
                 ref={videoRef}
-                className="modal-video"
+                className="modal-video-player"
                 src={getMediaUrl(workout.videoUrl || workout.video)}
                 autoPlay
                 muted
                 loop
                 playsInline
-                preload="auto"
-              // ถ้าต้องการภาพปกก่อนเริ่ม ให้คง poster ไว้ แต่สำหรับ autoplay แบบ GIF ไม่จำเป็น
-              // poster={getMediaUrl(workout.imageUrl || workout.image)}
               />
             ) : (
               <img
                 src={getMediaUrl(workout.imageUrl || workout.image)}
                 alt={workout.name}
-                className="modal-image"
+                className="modal-image-display"
               />
+            )}
+            <div className="media-overlay-gradient"></div>
+
+            <div className="modal-progress-bar-container">
+              <div className="modal-progress-track">
+                <div className="modal-progress-fill" style={{ width: `${progressPercentage}%` }}></div>
+              </div>
+              <span className="modal-progress-text">{currentIndex} / {totalWorkouts}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-content-body">
+          <div className="modal-header-row">
+            <h2 className="workout-modal-title">{workout.name}</h2>
+            <span className="modal-muscle-badge">💪 {mockTag}</span>
+          </div>
+
+          <div className="modal-stats-row">
+            <div className="modal-stat-pill">
+              <MdAccessTime /> {durationDisplay}
+            </div>
+            {caloriesValue > 0 && (
+              <div className="modal-stat-pill fire">
+                <AiFillFire /> {caloriesValue} kcal
+              </div>
             )}
           </div>
 
-          <div className="modal-details">
-            <h2 className="workout-modal-name">{workout.name}</h2>
-
-            <div className="modal-stats">
-              <div className="modal-duration-item">
-                <span className="modal-label">จำนวนที่ต้องทำ</span>
-                <span className="modal-value">{durationDisplay}</span>
-              </div>
-              {caloriesValue > 0 && (
-                <div className="modal-calories-item">
-                  <span className="modal-label">เผาผลาญ (โดยประมาณ)</span>
-                  <span className="modal-value">{caloriesValue} kcal</span>
-                </div>
-              )}
-            </div>
-
-            <h3 className="modal-section-title">รายละเอียด</h3>
-            <p className="modal-description">{descriptionText}</p>
+          <div className="modal-desc-section">
+            <h3>คำแนะนำ</h3>
+            <p>{descriptionText}</p>
           </div>
 
-          <div className="modal-footer">
-            <div className="modal-navigation">
-              <button className="nav-btn left" onClick={onPrev} disabled={currentIndex === 1} aria-label="ก่อนหน้า">&lt;</button>
-              <span className="page-info">{currentIndex}/{totalWorkouts}</span>
-              <button className="nav-btn right" onClick={onNext} disabled={currentIndex === totalWorkouts} aria-label="ถัดไป">&gt;</button>
-            </div>
-            <button className="modal-close-btn top-right" onClick={onClose} aria-label="ปิด">×</button>
+          <div className="modal-nav-actions">
+            <button className="nav-circle-btn prev" onClick={onPrev} disabled={currentIndex === 1}>
+              <IoIosArrowBack />
+            </button>
+            <button className="nav-circle-btn next" onClick={onNext} disabled={currentIndex === totalWorkouts}>
+              <IoIosArrowForward />
+            </button>
           </div>
         </div>
       </div>
@@ -242,91 +238,115 @@ function TrainingCard() {
       <Sidebar />
 
       {loading ? (
-        <p>⏳ กำลังโหลด...</p>
+        <div className="detail-loading">
+          <div className="spinner"></div>
+          <p>กำลังโหลดข้อมูล...</p>
+        </div>
       ) : !program ? (
-        <p>ไม่พบข้อมูลการฝึก</p>
+        <div className="detail-error">
+          <p>ไม่พบข้อมูลการฝึก</p>
+          <button onClick={() => navigate(-1)}>ย้อนกลับ</button>
+        </div>
       ) : (
-        <div className="training-card">
-          <div className="content-container">
-            <div className="video-container">
-              {program.image && <img src={getMediaUrl(program.imageUrl || program.image)} alt="Program" />}
+        <div className="detail-page-container">
+          {/* 1. Hero Section (Full Width) */}
+          <div className="detail-hero">
+            <div className="hero-image-wrapper">
+              {program.image && (
+                <img
+                  src={getMediaUrl(program.imageUrl || program.image)}
+                  alt={program.name}
+                  className="hero-bg-image"
+                />
+              )}
+              <div className="hero-overlay"></div>
             </div>
 
-            <div className="info-container">
-              <h2>{program.name}</h2>
-              <p>{program.description}</p>
-              <div className="details">
-                <div className="detail-item">
-                  <span className="icon"><MdAccessTime /></span>
-                  <span className="text">ระยะเวลา</span>
-                  <span className="value">{program.duration} นาที</span>
-                </div>
-                <div className="detail-item">
-                  <span className="icon"><AiFillFire /></span>
-                  <span className="text">เผาผลาญ</span>
-                  <span className="value">{program.caloriesBurned} kcal</span>
+            <div className="hero-content">
+              <button className="back-btn" onClick={() => navigate(-1)}>
+                <span className="back-icon">❮</span> ย้อนกลับ
+              </button>
+
+              <div className="hero-text">
+                <h1 className="program-title-hero">{program.name}</h1>
+                <p className="program-desc-hero">{program.description}</p>
+
+                <div className="hero-badges">
+                  <div className="hero-badge">
+                    <MdAccessTime /> {program.duration} นาที
+                  </div>
+                  <div className="hero-badge fire">
+                    <AiFillFire /> {program.caloriesBurned} kcal
+                  </div>
+                  <div className="hero-badge count">
+                    <IoIosFitness /> {program.workoutList?.length || 0} ท่า
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="workout-list-section">
-            <div className="workout-list-header">
-              <h3>รายการท่าออกกำลังกาย</h3>
+          {/* 2. Content Body */}
+          <div className="detail-body">
+            <div className="workout-section-header">
+              <h3>📋 รายการท่าออกกำลังกาย</h3>
+              <span className="workout-count-label">{program.workoutList?.length} ท่า | ประมาณ {program.duration} นาที</span>
             </div>
-            <ul className="workout-list">
+
+            <div className="workout-card-list">
               {program.workoutList.length > 0 ? (
-                program.workoutList.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="workout-list-item"
-                    onClick={() => handleWorkoutClick(item, idx)}
-                  >
-                    <div className="workout-image-container">
-                      {item?.imageUrl || item?.image ? (
-                        <img
-                          src={getMediaUrl(item?.imageUrl || item?.image)}
-                          alt={item?.name || "exercise"}
-                          className="workout-image"
-                          loading="lazy"
-                        />
-                      ) : item?.videoUrl || item?.video ? (
-                        <video
-                          className="workout-thumb-video"
-                          src={getMediaUrl(item?.videoUrl || item?.video)}
-                          muted
-                          playsInline
-                          preload="metadata"
-                        />
-                      ) : (
-                        <div className="workout-image placeholder" />
-                      )}
+                program.workoutList.map((item, idx) => {
+                  // Mock Muscle Tag based on index/random for demo if data missing
+                  const muscleGroups = ["หน้าแขน", "หน้าขา,ก้น", "อก", "หน้าท้อง", "หลังท้อง", "หน้าท้อง"];
+                  const mockTag = item.muscleGroup || muscleGroups[idx % muscleGroups.length];
+                  const setRepDisplay = item.type === 'time' ? formatTimeFromValue(item.value) : `${item.value} ครั้ง`;
 
-                      {(item?.videoUrl || item?.video) && (
-                        <span className="video-badge">▶</span>
-                      )}
+                  return (
+                    <div
+                      key={idx}
+                      className="workout-card-item"
+                      onClick={() => handleWorkoutClick(item, idx)}
+                    >
+                      <div className="index-number">{String(idx + 1).padStart(2, '0')}</div>
+
+                      <div className="workout-card-image">
+                        {item?.imageUrl || item?.image ? (
+                          <img
+                            src={getMediaUrl(item?.imageUrl || item?.image)}
+                            alt={item?.name}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="placeholder-img" />
+                        )}
+                      </div>
+
+                      <div className="workout-card-info">
+                        <h4 className="workout-card-name">{item?.name || "ท่าออกกำลังกาย"}</h4>
+                        <span className="muscle-tag">{mockTag}</span>
+                      </div>
+
+                      <div className="workout-card-meta">
+                        <span className="workout-meta-value">{setRepDisplay}</span>
+                        {/* <span className="arrow-indicator">➔</span> */}
+                      </div>
                     </div>
-                    <div className="workout-details">
-                      <span className="workout-name">{item?.name || "-"}</span>
-                      <span className="workout-value">
-                        {getDurationDisplay(item)}
-                      </span>
-                    </div>
-
-                  </li>
-                ))
-
+                  );
+                })
               ) : (
-                <li>No workout list found</li>
+                <div className="empty-list">No exercises found</div>
               )}
-            </ul>
-            <Link
-              to={`/WorkoutPlayer/${program._id}`}
-              className="modal-start-btn"
-            >
-              เริ่มออกกำลังกาย
-            </Link>
-            {/* <button className="modal-start-btn" onClick={() => onStartWorkout(workout.name)}>เริ่มออกกำลังกาย</button> */}
+            </div>
+
+            <div className="detail-action-area">
+              <Link
+                to={`/WorkoutPlayer/${program._id}`}
+                className="start-workout-fab-btn"
+              >
+                <span>เริ่มออกกำลังกาย</span>
+                <div className="btn-shine"></div>
+              </Link>
+            </div>
           </div>
 
           {isModalOpen && selectedWorkout && (

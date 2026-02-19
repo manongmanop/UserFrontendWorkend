@@ -590,6 +590,7 @@ const exerciseSchema = new mongoose.Schema({
   caloriesPerRep: { type: Number, default: 0.5 }, // calories per rep
   caloriesPerMinute: { type: Number, default: 5 }, // calories per minute
   muscleGroups: [{ type: String }],
+  muscles: [{ type: String }], // ✅ Added muscles field
   difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
   equipment: [{ type: String }],
   instructions: [{ type: String }],
@@ -641,7 +642,7 @@ app.post('/api/exercises', upload.fields([
   { name: 'video', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const { name, type, description, duration, caloriesBurned, value } = req.body;
+    const { name, type, description, duration, caloriesBurned, value, muscles } = req.body;
 
     let imageUrl = null;
     let videoUrl = null;
@@ -668,6 +669,7 @@ app.post('/api/exercises', upload.fields([
       duration,
       caloriesBurned: parseInt(caloriesBurned) || 0,
       value: value ? JSON.parse(value) : null,
+      muscles: muscles ? (Array.isArray(muscles) ? muscles : JSON.parse(muscles)) : [], // ✅ Save muscles
       image: imagePath,     // เก็บ path
       video: videoPath,     // เก็บ path
       imageUrl: imageUrl,   // เก็บ URL
@@ -689,7 +691,7 @@ app.put('/api/exercises/:id', upload.fields([
   { name: 'video', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const { name, type, description, duration, caloriesBurned, value } = req.body;
+    const { name, type, description, duration, caloriesBurned, value, muscles } = req.body;
 
     // หาข้อมูลเดิม
     const existingExercise = await Exercise.findById(req.params.id);
@@ -703,6 +705,7 @@ app.put('/api/exercises/:id', upload.fields([
       description: description ?? existing.description,
       duration: (duration !== undefined ? Number(duration) : existing.duration),
       caloriesBurned: (caloriesBurned !== undefined ? Number(caloriesBurned) : existing.caloriesBurned),
+      muscles: muscles ? (Array.isArray(muscles) ? muscles : JSON.parse(muscles)) : existing.muscles, // ✅ Update muscles
     };
 
     // อัพเดทรูปภาพหากมีการอัปโหลดใหม่

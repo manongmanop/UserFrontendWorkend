@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AiOutlineSearch } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlineClockCircle } from "react-icons/ai";
 import { IoFitnessOutline } from "react-icons/io5";
-import { BsLightning } from "react-icons/bs";
+import { BsLightning, BsFire, BsArrowRight } from "react-icons/bs";
 import { useUserAuth } from "../../../context/UserAuthContext";
 import { doc, getDoc } from 'firebase/firestore'; // เพิ่ม import สำหรับ Firestore
 import { db } from '../../../../firebase'; // ต้องเพิ่ม import ตัวนี้ด้วย
@@ -202,40 +202,53 @@ export const Top = () => {
                 </div>
               </div>
             ) : filteredPrograms.length > 0 ? (
-              filteredPrograms.map((program, index) => (
-                <div
-                  key={program?._id || index}
-                  className="workout-card"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="card-header"></div>
-                  <div className="card-image-container">
-                    <img
-                      src={
-                        program?.image
-                          ? `/${program.image.replace(/\\/g, "/")}`
-                          : "/default.jpg"
-                      }
-                      alt={program?.name}
-                      className="card-image"
-                    />
+              filteredPrograms.map((program, index) => {
+                // Mock stats if not available in program object
+                const duration = program.duration || Math.floor(Math.random() * 30 + 15) + " นาที";
+                const calories = program.calories || Math.floor(Math.random() * 200 + 100) + " kcal";
+
+                return (
+                  <div
+                    key={program?._id || index}
+                    className="workout-card"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className="card-image-wrapper">
+                      <img
+                        src={
+                          program?.image
+                            ? `/${program.image.replace(/\\/g, "/")}`
+                            : "/default.jpg"
+                        }
+                        alt={program?.name}
+                        className="card-image"
+                      />
+                      <div className="card-badges-overlay">
+                        <span className="badge-overlay time"><AiOutlineClockCircle /> {duration}</span>
+                        <span className="badge-overlay calories"><BsFire /> {calories}</span>
+                      </div>
+                    </div>
+
+                    <div className="card-content">
+                      <div className="card-info">
+                        <div className="header-row">
+                          <h3 className="program-name">{program?.name}</h3>
+                        </div>
+                        <p className="program-description">
+                          {program?.description || "Transform your body with this amazing workout routine"}
+                        </p>
+                      </div>
+
+                      <div className="card-actions">
+                        <Link to={`/detail/${program?._id}`} className="start-program-btn">
+                          <span>เริ่มโปรแกรม</span>
+                          <BsArrowRight className="arrow-icon" />
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="card-body">
-                    <h3 className="program-name">{program?.name}</h3>
-                    <p className="program-description">
-                      {program?.description || "Transform your body with this amazing workout routine"}
-                    </p>
-
-                    <Link to={`/detail/${program?._id}`} className="start-workout-btn">
-                      <span>สำรวจโปรแกรม</span>
-                      <div className="btn-glow"></div>
-                    </Link>
-                  </div>
-
-                  <div className="card-glow"></div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="no-results">
                 <p>ไม่พบโปรแกรมที่ตรงกับการค้นหา</p>
