@@ -24,7 +24,6 @@ import Detail from './components/Detail Section/Detail/Detail.jsx'
 import WorkoutPlayer from './components/WorkoutPlay/WorkoutPlayer.jsx'
 import SummaryProgram from './components/WorkoutPlay/SummaryProgram.jsx'
 import WorkoutHistory from './components/WorkoutPlay/WorkoutHistory.jsx' // ✅ ตรวจสอบ path ให้ถูก
-import SingleExercisePlayer from './components/Body Section/BottomSection/SingleExercisePlayer.jsx'
 // Pose Detectors (ถ้ายังใช้อยู่)
 import PoseDetector from './PoseDetector.jsx'
 import Dumbbell from './Dumbbell.jsx'
@@ -57,7 +56,6 @@ const router = createBrowserRouter([
   { path: "/WorkoutPlayer/:programId", element: <ProtectedRoute><WorkoutPlayer /></ProtectedRoute> },
   { path: "/summary/program/:uid", element: <ProtectedRoute><SummaryProgram /></ProtectedRoute> },
   { path: "/history/:uid", element: <ProtectedRoute><WorkoutHistory /></ProtectedRoute> }, // ✅ Route นี้ถูกต้อง เชื่อมกับปุ่มในหน้า Summary
-  { path: "/play-exercise/:exerciseId", element: <SingleExercisePlayer /> },
 
   // Specific Detectors (ถ้าจำเป็น)
   { path: "/PoseDetector", element: <ProtectedRoute><PoseDetector /></ProtectedRoute> },
