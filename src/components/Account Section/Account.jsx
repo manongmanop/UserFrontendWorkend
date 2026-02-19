@@ -43,6 +43,7 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
 function Account() {
   const { user, logOut } = useUserAuth();
   const [height, setHeight] = useState('');

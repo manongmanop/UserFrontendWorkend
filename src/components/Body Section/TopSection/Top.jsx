@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { AiOutlineSearch } from "react-icons/ai";
 import { IoFitnessOutline } from "react-icons/io5";
 import { BsLightning } from "react-icons/bs";
+import { FaBars, FaDumbbell } from "react-icons/fa"; // Importing FaBars and FaDumbbell
 import { useUserAuth } from "../../../context/UserAuthContext";
-import { doc, getDoc } from 'firebase/firestore'; // เพิ่ม import สำหรับ Firestore
-import { db } from '../../../../firebase'; // ต้องเพิ่ม import ตัวนี้ด้วย
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../../../firebase';
 import "./top.css";
 import "../../style/global.css";
 export const Top = () => {
@@ -15,41 +16,41 @@ export const Top = () => {
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All"); // default เป็น All
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [userStats, setUserStats] = useState({ caloriesBurned: 0, workoutsDone: 0 });
 
   // ดึงชื่อจาก Firestore และสถิติผู้ใช้จาก MongoDB
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.uid) return;
-      
+
       try {
         // 1. ดึงข้อมูลจาก Firestore ก่อน
         let firestoreName = "";
         try {
           const docRef = doc(db, 'users', user.uid);
           const docSnap = await getDoc(docRef);
-          
+
           if (docSnap.exists() && docSnap.data().name) {
             firestoreName = docSnap.data().name;
           }
         } catch (firestoreError) {
           console.error("Error fetching user data from Firestore:", firestoreError);
         }
-        
+
         // 2. ดึงข้อมูลจาก MongoDB
         try {
           const response = await fetch(`/api/users/${user.uid}`);
           if (response.ok) {
             const data = await response.json();
-            
+
             // เลือกชื่อตามลำดับความสำคัญ: Firestore > MongoDB > Auth > Email
-            const finalName = 
-              firestoreName || 
-              data?.name || 
-              user.displayName || 
+            const finalName =
+              firestoreName ||
+              data?.name ||
+              user.displayName ||
               (user.email ? user.email.split("@")[0] : "ไม่ทราบชื่อ");
-            
+
             setDisplayName(finalName);
             setUserStats({
               caloriesBurned: data.caloriesBurned || 0,
@@ -60,7 +61,7 @@ export const Top = () => {
           }
         } catch (mongoError) {
           console.error("Error fetching user data from MongoDB:", mongoError);
-          
+
           // ถ้าดึงข้อมูลจาก MongoDB ไม่ได้ แต่มีชื่อจาก Firestore แล้ว
           if (firestoreName) {
             setDisplayName(firestoreName);
@@ -75,7 +76,7 @@ export const Top = () => {
         setDisplayName(user.displayName || (user.email ? user.email.split("@")[0] : "ไม่ทราบชื่อ"));
       }
     };
-    
+
     fetchUserData();
   }, [user]);
 
@@ -104,62 +105,72 @@ export const Top = () => {
 
   const filteredPrograms = programs.filter((program) => {
     // เพิ่มการค้นหาด้วย searchTerm
-    const matchesSearch = searchTerm === "" || 
+    const matchesSearch = searchTerm === "" ||
       (program.name && program.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (program.description && program.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     // กรองตามหมวดหมู่
-    const matchesCategory = selectedCategory === "All" || 
+    const matchesCategory = selectedCategory === "All" ||
       (program.category && program.category.trim().toLowerCase() === selectedCategory.trim().toLowerCase());
-    
+
     return matchesSearch && matchesCategory;
   });
 
   return (
     <div className="top">
       <div className="hero-section">
-        <div className="hero-background">
-          <div className="gradient-orb orb-1"></div>
-          <div className="gradient-orb orb-2"></div>
-          <div className="gradient-orb orb-3"></div>
-        </div>
-
-        <div className="topDiv">
-          <div className="titleText">
-            <div className="greeting-container">
-              <span className="greeting-emoji">💪</span>
-              <span className="title">ยินดีต้อนรับ {displayName}!</span>
-            </div>
-            <h2 className="today-plan-title">
-              พร้อมที่จะ <span className="highlight">ออกกำลังกาย</span>?
-            </h2>
-            <p className="motivation-text">มาขยับร่างกายกันดีกว่า!</p>
+        <div className="hero-container">
+          <div className="hero-background-effects">
+            <div className="effect-orb orb-top-right"></div>
+            <div className="effect-orb orb-bottom-center"></div>
           </div>
 
-          <div className="search-container">
-            <div className="searchInput">
+          {/* 1. Header Row */}
+          <div className="header-row">
+            <button className="menu-btn-circle">
+              <FaBars />
+            </button>
+            <div className="search-bar-rounded">
               <AiOutlineSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="Search workouts..."
+                placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <div className="search-glow"></div>
             </div>
           </div>
-        </div>
 
-        <div className="category-filter">
-          {categories.map(({ label, value }) => (
-            <button
-              key={value}
-              className={`category-btn ${selectedCategory === value ? "active" : ""}`}
-              onClick={() => setSelectedCategory(value)}
-            >
-              {label}
+          {/* 2. Hero Content */}
+          <div className="hero-content">
+            <div className="greeting-text">
+              <span className="emoji">💛</span> ยินดีต้อนรับ {displayName}!
+            </div>
+            <h1 className="main-title">
+              พร้อมที่จะ <span className="gradient-text">ออกกำลังกาย?</span>
+            </h1>
+            <p className="sub-title">มาสร้างร่างกายที่แข็งแกร่งกันดีกว่า!</p>
+          </div>
+
+          {/* 3. Program Highlight Card */}
+          <div className="program-highlight-card">
+            <div className="active-strip"></div>
+            <div className="highlight-icon">
+              <FaDumbbell />
+            </div>
+            <div className="highlight-details">
+              <h4>Full Body Power</h4>
+              <p>สร้างกล้ามเนื้อทุกส่วน</p>
+            </div>
+            <div className="highlight-stats">
+              <span className="stat-gradient">30 วัน</span>
+              <span className="stat-divider">/</span>
+              <span className="stat-gradient">45 นาที</span>
+            </div>
+            <button className="explore-btn-gradient">
+              สำรวจโปรแกรม
             </button>
-          ))}
+          </div>
         </div>
       </div>
 

@@ -36,6 +36,27 @@ const WorkoutStats = ({ userData, workoutHistory = [] }) => {
         const weeklyGoal = userData?.weeklyGoal || 3;
         const workoutsDoneWeek = thisWeekWorkouts.length;
 
+        // Calculate Last Week's Stats
+        const startOfLastWeek = new Date(startOfWeek);
+        startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+        const endOfLastWeek = new Date(endOfWeek);
+        endOfLastWeek.setDate(endOfLastWeek.getDate() - 7);
+
+        const lastWeekWorkouts = workoutHistory.filter(h => {
+            const d = new Date(h.finishedAt);
+            return d >= startOfLastWeek && d <= endOfLastWeek;
+        });
+
+        const workoutsDoneLastWeek = lastWeekWorkouts.length;
+        let percentageChange = 0;
+
+        if (workoutsDoneLastWeek === 0) {
+            percentageChange = workoutsDoneWeek > 0 ? 100 : 0;
+        } else {
+            percentageChange = ((workoutsDoneWeek - workoutsDoneLastWeek) / workoutsDoneLastWeek) * 100;
+        }
+
         // Map weekdays (Mon=0 to Sun=6)
         const weeklyPattern = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
         thisWeekWorkouts.forEach(h => {
@@ -50,7 +71,8 @@ const WorkoutStats = ({ userData, workoutHistory = [] }) => {
             workoutsDoneWeek,
             weeklyGoal,
             weeklyPattern,
-            totalWorkouts: workoutHistory.length
+            totalWorkouts: workoutHistory.length,
+            percentageChange
         };
     }, [userData, workoutHistory]);
 
@@ -111,7 +133,9 @@ const DashboardCards = ({ stats }) => {
                     <div className="divider"></div>
                     <div className="secondary-info">
                         <div>📅 สัปดาห์นี้: {stats.workoutsDoneWeek} ครั้ง</div>
-                        <div className="trend positive">📈 เพิ่มขึ้นจากสัปดาห์ก่อน (Mock)</div>
+                        <div className={`trend ${stats.percentageChange >= 0 ? 'positive' : 'negative'}`}>
+                            {stats.percentageChange >= 0 ? '📈' : '📉'} {Math.abs(stats.percentageChange).toFixed(0)}% {stats.percentageChange >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}จากสัปดาห์ก่อน
+                        </div>
                     </div>
                 </div>
             </div>
