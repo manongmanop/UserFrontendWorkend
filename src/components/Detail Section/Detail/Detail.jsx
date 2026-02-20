@@ -70,7 +70,9 @@ const WorkoutDetailModal = ({
   const videoRef = useRef(null);
 
   // ✅ Fetch exclusively from document's 'muscles' array
-  const rawTag = workout.exercise?.muscles || workout.muscles || [];
+  const rawTag = workout.exercise && workout.exercise.muscles
+    ? workout.exercise.muscles
+    : workout.muscles || [];
 
   const muscleTags = Array.isArray(rawTag)
     ? rawTag.flatMap(t => t.split(",").map(s => s.trim()).filter(Boolean))
@@ -308,7 +310,9 @@ function TrainingCard() {
               {program.workoutList.length > 0 ? (
                 program.workoutList.map((item, idx) => {
                   // ✅ Fetch exclusively from document's 'muscles' array
-                  const rawTag = item.exercise?.muscles || item.muscles || [];
+                  const rawTag = item.exercise && item.exercise.muscles
+                    ? item.exercise.muscles
+                    : item.muscles || [];
 
                   const muscleTags = Array.isArray(rawTag)
                     ? rawTag.flatMap(t => t.split(",").map(s => s.trim()).filter(Boolean))

@@ -807,7 +807,8 @@ app.get('/api/workout_programs', async (req, res) => {
         image: item.exercise?.image,
         imageUrl: item.exercise?.imageUrl,
         type: item.exercise?.type,
-        value: item.exercise?.value
+        value: item.exercise?.value,
+        muscles: item.exercise?.muscles // ✅ Ensure muscles is passed to frontend
       }))
     }));
     res.json(formattedPrograms);
@@ -819,7 +820,7 @@ app.get('/api/workout_programs', async (req, res) => {
 app.get("/api/workout_programs/:id", async (req, res) => {
   try {
     const program = await WorkoutProgram.findById(req.params.id)
-      .populate({ path: "workoutList.exercise", select: "name description tips type value time duration image video caloriesBurned" })
+      .populate({ path: "workoutList.exercise", select: "name description tips type value time duration image video caloriesBurned muscles" })
       .lean();
     if (!program) return res.status(404).json({ message: "Program not found" });
 
@@ -831,7 +832,8 @@ app.get("/api/workout_programs/:id", async (req, res) => {
         name: ex.name, type: ex.type, value: Number(targetValue),
         image: (ex.image || "").replace(/\\/g, "/"),
         video: (ex.video || "").replace(/\\/g, "/"),
-        description: ex.description, tips: ex.tips, caloriesBurned: ex.caloriesBurned
+        description: ex.description, tips: ex.tips, caloriesBurned: ex.caloriesBurned,
+        muscles: ex.muscles // ✅ Ensure muscles is passed to frontend
       };
     });
     const image = (program.image || "").replace(/\\/g, "/");
