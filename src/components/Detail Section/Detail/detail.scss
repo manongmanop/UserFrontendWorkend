@@ -131,6 +131,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  margin-bottom: 25px ;
 }
 
 .hero-badge {
@@ -226,7 +227,7 @@ body {
 .index-number {
   font-size: 2rem;
   font-weight: 900;
-  color: #f1f5f9;
+  color: var(--primary-color);
   min-width: 50px;
   text-align: center;
   margin-right: 0.5rem;
@@ -472,8 +473,8 @@ body {
 .modal-muscle-badge {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--primary-color);
-  background: #eff6ff;
+  color: var(--secondary-color);
+  background: #e0f2fe;
   padding: 0.3rem 0.8rem;
   border-radius: 12px;
 }

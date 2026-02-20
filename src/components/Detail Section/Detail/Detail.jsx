@@ -70,8 +70,16 @@ const WorkoutDetailModal = ({
   const videoRef = useRef(null);
 
   // Mock muscle tag for modal
-  const muscleGroups = ["Arms", "Legs", "Chest", "Core", "Core", "Core"];
-  const mockTag = workout.muscleGroup || muscleGroups[(currentIndex - 1) % muscleGroups.length];
+  const muscleGroups = ["Arms", "Legs, Glutes", "Chest", "Core", "Back", "Shoulders"];
+
+  // ✅ Prioritize 'muscles' array from document
+  const rawTag = workout.exercise?.muscles || workout.muscles || workout.muscleGroup || workout.exercise?.muscleGroups || muscleGroups[(currentIndex - 1) % muscleGroups.length];
+
+  const muscleTags = Array.isArray(rawTag)
+    ? rawTag.flatMap(t => t.split(",").map(s => s.trim()).filter(Boolean))
+    : typeof rawTag === "string"
+      ? rawTag.split(",").map(s => s.trim()).filter(Boolean)
+      : [];
 
   useEffect(() => {
     const v = videoRef.current;
@@ -130,7 +138,13 @@ const WorkoutDetailModal = ({
         <div className="modal-content-body">
           <div className="modal-header-row">
             <h2 className="workout-modal-title">{workout.name}</h2>
-            <span className="modal-muscle-badge">💪 {mockTag}</span>
+            <div className="modal-muscle-badges" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {muscleTags.length > 0 ? muscleTags.map((tag, i) => (
+                <span key={i} className="modal-muscle-badge">{tag}</span>
+              )) : (
+                <span className="modal-muscle-badge">กล้ามเนื้อ</span>
+              )}
+            </div>
           </div>
 
           <div className="modal-stats-row">
@@ -297,8 +311,17 @@ function TrainingCard() {
               {program.workoutList.length > 0 ? (
                 program.workoutList.map((item, idx) => {
                   // Mock Muscle Tag based on index/random for demo if data missing
-                  const muscleGroups = ["หน้าแขน", "หน้าขา,ก้น", "อก", "หน้าท้อง", "หลังท้อง", "หน้าท้อง"];
-                  const mockTag = item.muscleGroup || muscleGroups[idx % muscleGroups.length];
+                  const muscleGroups = ["หน้าแขน", "หน้าขา", "อก", "หน้าท้อง", "หลัง", "ไหล่"];
+
+                  // ✅ Prioritize 'muscles' array from document
+                  const rawTag = item.exercise?.muscles || item.muscles || item.muscleGroup || item.exercise?.muscleGroups || muscleGroups[idx % muscleGroups.length];
+
+                  const muscleTags = Array.isArray(rawTag)
+                    ? rawTag.flatMap(t => t.split(",").map(s => s.trim()).filter(Boolean))
+                    : typeof rawTag === "string"
+                      ? rawTag.split(",").map(s => s.trim()).filter(Boolean)
+                      : [];
+
                   const setRepDisplay = item.type === 'time' ? formatTimeFromValue(item.value) : `${item.value} ครั้ง`;
 
                   return (
@@ -323,7 +346,13 @@ function TrainingCard() {
 
                       <div className="workout-card-info">
                         <h4 className="workout-card-name">{item?.name || "ท่าออกกำลังกาย"}</h4>
-                        <span className="muscle-tag">{mockTag}</span>
+                        <div className="muscle-tags-container" style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                          {muscleTags.length > 0 ? muscleTags.map((tag, i) => (
+                            <span key={i} className="muscle-tag">{tag}</span>
+                          )) : (
+                            <span className="muscle-tag">กล้ามเนื้อ</span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="workout-card-meta">
