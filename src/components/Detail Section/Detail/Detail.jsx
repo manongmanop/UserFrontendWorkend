@@ -69,11 +69,8 @@ const WorkoutDetailModal = ({
   const caloriesValue = workout.caloriesBurned || 0;
   const videoRef = useRef(null);
 
-  // Mock muscle tag for modal
-  const muscleGroups = ["Arms", "Legs, Glutes", "Chest", "Core", "Back", "Shoulders"];
-
-  // ✅ Prioritize 'muscles' array from document
-  const rawTag = workout.exercise?.muscles || workout.muscles || workout.muscleGroup || workout.exercise?.muscleGroups || muscleGroups[(currentIndex - 1) % muscleGroups.length];
+  // ✅ Fetch exclusively from document's 'muscles' array
+  const rawTag = workout.exercise?.muscles || workout.muscles || [];
 
   const muscleTags = Array.isArray(rawTag)
     ? rawTag.flatMap(t => t.split(",").map(s => s.trim()).filter(Boolean))
@@ -310,11 +307,8 @@ function TrainingCard() {
             <div className="workout-card-list">
               {program.workoutList.length > 0 ? (
                 program.workoutList.map((item, idx) => {
-                  // Mock Muscle Tag based on index/random for demo if data missing
-                  const muscleGroups = ["หน้าแขน", "หน้าขา", "อก", "หน้าท้อง", "หลัง", "ไหล่"];
-
-                  // ✅ Prioritize 'muscles' array from document
-                  const rawTag = item.exercise?.muscles || item.muscles || item.muscleGroup || item.exercise?.muscleGroups || muscleGroups[idx % muscleGroups.length];
+                  // ✅ Fetch exclusively from document's 'muscles' array
+                  const rawTag = item.exercise?.muscles || item.muscles || [];
 
                   const muscleTags = Array.isArray(rawTag)
                     ? rawTag.flatMap(t => t.split(",").map(s => s.trim()).filter(Boolean))
