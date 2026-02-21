@@ -458,7 +458,6 @@ app.post('/api/users', async (req, res) => {
     console.error('Error creating user:', error);
     res.status(500).json({ error: 'ไม่สามารถสร้างผู้ใช้ได้' });
   }
-  res.status(500).json({ error: 'ไม่สามารถสร้างผู้ใช้ได้' });
 });
 
 // PUT: อัปเดตข้อมูลผู้ใช้ (ใช้สำหรับ Onboarding หรือแก้ไขโปรไฟล์)
