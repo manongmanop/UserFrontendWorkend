@@ -78,8 +78,8 @@ function CameraGuide({ mode = "gate", images = [], onAccept, onClose }) {
       <div className="guide-overlay" role="dialog" aria-modal="true">
         <div className="guide-card">
           <div className="guide-header">
-            <h2 className="guide-title">คำแนะนำในการตั้งกล้องก่อนเริ่ม</h2>
-            <p className="guide-subtitle">วางกล้องระดับเอว–หน้าอก มุมมองด้านข้าง ให้เห็นเต็มตัว</p>
+            <h2 className="guide-title">คำแนะนำในการตั้งกล้อง (ทำแค่ครั้งเดียว!)</h2>
+            <p className="guide-subtitle">ตั้งกล้องแบบ "ครอบจักรวาล" เพื่อให้ AI ตรวจจับได้ครบทุกท่ายืนและท่านอน</p>
             {mode === "peek" && <button type="button" className="guide-close-btn" onClick={onClose}>×</button>}
           </div>
           <div className="guide-body">
@@ -93,11 +93,30 @@ function CameraGuide({ mode = "gate", images = [], onAccept, onClose }) {
               </div>
             )}
             <div className="guide-checklist">
-              <div className="guide-item"><div className="guide-icon">📷</div><div><div className="guide-text"><b>ตั้งกล้องกึ่งกลางลำตัวด้านข้าง</b></div><div className="guide-sub">ห่าง 2–3 เมตร เพื่อเก็บเต็มตัว</div></div></div>
-              <div className="guide-item"><div className="guide-icon">💡</div><div><div className="guide-text">แสงสว่างพอ</div><div className="guide-sub">ฉากหลังโล่ง เสื้อผ้าตัดกับฉากหลัง</div></div></div>
+              <div className="guide-item">
+                <div className="guide-icon">📏</div>
+                <div>
+                  <div className="guide-text"><b>ระยะห่าง 2 เมตร & ความสูงระดับเอว</b></div>
+                  <div className="guide-sub">ถอยหลังให้เห็นเต็มตัว และวางกล้องระดับเอว (ประมาณ 1 เมตรจากพื้น)</div>
+                </div>
+              </div>
+              <div className="guide-item">
+                <div className="guide-icon">📐</div>
+                <div>
+                  <div className="guide-text"><b>หันด้านข้าง หรือ เฉียง 45 องศา</b></div>
+                  <div className="guide-sub">หันด้านข้างเข้าหากล้องเสมอ เพื่อให้ AI เห็นการพับของข้อต่อชัดเจนที่สุด</div>
+                </div>
+              </div>
+              <div className="guide-item">
+                <div className="guide-icon">💡</div>
+                <div>
+                  <div className="guide-text"><b>แสงสว่าง & พื้นที่โล่ง</b></div>
+                  <div className="guide-sub">หลีกเลี่ยงการย้อนแสง และสวมใส่เสื้อผ้าที่สีตัดกับฉากหลัง</div>
+                </div>
+              </div>
             </div>
           </div>
-          {mode === "gate" && <div className="guide-actions"><button type="button" className="guide-accept-btn" onClick={onAccept}>ฉันเข้าใจแล้ว เริ่มเลย</button></div>}
+          {mode === "gate" && <div className="guide-actions"><button type="button" className="guide-accept-btn" onClick={onAccept}>ฉันจัดมุมกล้องตามนี้แล้ว เริ่มเลย!</button></div>}
         </div>
       </div>
       {preview != null && (

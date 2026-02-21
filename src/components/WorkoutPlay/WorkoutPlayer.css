@@ -754,13 +754,15 @@ canvas.wp-media {
   width: 100vw;
   z-index: 2000;
   background-color: #ffffff;
-  border-top-left-radius: 17.6px; /* 16px + 10% */
+  border-top-left-radius: 17.6px;
   border-top-right-radius: 17.6px;
-  box-shadow: 0 -5.5px 22px rgba(0, 0, 0, 0.15); /* +10% */
+  box-shadow: 0 -5.5px 22px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   transform: translateY(0);
-  padding: 4.4px 6.6px 6.6px 6.6px; /* +10% */
-  min-height: 39.6px; /* 36px + 10% */
+  /* นำ padding ด้านล่างและ margin ส่วนเกินออก */
+  padding: 4.4px 6.6px 0 6.6px;
+  padding-bottom: env(safe-area-inset-bottom); /* รองรับ iPhone notch */
+  margin-bottom: 0;
 }
 
 .wp-controls.is-collapsed {
@@ -1528,16 +1530,17 @@ canvas.wp-media {
     gap: var(--space-xl);
   }
   .media-content {
-    gap: 0.75rem;
-    padding: 1rem 0;
-    flex-direction: column; /* มือถือเรียงแนวตั้ง */
+    flex-direction: column; /* มือถือ/แท็บเล็ตแนวตั้งเรียงลง */
+    height: auto;
+    gap: var(--space-md);
   }
   .exercise-video,
   .camera-video-wrapper {
     width: 100%; /* เต็มจอ */
-    aspect-ratio: 16/9; /* เปลี่ยนเป็น Wide screen */
+    aspect-ratio: 4/3; /* ให้เป็น 4:3 เสมอเพื่อให้ overlay ทำงานได้ดีที่สุด */
   }
   .wp-controls {
+    flex-direction: row;
     padding: var(--space-xl);
   }
 }
@@ -1546,11 +1549,23 @@ canvas.wp-media {
   .wp-main {
     padding: var(--space-xl) var(--space-xl) var(--space-lg);
   }
+  .media-content {
+    flex-direction: row; /* จอใหญ่ให้เรียงแนวนอน */
+    align-items: center;
+    justify-content: center;
+    height: 70vh; /* จำกัดความสูงไม่ให้ล้นจอจนเกินไป */
+    gap: 1.5rem;
+  }
+  .exercise-video,
+  .camera-video-wrapper {
+    width: 48%; /* แบ่งครึ่งเท่าๆ กัน */
+    max-width: 800px;
+    height: auto;
+    aspect-ratio: 4/3;
+    flex: 0 0 auto;
+  }
   .wp-exercise-header {
     margin-bottom: var(--space-md);
-  }
-  .wp-media-container {
-    grid-template-columns: 1fr 1fr;
   }
 }
 /* Extra large (≥1200px) */
@@ -1560,14 +1575,6 @@ canvas.wp-media {
   }
   .media-content {
     gap: 2rem;
-    height: auto;
-    flex-wrap: wrap; /* ย่อหน้าจอแล้วตบลงมา */
-  }
-  .exercise-video,
-  .camera-video-wrapper {
-    width: 35%; /* แบ่งครึ่งหน้าจอ */
-    aspect-ratio: 21/9; /* กลับมาเป็น 4:3 */
-    flex: none; /* ปิด flex grow เพื่อให้ขนาดเท่ากัน */
   }
   .video-label {
     bottom: 0.75rem;
@@ -1671,29 +1678,63 @@ canvas.wp-media {
 /* ===== Landscape / Low-height fixes (แนวนอนจอเตี้ย) ===== */
 @media (orientation: landscape) and (max-height: 500px) {
   .wp-main {
-    padding: var(--space-sm);
+    padding: 0 var(--space-xs); /* ลด padding เหลือแค่ขอบซ้ายขวา บนล่างเอาออก */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden; /* บังคับไม่ให้ scroll ในหน้าต่างหลัก */
   }
-  .wp-media-container {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-md);
+  .media-content {
+    flex-direction: row; /* แนวนอนจอเตี้ยให้เรียงข้างๆ กัน */
+    flex: 1; /* ขยายให้เต็มพื้นที่ที่เหลือ */
+    min-height: 0; /* ป้องกัน flex blowout */
+    max-height: 70vh; /* บีบขนาดกล่องวิดีโอรวมไม่ให้ทะลุจอ */
+    gap: var(--space-sm);
+    justify-content: center;
+    align-items: stretch;
+  }
+  .exercise-video,
+  .camera-video-wrapper {
+    width: 48%; /* แบ่งครึ่ง */
+    height: 100%; /* ให้วิดีโอย่อตามขนาดกล่องแม่ */
+    max-height: 100%;
+    -o-object-fit: contain;
+       object-fit: contain; /* รักษาสัดส่วนวิดีโอ ให้อยู่ในกรอบ */
+    aspect-ratio: auto; /* ปลด 4:3 ออกชั่วคราว เพื่อให้ยืดตามจอเตี้ยได้ */
   }
   .wp-exercise-header {
-    margin-top: var(--space-sm);
-    margin-bottom: var(--space-sm);
+    margin: 0;
+    padding: 2px 0; /* ลดช่องว่างของหัวข้อท่าลงให้เหลือแค่นิดเดียว */
   }
-  .guide-card {
-    max-height: 96vh;
-    border-radius: var(--radius-lg);
+  .wp-header {
+    padding: 2px var(--space-xs); /* ย่อแถบด้านบนสุด (ปุ่มย้อนกลับ) */
+    min-height: 30px;
   }
-  .guide-header {
-    padding: 14px;
+  /* ย่อข้อความลงอีก */
+  .wp-program-title {
+    font-size: 0.85rem;
   }
-  .guide-body {
-    padding: var(--space-sm);
-    gap: var(--space-sm);
+  .wp-exercise-title {
+    font-size: 1.1rem;
+    margin: 0;
   }
-  .guide-image {
-    max-height: 60vh;
+  .wp-exercise-stat-value {
+    font-size: 1.25rem; /* ย่อเลขวินาที/จำนวนครั้ง */
+  }
+  .wp-controls {
+    position: static; /* เลิก fix ไว้ข้างล่าง ดันให้เป็น flow ปกติ */
+    padding: var(--space-xs);
+    box-shadow: none;
+  }
+  .wp-controls-body {
+    padding: 0;
+  }
+  .wp-control-btn {
+    min-height: 36px;
+  }
+  .wp-control-btn-circle {
+    width: 44px;
+    height: 44px;
   }
   .guide-actions {
     padding: var(--space-sm);
@@ -1705,8 +1746,9 @@ canvas.wp-media {
 }
 @media (max-width: 768px) {
   .wp-container {
-    height: 100dvh;
     min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
   }
   .wp-main {
     padding: var(--space-md);
@@ -1716,19 +1758,33 @@ canvas.wp-media {
     gap: var(--space-md);
   }
   .wp-controls {
-    gap: calc(var(--space-sm) * 1.1);
-    padding: calc(var(--space-md) * 1.1);
-    flex-direction: column;
+    padding: var(--space-md) var(--space-md) 0 var(--space-md);
+    padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
   }
-  .wp-control-btn {
-    width: 100%;
-    justify-content: center;
+  .wp-controls-body {
+    flex-direction: row; /* ให้ปุ่มเรียงแนวนอน */
+    gap: var(--space-sm);
+    justify-content: space-between;
   }
+  /* ให้ปุ่มกลับ/ถัดไปแสดงเฉพาะไอคอนและยุบขนาดลง */
+  .wp-control-btn-secondary,
+  .wp-control-btn-primary {
+    min-width: 44px; /* พอดีนิ้วกด */
+    width: auto;
+    padding: 8px;
+  }
+  /* ตัวหนังสือในปุ่มซ่อนไป ให้เน้นใช้ไอคอนตอนจอเล็ก */
   .wp-control-btn span {
     display: none;
   }
   .wp-control-btn svg {
     margin: 0 auto;
+  }
+  /* วงกลม Play/Pause ยังคงต้องกลมและไม่โดนบีบ/ถ่าง */
+  .wp-control-btn-circle {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
   }
 }
 /* ==================== Accessibility ==================== */
@@ -1770,11 +1826,11 @@ canvas.wp-media {
   }
 }
 /* ==================== Viewport Fit Overrides ==================== */
-/* Keep the whole player within the viewport without page scroll */
+/* Keep the whole player within the viewport, but allow scrolling if needed */
 .wp-container {
-  height: 100svh;
   min-height: 100svh;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .wp-container > main {
@@ -1816,7 +1872,7 @@ canvas.wp-canvas,
   max-width: 100%;
   max-height: 100%;
   width: auto;
-  height: auto;
+  height: 70vh;
   -o-object-fit: contain;
      object-fit: contain;
-}/*# sourceMappingURL=WorkoutPlayer.css.map */
+}/*# sourceMappingURL=workoutPlayer.css.map */

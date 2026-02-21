@@ -80,7 +80,7 @@ function HistoryCard({ data, index }) {
             </div>
             <div className="stat-pill-kcal">
               <Flame size={14} />
-              <span>{data.caloriesBurned} kcal</span>
+              <span>{data.caloriesBurned ? Number(data.caloriesBurned).toFixed(2) : "0.00"} kcal</span>
             </div>
             <div className="stat-pill-exercises">
               <Dumbbell size={14} />
@@ -107,7 +107,7 @@ function FilterPanel({ filters, onFilterChange, histories }) {
     const totalWorkouts = histories.length;
     const totalCalories = histories.reduce((sum, h) => sum + (h.caloriesBurned || 0), 0);
     const totalSeconds = histories.reduce((sum, h) => sum + (h.totalSeconds || 0), 0);
-    const avgCalories = totalWorkouts > 0 ? Math.round(totalCalories / totalWorkouts) : 0;
+    const avgCalories = totalWorkouts > 0 ? (totalCalories / totalWorkouts) : 0;
 
     return { totalWorkouts, totalCalories, totalSeconds, avgCalories };
   }, [histories]);
@@ -121,7 +121,7 @@ function FilterPanel({ filters, onFilterChange, histories }) {
           <div className="stat-label">จำนวนครั้ง</div>
         </div>
         <div className="stat-card-history">
-          <div className="stat-value">{stats.totalCalories}</div>
+          <div className="stat-value">{Number(stats.totalCalories).toFixed(2)}</div>
           <div className="stat-label">Kcal รวม</div>
         </div>
         <div className="stat-card-history">
@@ -129,7 +129,7 @@ function FilterPanel({ filters, onFilterChange, histories }) {
           <div className="stat-label">นาทีรวม</div>
         </div>
         <div className="stat-card-history">
-          <div className="stat-value">{stats.avgCalories}</div>
+          <div className="stat-value">{Number(stats.avgCalories).toFixed(2)}</div>
           <div className="stat-label">Avg Kcal</div>
         </div>
       </div>

@@ -4,52 +4,52 @@ import axios from "axios";
 import "./summaryProgram.css";
 
 function formatDuration(totalSeconds) {
-  const seconds = Number(totalSeconds) || 0;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  // padStart(2, '0') จะทำให้เลขหลักเดียวมี 0 นำหน้า เช่น 5 -> 05
-  return `${m}:${s.toString().padStart(2, '0')}`;
+    const seconds = Number(totalSeconds) || 0;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    // padStart(2, '0') จะทำให้เลขหลักเดียวมี 0 นำหน้า เช่น 5 -> 05
+    return `${m}:${s.toString().padStart(2, '0')}`;
 }
 function formatTime(seconds) {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}:${s < 10 ? '0' : ''}${s}`; // แสดงเป็น m:ss
-    }
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`; // แสดงเป็น m:ss
+}
 export default function SummaryProgram() {
     const { uid } = useParams();
-  const nav = useNavigate();
+    const nav = useNavigate();
 
-  const [data, setData] = useState(null);
-  const [err, setErr] = useState("");
-  const [loading, setLoading] = useState(true);
+    const [data, setData] = useState(null);
+    const [err, setErr] = useState("");
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         if (!uid || uid === "undefined" || uid === "null") {
-      setErr("ไม่พบรหัสผู้ใช้ (UID Invalid)");
-      setLoading(false);
-      return;
-    }
-        let mounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        setErr("");
-        const res = await axios.get(`/api/__summary_internal/program/${uid}`);
-        if (!mounted) return;
-        setData(res.data);
-      } catch (e) {
-        if (!mounted) return;
-        console.error("Summary Load Error:", e);
-        if (e.response && e.response.status === 404) {
-          setErr("ไม่พบประวัติการเล่นล่าสุด (อาจยังบันทึกไม่เสร็จ)");
-        } else {
-          setErr(e?.response?.data?.error || e?.message || "โหลดข้อมูลไม่สำเร็จ");
+            setErr("ไม่พบรหัสผู้ใช้ (UID Invalid)");
+            setLoading(false);
+            return;
         }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [uid]);
+        let mounted = true;
+        (async () => {
+            try {
+                setLoading(true);
+                setErr("");
+                const res = await axios.get(`/api/__summary_internal/program/${uid}`);
+                if (!mounted) return;
+                setData(res.data);
+            } catch (e) {
+                if (!mounted) return;
+                console.error("Summary Load Error:", e);
+                if (e.response && e.response.status === 404) {
+                    setErr("ไม่พบประวัติการเล่นล่าสุด (อาจยังบันทึกไม่เสร็จ)");
+                } else {
+                    setErr(e?.response?.data?.error || e?.message || "โหลดข้อมูลไม่สำเร็จ");
+                }
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, [uid]);
 
     if (loading) {
         return (
@@ -123,14 +123,14 @@ export default function SummaryProgram() {
                 </div>
             </div>
 
-            <div className="summary-grid">  
+            <div className="summary-grid">
                 <div className="stat-card">
                     <div className="stat-icon time-icon">⏱️</div>
                     <div className="stat-content">
                         <div className="stat-label">เวลาที่ใช้</div>
                         <div className="stat-value">
-              {formatDuration(data.totals?.seconds)}
-            </div>
+                            {formatDuration(data.totals?.seconds)}
+                        </div>
                         <div className="stat-unit">นาที:วินาที</div>
                     </div>
                 </div>
@@ -139,7 +139,7 @@ export default function SummaryProgram() {
                     <div className="stat-icon calorie-icon">🔥</div>
                     <div className="stat-content">
                         <div className="stat-label">แคลอรี่ที่เผา</div>
-                        <div className="stat-value">{data.totals?.calories || 0}</div>
+                        <div className="stat-value">{data.totals?.calories ? Number(data.totals.calories).toFixed(2) : "0.00"}</div>
                         <div className="stat-unit">kcal</div>
                     </div>
                 </div>
