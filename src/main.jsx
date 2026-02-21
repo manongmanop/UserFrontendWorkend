@@ -35,12 +35,17 @@ import Squat from './Squat.jsx'
 import LinkEmailPassword from "./components/LinkEmailPassword";
 import AdminRegister from './components/AdminRegister.jsx'
 
+import TermsOfService from './components/Legal/TermsOfService.jsx'
+import PrivacyPolicy from './components/Legal/PrivacyPolicy.jsx'
+
 const router = createBrowserRouter([
   // --- Public Routes ---
   { path: "/", element: <LandingPage /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/terms", element: <TermsOfService /> },
+  { path: "/privacy", element: <PrivacyPolicy /> },
 
   // --- Protected Routes (ต้อง Login) ---
   { path: "/home", element: <ProtectedRoute><Main /></ProtectedRoute> },

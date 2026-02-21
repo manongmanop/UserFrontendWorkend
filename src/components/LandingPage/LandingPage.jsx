@@ -1,7 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 import "../../global.css";
 function LandingPage() {
+  const navigate = useNavigate();
   return (
     <div className="minimal-landing">
       {/* MINIMAL HERO SECTION */}
@@ -35,7 +37,7 @@ function LandingPage() {
               </p>
 
               <div className="hero-cta">
-                <button className="btn-primary-minimal">เริ่มต้นใช้งาน</button>
+                <button className="btn-primary-minimal" onClick={() => navigate('/login')}>เริ่มต้นใช้งาน</button>
               </div>
 
               <div className="hero-stats">
@@ -96,35 +98,34 @@ function LandingPage() {
       {/* ✅ UPDATED: EXTENDED ABOUT SECTION */}
       <section className="minimal-about" id="about">
         <div className="section-wrapper">
-          
+
           {/* Header */}
           <div className="about-header-center">
             <h2 className="section-title">เบื้องหลังเทคโนโลยี FitPose</h2>
             <p className="section-subtitle">
-              เราผสมผสานวิทยาศาสตร์การกีฬาเข้ากับปัญญาประดิษฐ์ เพื่อสร้างเทรนเนอร์ส่วนตัวที่เข้าใจร่างกายคุณที่สุด
+              เราผสมผสานวิทยาศาสตร์การกีฬาเข้ากับปัญญาประดิษฐ์ เพื่อสร้างระบบตรวจจับท่าทางที่แม่นยำที่สุด
             </p>
           </div>
 
           {/* Row 1: The Problem & Solution */}
           <div className="about-row">
             <div className="about-image-container bg-soft-blue">
-               {/* Placeholder for AI Skeleton Image */}
-               <div className="visual-placeholder">
-                  <span style={{fontSize: "3rem"}}>🤖</span>
-                  <div className="skeleton-overlay"></div>
-               </div>
+              {/* Placeholder for AI Skeleton Image */}
+              <div className="visual-placeholder">
+                <span style={{ fontSize: "3rem" }}>🤖</span>
+                <div className="skeleton-overlay"></div>
+              </div>
             </div>
             <div className="about-text-content">
               <h3 className="about-topic">AI Skeleton Tracking คืออะไร?</h3>
               <p className="about-desc">
-                ระบบของเราใช้ Computer Vision ขั้นสูงในการสร้างจุดข้อต่อ (Keypoints) บนร่างกายของคุณแบบเรียลไทม์ 
+                ระบบของเราใช้ Computer Vision ขั้นสูงในการสร้างจุดข้อต่อ (Keypoints) บนร่างกายของคุณแบบเรียลไทม์
                 โดยไม่ต้องใช้อุปกรณ์สวมใส่ (Wearables) ใดๆ เพียงแค่เปิดกล้อง ระบบจะวิเคราะห์องศาของแขน ขา และหลัง
                 เพื่อตรวจสอบว่าคุณทำท่าถูกต้องหรือไม่
               </p>
               <ul className="about-list">
                 <li>✅ ตรวจจับ 33 จุดข้อต่อทั่วร่างกาย</li>
                 <li>✅ แจ้งเตือนทันทีเมื่อหลังงอ หรือเข่าเลยปลายเท้า</li>
-                <li>✅ ทำงานได้แม้ในที่แสงน้อย</li>
               </ul>
             </div>
           </div>
@@ -132,18 +133,18 @@ function LandingPage() {
           {/* Row 2: Internal Content Preview (Exercise Library) */}
           <div className="about-row reverse">
             <div className="about-image-container bg-soft-purple">
-               {/* Mockup of Exercise Library */}
-               <div className="library-grid-mockup">
-                  <div className="lib-card">Squat</div>
-                  <div className="lib-card">Push Up</div>
-                  <div className="lib-card">Plank</div>
-                  <div className="lib-card">Lunge</div>
-               </div>
+              {/* Mockup of Exercise Library */}
+              <div className="library-grid-mockup">
+                <div className="lib-card">Squat</div>
+                <div className="lib-card">Push Up</div>
+                <div className="lib-card">Plank</div>
+                <div className="lib-card">Legs Raises</div>
+              </div>
             </div>
             <div className="about-text-content">
               <h3 className="about-topic">คลังท่าออกกำลังกายครบครัน</h3>
               <p className="about-desc">
-                ไม่ว่าเป้าหมายของคุณคือการลดน้ำหนัก, สร้างกล้ามเนื้อ, หรือยืดเหยียด 
+                ไม่ว่าเป้าหมายของคุณคือการลดน้ำหนัก, สร้างกล้ามเนื้อ, หรือยืดเหยียด
                 เรามีโปรแกรมที่ออกแบบมาเพื่อคุณ เข้าถึงเนื้อหาภายในได้ทันที
               </p>
               <div className="tag-container">
@@ -165,7 +166,7 @@ function LandingPage() {
       <section className="minimal-cta">
         <div className="cta-wrapper">
           <h2>พร้อมเริ่มต้นหรือยัง?</h2>
-          <button className="btn-primary-minimal btn-large">สมัครสมาชิกฟรี</button>
+          <button className="btn-primary-minimal btn-large" onClick={() => navigate('/register')}>สมัครสมาชิกฟรี</button>
         </div>
       </section>
 

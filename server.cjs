@@ -8,20 +8,9 @@ const path = require('path');
 const app = express();
 console.log("🚀 SERVER STARTING - VERSION: WITH_SESSION_ID_AND_FEEDBACK_FIXED"); // Unique Log
 const PORT = process.env.PORT || 5000;
-// const admin = require('firebase-admin');
-const bodyMetricsData = require('./test-bodymetrics.json');
-// const serviceAccount = require('./path/to/your-serviceAccountKey.json'); // << แก้ path ให้ถูกต้อง
-
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount)
-// });
-// // const BodyMetric = require('./src/models/BodyMetric.cjs');
-// // Middleware
+// Middleware
 app.use(cors());
 app.use(express.json());
-// const workoutSessionsRoutes = require('./routes/workoutSessions');
-// app.use('/api', workoutSessionsRoutes);
-// const analyticsRoutes = require('./routes/analytics');
 
 const bodyMetricSchema = new Schema({
   // ID ของผู้ใช้ที่เป็นเจ้าของข้อมูลนี้ (เชื่อมกับ Collection 'users')
@@ -518,26 +507,7 @@ app.get('/api/users/:uid', async (req, res) => {
     res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้' });
   }
 });
-app.put('/api/users/:uid', async (req, res) => {
-  try {
-    const { uid } = req.params;
-    const updateData = req.body;
-    // เพิ่ม updatedAt timestamp
-    updateData.updatedAt = new Date();
-    const updatedUser = await User.findOneAndUpdate(
-      { uid },
-      updateData,
-      { new: true, runValidators: true }
-    );
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json(updatedUser);
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ error: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้' });
-  }
-});
+
 
 // PUT: อัปเดตสถิติผู้ใช้ (ใช้เมื่อทำ workout เสร็จ)
 app.put('/api/users/:uid/stats', async (req, res) => {

@@ -8,10 +8,10 @@ import { doc, getDoc } from "firebase/firestore";
 import "./login.scss";
 import "../app.css";
 import "./style/global.css";
-import { 
-  MdEmail, 
-  MdLock, 
-  MdVisibility, 
+import {
+  MdEmail,
+  MdLock,
+  MdVisibility,
   MdVisibilityOff,
   MdLogin,
   MdPersonAdd
@@ -204,7 +204,7 @@ function Login() {
         <div className="floating-circle circle-2"></div>
         <div className="floating-circle circle-3"></div>
       </div>
-      
+
       <div className="login-box">
         <div className="video-section">
           {/* <video src={video} autoPlay muted loop></video> */}
@@ -223,7 +223,7 @@ function Login() {
 
         <div className="form-section">
           <div className="form-header">
-            <h2 className="form-title">ยินดีต้อนรับกลับ!</h2>
+            <h2 className="form-title">ยินดีต้อนรับ!</h2>
             <p className="form-subtitle">เข้าสู่ระบบเพื่อดูแลสุขภาพของคุณ</p>
           </div>
 
@@ -322,8 +322,8 @@ function Login() {
           </Form>
 
           {error && error.includes("verify your email") && (
-            <Button 
-              variant="link" 
+            <Button
+              variant="link"
               onClick={handleResendVerification}
               className="resend-button"
               disabled={isLoading}
