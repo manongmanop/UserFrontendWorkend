@@ -108,9 +108,9 @@ const AddUserDataForm = () => {
         text: 'ระบบได้อัปเดตข้อมูลสุขภาพของคุณเรียบร้อยแล้ว',
         allowOutsideClick: false,
         showConfirmButton: false,
-        timer: 2000
+        timer: 1500
       }).then(() => {
-        navigate('/home');
+        navigate('/onboarding');
       });
 
     } catch (err) {
