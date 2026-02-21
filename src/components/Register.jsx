@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Form, Alert, Button } from "react-bootstrap";
-import { 
-  MdEmail, 
-  MdLock, 
-  MdVisibility, 
+import {
+  MdEmail,
+  MdLock,
+  MdVisibility,
   MdVisibilityOff,
   MdPersonAdd,
   MdLogin,
@@ -115,13 +115,16 @@ function Register() {
 
     try {
       await signUp(email, password);
-      
+
       Swal.fire({
         icon: "success",
         title: "สมัครสมาชิกสำเร็จ!",
         html: `
           <p>กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันบัญชี</p>
-          <p class="text-muted">จะนำคุณไปหน้าเข้าสู่ระบบใน 3 วินาที...</p>
+          <p class="text-muted" style="font-size: 0.9em; margin-top: 10px;">
+            หากไม่พบกล่องจดหมายเข้า โปรดตรวจสอบในกล่องจดหมายขยะ (Spam) <br />
+            จะนำคุณไปหน้าเข้าสู่ระบบใน 3 วินาที...
+          </p>
         `,
         timer: 3000,
         timerProgressBar: true,
@@ -134,9 +137,9 @@ function Register() {
     } catch (err) {
       setIsLoading(false);
       console.log(err);
-      
+
       let message = "เกิดข้อผิดพลาดในการสมัครสมาชิก";
-      
+
       switch (err.code) {
         case "auth/email-already-in-use":
           message = "อีเมลนี้ถูกใช้แล้ว กรุณาใช้อีเมลอื่นหรือเข้าสู่ระบบ";
@@ -170,7 +173,7 @@ function Register() {
         <div className="floating-circle circle-2"></div>
         <div className="floating-circle circle-3"></div>
       </div>
-      
+
       <div className="register-box">
         <div className="video-section">
           {/* <video src={video} autoPlay muted loop></video> */}
@@ -241,7 +244,7 @@ function Register() {
               {password && (
                 <div className="password-strength">
                   <div className="strength-bar">
-                    <div 
+                    <div
                       className="strength-fill"
                       style={{
                         width: `${(passwordStrength / 5) * 100}%`,
@@ -249,7 +252,7 @@ function Register() {
                       }}
                     ></div>
                   </div>
-                  <span 
+                  <span
                     className="strength-text"
                     style={{ color: getPasswordStrengthColor(passwordStrength) }}
                   >
@@ -267,10 +270,9 @@ function Register() {
                   placeholder="ยืนยันรหัสผ่าน"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`custom-input ${
-                    confirmPassword && password === confirmPassword ? 'valid' : 
-                    confirmPassword && password !== confirmPassword ? 'invalid' : ''
-                  }`}
+                  className={`custom-input ${confirmPassword && password === confirmPassword ? 'valid' :
+                      confirmPassword && password !== confirmPassword ? 'invalid' : ''
+                    }`}
                   disabled={isLoading}
                 />
                 <button

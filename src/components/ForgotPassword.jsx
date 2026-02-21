@@ -37,7 +37,7 @@ function ForgotPassword() {
       Swal.fire({
         icon: "success",
         title: "ส่งลิงก์สำเร็จ!",
-        text: "กรุณาตรวจสอบอีเมลของคุณเพื่อรีเซ็ตรหัสผ่าน",
+        text: "กรุณาตรวจสอบกล่องจดหมายเข้าของคุณ (หากไม่พบโปรดตรวจสอบในกล่องจดหมายขยะ/Spam)",
         confirmButtonColor: "#27BAF9",
       }).then(() => {
         navigate("/");

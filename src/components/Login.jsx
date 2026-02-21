@@ -184,7 +184,7 @@ function Login() {
       Swal.fire({
         icon: "success",
         title: "ส่งอีเมลยืนยันแล้ว",
-        text: "กรุณาตรวจสอบกล่องจดหมายของคุณ",
+        text: "กรุณาตรวจสอบกล่องจดหมายของคุณ (หากไม่พบโปรดตรวจสอบในกล่องจดหมายขยะ/Spam)",
         confirmButtonColor: "#27BAF9",
       });
     } catch (err) {
