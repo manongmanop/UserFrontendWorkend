@@ -64,7 +64,7 @@ body {
 .hero-section {
   position: relative;
   padding: 2rem 0;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
   overflow: hidden;
 }
 
@@ -175,7 +175,6 @@ body {
   align-items: flex-start;
   margin-bottom: 2rem;
   padding: 0 2rem;
-  margin-top: 1rem;
 }
 
 /* Title Section */
@@ -731,7 +730,7 @@ body {
   /* Hero & header */
   .hero-section {
     padding: 0.75rem 1rem 1rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 2.5rem;
   }
   .topDiv {
     flex-direction: column;
@@ -855,7 +854,7 @@ body {
   }
   /* ลดขนาดปุ่ม */
   .start-program-btn {
-    padding: 0.75rem;
+    padding: 1rem;
     font-size: 0.9rem;
   }
 }/*# sourceMappingURL=top.css.map */
