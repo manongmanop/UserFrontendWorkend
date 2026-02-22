@@ -118,6 +118,7 @@
 .logo-container:hover {
   transform: scale(1.05);
   box-shadow: var(--shadow);
+  background-color: var(--gray-200);
 }
 
 .logo {
