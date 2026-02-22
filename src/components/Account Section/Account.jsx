@@ -819,31 +819,12 @@ function Account() {
                       </div>
 
                       <div className="profile-action-buttons">
-                        {editing ? (
-                          <>
-                            <button
-                              onClick={handleSave}
-                              className="btn-modern success"
-                              disabled={saving}
-                            >
-                              {saving ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
-                            </button>
-                            <button
-                              onClick={() => setEditing(false)}
-                              className="btn-modern secondary"
-                              disabled={saving}
-                            >
-                              ยกเลิก
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => setEditing(true)}
-                            className="btn-modern primary"
-                          >
-                            <CiEdit /> แก้ไขข้อมูล
-                          </button>
-                        )}
+                        <button
+                          onClick={() => setEditing(true)}
+                          className="btn-modern primary"
+                        >
+                          <CiEdit /> แก้ไขข้อมูล
+                        </button>
                         <button
                           onClick={handleDeleteAccountWithReauth}
                           className="btn-modern danger-outline"
@@ -1133,39 +1114,60 @@ function Account() {
                 </div>
               </div>
 
-              {/* ฟอร์มแก้ไขข้อมูล */}
+              {/* ฟอร์มแก้ไขข้อมูลแบบ Popup */}
               {editing && (
-                <div className="modern-card mt-3">
-                  <div className="card-body">
-                    <h5 className="card-title">แก้ไขข้อมูลส่วนตัว</h5>
-                    <div className="form-grid">
-                      <div className="form-group">
-                        <label className="modern-label">อีเมล</label>
-                        <input value={user?.email || ''} disabled={true} className="modern-input disabled" />
-                      </div>
-                      <div className="form-group">
-                        <label className="modern-label">ชื่อ</label>
-                        <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="modern-input" />
-                      </div>
-                      <div className="form-group">
-                        <label className="modern-label">ส่วนสูง (ซม.)</label>
-                        <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="modern-input" />
-                      </div>
-                      <div className="form-group">
-                        <label className="modern-label">น้ำหนัก (กก.)</label>
-                        <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="modern-input" />
-                      </div>
-                      <div className="form-group">
-                        <label className="modern-label">เพศ</label>
-                        <select className="modern-select" value={gender} onChange={(e) => setGender(e.target.value)}>
-                          <option value="">เลือกเพศ</option>
-                          <option value="male">ชาย</option>
-                          <option value="female">หญิง</option>
-                          <option value="other">อื่นๆ</option>
-                        </select>
-                      </div>
+                <div className="edit-profile-modal-overlay" onClick={() => setEditing(false)}>
+                  <div className="edit-profile-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-header">
+                      <h5 className="modal-title">แก้ไขข้อมูลส่วนตัว</h5>
+                      <button className="close-modal-btn" onClick={() => setEditing(false)}>&times;</button>
                     </div>
-                    {error && <p className="error-message">{error}</p>}
+                    <div className="modal-body">
+                      <div className="form-grid">
+                        <div className="form-group full-width">
+                          <label className="modern-label">อีเมล</label>
+                          <input value={user?.email || ''} disabled={true} className="modern-input disabled" />
+                        </div>
+                        <div className="form-group">
+                          <label className="modern-label">ชื่อ</label>
+                          <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="modern-input" />
+                        </div>
+                        <div className="form-group">
+                          <label className="modern-label">ส่วนสูง (ซม.)</label>
+                          <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="modern-input" />
+                        </div>
+                        <div className="form-group">
+                          <label className="modern-label">น้ำหนัก (กก.)</label>
+                          <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="modern-input" />
+                        </div>
+                        <div className="form-group">
+                          <label className="modern-label">เพศ</label>
+                          <select className="modern-select" value={gender} onChange={(e) => setGender(e.target.value)}>
+                            <option value="">เลือกเพศ</option>
+                            <option value="male">ชาย</option>
+                            <option value="female">หญิง</option>
+                            <option value="other">อื่นๆ</option>
+                          </select>
+                        </div>
+                      </div>
+                      {error && <p className="error-message">{error}</p>}
+                    </div>
+                    <div className="modal-footer">
+                      <button
+                        onClick={() => setEditing(false)}
+                        className="btn-modern secondary"
+                        disabled={saving}
+                      >
+                        ยกเลิก
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className="btn-modern success"
+                        disabled={saving}
+                      >
+                        {saving ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
