@@ -1,7 +1,7 @@
 :root {
   /* Typography */
   --font-primary: 'Prompt', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color-scheme: light only;
+  color-scheme: light;
 
   /* Base palette */
   --bg: #ffffff;

@@ -71,11 +71,11 @@ const AddUserDataForm = () => {
       });
     }
 
-    if (parseInt(height) <= 0 || parseInt(weight) <= 0) {
+    if (parseInt(height) <= 0 || parseInt(weight) <= 0 || parseInt(height) > 500 || parseInt(weight) > 500) {
       return Swal.fire({
         icon: 'warning',
         title: 'ข้อมูลไม่ถูกต้อง',
-        text: 'ส่วนสูงและน้ำหนักต้องมีค่ามากกว่า 0',
+        text: 'ส่วนสูงและน้ำหนักต้องมีค่าตั้งแต่ 1 ถึง 500 เท่านั้น',
         confirmButtonColor: '#2563eb',
       });
     }
@@ -150,19 +150,6 @@ const AddUserDataForm = () => {
           </div>
         </div>
 
-        {bmi && (
-          <div className="bmi-card">
-            <div className="bmi-stat">
-              <div className="stat-label">ค่า BMI ของคุณ</div>
-              <div className="stat-value">{bmi}</div>
-            </div>
-            <div className="bmi-divider"></div>
-            <div className="bmi-stat">
-              <div className="stat-label">เกณฑ์สุขภาพ</div>
-              <div className="stat-value">{bmiStatus}</div>
-            </div>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="form-section">
           <input
@@ -199,7 +186,12 @@ const AddUserDataForm = () => {
                   pattern="[0-9]*"
                   className="custom-input"
                   value={height}
-                  onChange={(e) => setHeight(e.target.value.replace(/[^0-9]/g, ''))}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    if (val === '' || parseInt(val) <= 500) {
+                      setHeight(val);
+                    }
+                  }}
                   placeholder="0"
                   disabled={isLoading}
                   required
@@ -219,7 +211,12 @@ const AddUserDataForm = () => {
                   pattern="[0-9]*"
                   className="custom-input"
                   value={weight}
-                  onChange={(e) => setWeight(e.target.value.replace(/[^0-9]/g, ''))}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    if (val === '' || parseInt(val) <= 500) {
+                      setWeight(val);
+                    }
+                  }}
                   placeholder="0"
                   disabled={isLoading}
                   required
@@ -264,7 +261,19 @@ const AddUserDataForm = () => {
               </label>
             </div>
           </div>
-
+          {bmi && (
+            <div className="bmi-card">
+              <div className="bmi-stat">
+                <div className="stat-label">ค่า BMI ของคุณ</div>
+                <div className="stat-value">{bmi}</div>
+              </div>
+              <div className="bmi-divider"></div>
+              <div className="bmi-stat">
+                <div className="stat-label">เกณฑ์สุขภาพ</div>
+                <div className="stat-value">{bmiStatus}</div>
+              </div>
+            </div>
+          )}
           <div className="submit-group">
             <button
               type="button"

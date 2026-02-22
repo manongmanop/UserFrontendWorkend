@@ -2,6 +2,11 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 import "../../global.css";
+import squatImg from "../assets/squat2.jpg";
+import pushImg from "../assets/Pushup.jpg";
+import plankImg from "../assets/plank.jpg";
+import legsImg from "../assets/LegRaises.jpg";
+
 function LandingPage() {
   const navigate = useNavigate();
   return (
@@ -101,7 +106,7 @@ function LandingPage() {
 
           {/* Header */}
           <div className="about-header-center">
-            <h2 className="section-title">เบื้องหลังเทคโนโลยี FitPose</h2>
+            <h2 className="section-title">เกี่ยวกับ Pose Detect AI</h2>
             <p className="section-subtitle">
               เราผสมผสานวิทยาศาสตร์การกีฬาเข้ากับปัญญาประดิษฐ์ เพื่อสร้างระบบตรวจจับท่าทางที่แม่นยำที่สุด
             </p>
@@ -135,10 +140,22 @@ function LandingPage() {
             <div className="about-image-container bg-soft-purple">
               {/* Mockup of Exercise Library */}
               <div className="library-grid-mockup">
-                <div className="lib-card">Squat</div>
-                <div className="lib-card">Push Up</div>
-                <div className="lib-card">Plank</div>
-                <div className="lib-card">Legs Raises</div>
+                <div className="lib-card">
+                  <img src={squatImg} alt="Squat" className="lib-card-img" />
+                  <span className="lib-card-title">Squat</span>
+                </div>
+                <div className="lib-card">
+                  <img src={pushImg} alt="Push Up" className="lib-card-img" />
+                  <span className="lib-card-title">Push Up</span>
+                </div>
+                <div className="lib-card">
+                  <img src={plankImg} alt="Plank" className="lib-card-img" />
+                  <span className="lib-card-title">Plank</span>
+                </div>
+                <div className="lib-card">
+                  <img src={legsImg} alt="Legs Raises" className="lib-card-img" />
+                  <span className="lib-card-title">Legs Raises</span>
+                </div>
               </div>
             </div>
             <div className="about-text-content">

@@ -95,9 +95,9 @@ const Onboarding = () => {
     // Translation Helpers
     const translations = {
         levels: {
-            Beginner: { label: 'ผู้เริ่มต้น', sub: '3 วัน/สัปดาห์', details: ['20-30 นาที', 'เน้นสร้างนิสัย'] },
-            Intermediate: { label: 'ปานกลาง', sub: '5 วัน/สัปดาห์', details: ['35-45 นาที', 'เน้นสร้างกล้ามเนื้อ'] },
-            Advanced: { label: 'ขั้นสูง', sub: '7 วัน/สัปดาห์', details: ['45-60 นาที', 'เน้นประสิทธิภาพสูงสุด'] }
+            Beginner: { label: 'ผู้เริ่มต้น', sub: '3 วัน/สัปดาห์', details: ['เน้นสร้างนิสัย'] },
+            Intermediate: { label: 'ปานกลาง', sub: '5 วัน/สัปดาห์', details: ['เน้นสร้างกล้ามเนื้อ'] },
+            Advanced: { label: 'ขั้นสูง', sub: '7 วัน/สัปดาห์', details: ['เน้นประสิทธิภาพสูงสุด'] }
         },
         goals: {
             'Lose Weight': 'ลดน้ำหนัก',
@@ -269,7 +269,7 @@ const Onboarding = () => {
                             </div>
                             <div className="summary-item">
                                 <strong>ตารางฝึก</strong>
-                                <span>{formData.preferredDays.length > 0 ? formData.preferredDays.map(d => getDayLabel(d)).join(', ') : 'ยืดหยุ่น'}</span>
+                                <span>{formData.preferredDays.length > 0 ? formData.preferredDays.map(d => getDayLabel(d)).join(', ') : 'ตามความสะดวก'}</span>
                             </div>
                         </div>
                         <div className="action-buttons">

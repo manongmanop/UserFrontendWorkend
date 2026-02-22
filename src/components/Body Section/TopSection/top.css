@@ -88,6 +88,44 @@ body {
   animation: float 6s ease-in-out infinite;
 }
 
+.noise-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.glass-shape {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 1;
+  animation: float-slow 8s ease-in-out infinite;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.floating-shape-1 {
+  width: 140px;
+  height: 140px;
+  right: 12%;
+  top: 15%;
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-25px) rotate(8deg);
+  }
+}
 .orb-1 {
   width: 300px;
   height: 300px;
@@ -137,6 +175,7 @@ body {
   align-items: flex-start;
   margin-bottom: 2rem;
   padding: 0 2rem;
+  margin-top: 1rem;
 }
 
 /* Title Section */
@@ -206,7 +245,7 @@ body {
   border: 2px solid transparent;
   box-shadow: var(--shadow-light);
   transition: var(--transition);
-  min-width: 150px;
+  min-width: 250px;
 }
 
 .searchInput:focus-within {
@@ -228,6 +267,7 @@ body {
   flex: 1;
   font-size: var(--normalFontSize);
   color: var(--text-primary);
+  padding-left: 30px;
 }
 
 .searchInput input::-moz-placeholder {
@@ -238,6 +278,7 @@ body {
 .searchInput input::placeholder {
   color: var(--text-muted);
   font-weight: 500;
+  padding-left: 10px;
 }
 
 /* Category Filter */
@@ -259,7 +300,7 @@ body {
 
 .category-btn {
   padding: 0.75rem 1.5rem;
-  border: none;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 25px;
   background: rgba(255, 255, 255, 0.8);
   color: var(--text-secondary);
@@ -363,13 +404,6 @@ body {
   color: var(--text-primary);
 }
 
-.section-line {
-  flex: 1;
-  height: 2px;
-  background: var(--primary-gradient);
-  border-radius: 1px;
-}
-
 /* Large Program Card Grid */
 .programs-grid {
   display: grid;
@@ -381,9 +415,9 @@ body {
 
 .workout-card {
   background: var(--card-background);
-  border-radius: var(--border-radius-lg);
+  border-radius: 28px;
   overflow: hidden;
-  box-shadow: var(--shadow-light);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
   transition: var(--transition);
   border: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
@@ -430,17 +464,18 @@ body {
 }
 
 .badge-overlay {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(8px);
-  color: white;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  color: var(--text-primary);
   padding: 0.35rem 0.75rem;
   border-radius: 20px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .badge-overlay.time svg {
@@ -453,11 +488,11 @@ body {
 
 /* Card Content */
 .card-content {
-  padding: 1.5rem;
+  padding: 1.75rem 2rem;
   display: flex;
   flex-direction: column;
   flex: 1; /* Pushes footer down */
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .header-row {
@@ -525,15 +560,17 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  width: 100%;
-  padding: 0.9rem;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 0.9rem 2rem;
   background: var(--primary-gradient);
   color: white;
   text-decoration: none;
   font-weight: 600;
-  border-radius: 14px;
+  border-radius: 20px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
   position: relative;
   overflow: hidden;
 }
@@ -689,11 +726,11 @@ body {
   .top {
     width: 100%;
     max-width: none;
-    margin: 0 auto;
+    margin: 4rem auto;
   }
   /* Hero & header */
   .hero-section {
-    padding: 0.75rem 0 1rem;
+    padding: 0.75rem 1rem 1rem;
     margin-bottom: 1.25rem;
   }
   .topDiv {

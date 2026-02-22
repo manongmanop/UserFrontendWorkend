@@ -7,6 +7,20 @@
   justify-content: center;
   padding: 2rem;
   font-family: "Inter", sans-serif;
+  background-color: #f7fafc;
+  background-image: url("../assets/Gemini_Generated_Image_37d5sp37d5sp37d5.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-color: rgba(0, 0, 0, 0.5);
+  background-blend-mode: overlay;
+}
+@media (max-width: 640px) {
+  .onboarding-container {
+    justify-content: flex-start;
+    padding: max(4rem, env(safe-area-inset-top)) 1rem 2rem 1rem;
+  }
 }
 .onboarding-container .onboarding-card {
   background: white;
@@ -21,6 +35,7 @@
 @media (max-width: 640px) {
   .onboarding-container .onboarding-card {
     padding: 1.5rem;
+    margin-top: 2rem;
   }
 }
 .onboarding-container .progress-bar {

@@ -9,6 +9,8 @@
 body,
 html {
   font-family: var(--font-primary) !important;
+  color: var(--text-color);
+  background-color: var(--background-color);
 }
 
 /* Root Variables for Global Styling */

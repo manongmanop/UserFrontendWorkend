@@ -223,7 +223,7 @@
 .form-title {
   font-size: 2.2rem;
   font-weight: 800;
-  color: var(--primary-dark);
+  color: var(--primary-light);
   margin-bottom: 0.5rem;
 }
 
@@ -297,7 +297,7 @@
 }
 
 .forgot-link {
-  color: var(--gray-500);
+  color: var(--primary-light);
   font-size: 0.95rem;
   text-decoration: none;
   transition: var(--transition);

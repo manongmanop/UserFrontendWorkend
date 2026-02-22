@@ -96,10 +96,10 @@ export const Top = () => {
   }, []);
 
   const categories = [
-    { label: "แนะนำผู้เริ่มต้น", value: "All" },
-    { label: "ความแข็งแรง", value: "Strength" },
-    { label: "คาร์ดิโอ", value: "Cardio" },
-    { label: "ความยืดหยุ่น", value: "Flexibility" }
+    { label: "🌟 แนะนำผู้เริ่มต้น", value: "All" },
+    { label: "🏋️ ความแข็งแรง", value: "Strength" },
+    { label: "🏃 คาร์ดิโอ", value: "Cardio" },
+    { label: "🧘 ความยืดหยุ่น", value: "Flexibility" }
   ];
 
   const filteredPrograms = programs.filter((program) => {
@@ -119,6 +119,8 @@ export const Top = () => {
     <div className="top">
       <div className="hero-section">
         <div className="hero-background">
+          <div className="noise-texture"></div>
+          <div className="glass-shape floating-shape-1"></div>
           <div className="gradient-orb orb-1"></div>
           <div className="gradient-orb orb-2"></div>
           <div className="gradient-orb orb-3"></div>
@@ -188,8 +190,7 @@ export const Top = () => {
 
       <div className="programs-section">
         <div className="section-header">
-          <h2>{categories.find((cat) => cat.value === selectedCategory)?.label || "แนะนำผู้เริ่มต้น"}</h2>
-          <div className="section-line"></div>
+          <h2>{categories.find((cat) => cat.value === selectedCategory)?.label || "🌟 แนะนำผู้เริ่มต้น"}</h2>
         </div>
 
         <div className="cardsDiv">

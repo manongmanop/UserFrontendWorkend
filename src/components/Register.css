@@ -261,7 +261,6 @@ body, html {
 .form-title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--gray-800);
   margin-bottom: 0.5rem;
 }
 
@@ -620,22 +619,19 @@ body, html {
     background: rgba(30, 30, 30, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-  .form-title {
-    color: var(--white-color);
-  }
   .form-subtitle {
     color: var(--gray-400);
   }
   .custom-input {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.1);
-    color: var(--white-color);
+    color: var(--black-color);
   }
   .custom-input::-moz-placeholder {
-    color: var(--gray-400);
+    color: var(--gray-800);
   }
   .custom-input::placeholder {
-    color: var(--gray-400);
+    color: var(--gray-800);
   }
   .terms-section {
     background: rgba(255, 255, 255, 0.05);
