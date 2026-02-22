@@ -131,6 +131,7 @@
   flex-grow: 1;
   overflow-y: auto;
   padding: 1.5rem 0;
+  max-height: 30rem;
 }
 
 .nav-menu {
