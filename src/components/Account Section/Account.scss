@@ -221,32 +221,27 @@ body {
 }
 
 .profile-stats {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: stretch;
-  gap: 0;
-  padding: 0;
-  background: none;
-  border-radius: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 1rem 0;
+  width: 100%;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  max-width: 120px;
-  max-height: 120px;
+  justify-content: center;
+  width: 100%; /* Take full width of grid cell */
+  padding: 1.5rem 1rem;
   text-align: center;
-  flex: 1 1 0;
   box-sizing: border-box;
   background: #fff;
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
-  margin: 0 2px;
   box-shadow: var(--shadow-light);
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s;
 }
 
 .stat-number {
@@ -267,10 +262,29 @@ body {
 .stat-item .stat-icon {
   font-size: 2rem;
   color: var(--primary-color);
-  margin-bottom: 2px;
+  margin-bottom: 0.5rem;
   height: 4rem;
+  width: 4rem; /* Ensure it's perfectly round */
   display: flex;
   align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+
+.stat-item .stat-icon.bg-male {
+  background-color: var(--primary-light);
+  color: var(--whiteColor);
+}
+
+.stat-item .stat-icon.bg-female {
+  background-color: #f472b6; /* pink-400 */
+  color: var(--whiteColor);
+}
+
+.stat-item .stat-icon.bg-unspecified {
+  background-color: #cbd5e1; /* slate-300 */
+  color: var(--whiteColor);
 }
 .stat-item:last-child {
   margin-right: 0;
@@ -281,26 +295,16 @@ body {
 }
 
 .stat-divider {
-  width: 0;
-  height: 10px;
-  border-left: 1px solid var(--border-color);
-  margin: 0;
+  display: none; /* Hide dividers in grid layout */
 }
 
 @media (max-width: 768px) {
   .profile-stats {
-    flex-direction: column;
-    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr); /* Keep 2 columns on mobile */
+    gap: 0.75rem;
   }
   .stat-item {
-    min-width: 100%;
-    max-width: 100%;
-    min-height: 80px;
-    max-height: 80px;
-    margin: 0 0 12px 0;
-  }
-  .stat-divider {
-    display: none;
+    padding: 1rem 0.5rem;
   }
 }
 

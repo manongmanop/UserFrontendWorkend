@@ -702,19 +702,22 @@ function Account() {
   const getGenderDisplay = (gender) => {
     if (gender === 'male' || gender === 'ชาย') {
       return {
-        icon: <FaMars className="!text-blue-500 !text-lg !font-bold" />,
-        text: 'ชาย'
+        icon: <FaMars className="!text-[#349de3] !text-3xl" />,
+        text: 'ชาย',
+        className: 'bg-white shadow-sm border border-gray-100'
       };
     }
     if (gender === 'female' || gender === 'หญิง') {
       return {
-        icon: <FaVenus className="!text-pink-500 !text-lg !font-bold" />,
-        text: 'หญิง'
+        icon: <FaVenus className="!text-[#f472b6] !text-3xl" />,
+        text: 'หญิง',
+        className: 'bg-white shadow-sm border border-gray-100'
       };
     }
     return {
-      icon: <FaVenusMars className="!text-gray-500 !text-lg" />,
-      text: 'ไม่ระบุ'
+      icon: <FaVenusMars className="!text-gray-400 !text-3xl" />,
+      text: 'ไม่ระบุ',
+      className: 'bg-white shadow-sm border border-gray-100'
     };
   };
   const genderDisplay = getGenderDisplay(gender);
@@ -813,7 +816,7 @@ function Account() {
                         </div>
                         <div className="stat-divider"></div>
                         <div className="stat-item">
-                          <span className="stat-icon">{genderDisplay.icon}</span>
+                          <span className={`stat-icon ${genderDisplay.className}`} >{genderDisplay.icon}</span>
                           <span className="stat-label">{genderDisplay.text}</span>
                         </div>
                       </div>
@@ -886,14 +889,11 @@ function Account() {
             <div className="col-md-8">
 
               {/* ✅ New Statistics Dashboard */}
-              {/* ✅ New Statistics Dashboard */}
               <WorkoutStats userData={userData} workoutHistory={workoutHistory} />
 
               {/* ส่วนกราฟแสดงข้อมูลร่างกาย */}
               <div className="metrics-section">
-
                 <div className="chart-container">
-                  <h5 className="section-title">ภาพรวมความก้าวหน้า</h5>
                   {/* Time range selection */}
                   <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                     <button

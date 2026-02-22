@@ -106,7 +106,21 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border-bottom: 1px solid var(--gray-200);
+    // border-bottom: 1px solid var(--gray-200);
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    border-radius: var(--border-radius);
+    background-color: var(--gray-100);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.logo-container:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow);
+    background-color: var(--gray-200);          
 }
 
 .logo {

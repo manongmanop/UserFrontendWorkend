@@ -276,9 +276,9 @@ function TrainingCard() {
             </div>
 
             <div className="hero-content">
-              <button className="back-btn" onClick={() => navigate(-1)}>
+              {/* <button className="back-btn" onClick={() => navigate(-1)}>
                 <span className="back-icon">❮</span> ย้อนกลับ
-              </button>
+              </button> */}
 
               <div className="hero-text">
                 <h1 className="program-title-hero">{program.name}</h1>
