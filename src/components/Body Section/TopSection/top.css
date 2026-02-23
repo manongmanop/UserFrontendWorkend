@@ -394,7 +394,7 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-top: 2rem;
 }
 
 .section-header h2 {
