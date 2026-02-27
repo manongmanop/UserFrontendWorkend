@@ -17,7 +17,7 @@ import Onboarding from './components/Onboarding/Onboarding.jsx'
 import Main from './components/Website/Main'
 import Account from './components/Account Section/Account.jsx'
 import AddInfo from './components/Website/AddInfo.jsx'
-import UpdateInfo from './components/Website/updateInfo.jsx'
+import UpdateInfo from './components/Website/UpdateInfo.jsx'
 import Detail from './components/Detail Section/Detail/Detail.jsx'
 
 // Workout & History
