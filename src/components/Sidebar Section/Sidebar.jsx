@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import './Sidebar.css';
+import './sidebar.css';
 import logo from "../../LoginAssets/logo-removebg.png";
 import { FaHome, FaBars, FaTimes, FaChartLine, FaHistory } from "react-icons/fa";
 import { ImExit } from "react-icons/im";

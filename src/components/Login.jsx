@@ -6,7 +6,7 @@ import { sendEmailVerification } from "firebase/auth";
 import { auth, db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import "./login.scss";
-import "../app.css";
+import "../App.css";
 import "./style/global.css";
 import {
   MdEmail,

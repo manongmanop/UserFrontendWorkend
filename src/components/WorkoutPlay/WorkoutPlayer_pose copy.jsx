@@ -3,8 +3,8 @@ import axios from "axios";
 import { Smile, Meh, Frown } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./WorkoutPlayer.css";
-import guideImg from "../assets/Infographic.png";
-import guideImg2 from "../assets/Infographic2.png";
+import guideImg from "../assets/infographic.png";
+import guideImg2 from "../assets/infographic2.png";
 import { useUserAuth } from "../../context/UserAuthContext.jsx";
 const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
 import { ExerciseCameraManager } from '../../ExerciseCameraManager.jsx';
@@ -500,7 +500,7 @@ export default function WorkoutPlayer() {
     // ✅ เพิ่มการคำนวณแคลอรี่ตรงนี้
     // สูตรสมมติ: 5 kcal ต่อ 1 นาที (ปรับเปลี่ยนตัวเลข 5 ได้ตามความหนักเบา)
     const rawCalories = (Number(performedSeconds) / 60) * 5;
-    
+
     // ✅ แปลงเป็นทศนิยม 2 ตำแหน่ง (และแปลงกลับเป็น Number เพื่อไม่ให้เป็น String)
     const calories = Number(rawCalories.toFixed(2));
 

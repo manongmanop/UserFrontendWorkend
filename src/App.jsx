@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import './App.css'
 import { Link } from 'react-router-dom'
-import exerciseImg from './Components/assets/Profile1.jpg';
+import exerciseImg from './components/assets/Profile1.jpg';
 
 function App() {
   const [count, setCount] = useState(0)
-  
+
   return (
     <div className="welcome-container">
       <img src={exerciseImg} alt="Exercise" className="exercise-image" />

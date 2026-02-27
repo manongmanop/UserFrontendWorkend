@@ -1,7 +1,7 @@
 import '../../App.css';
 // import './main.css'
 import Sidebar from '../Sidebar Section/Sidebar';
-import Body from '../Body Section/body';
+import Body from '../Body Section/Body';
 import '../style/global.css'
 
 import { useEffect } from 'react';

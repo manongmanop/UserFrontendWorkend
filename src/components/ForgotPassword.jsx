@@ -5,7 +5,7 @@ import { useUserAuth } from "../context/UserAuthContext";
 import { MdEmail, MdLockReset, MdArrowBack } from "react-icons/md";
 import Swal from "sweetalert2";
 import "./forgotPassword.scss";
-import "../app.css";
+import "../App.css";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");

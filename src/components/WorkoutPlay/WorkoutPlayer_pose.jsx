@@ -3,8 +3,8 @@ import axios from "axios";
 import { Smile, Meh, Frown } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./WorkoutPlayer.css";
-import guideImg from "../assets/Infographic.png";
-import guideImg2 from "../assets/Infographic2.png";
+import guideImg from "../assets/infographic.png";
+import guideImg2 from "../assets/infographic2.png";
 import { useUserAuth } from "../../context/UserAuthContext.jsx";
 const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
 import { ExerciseCameraManager } from '../../ExerciseCameraManager.jsx';
@@ -500,7 +500,7 @@ export default function WorkoutPlayer() {
     // ✅ เพิ่มการคำนวณแคลอรี่ตรงนี้
     // สูตรสมมติ: 5 kcal ต่อ 1 นาที (ปรับเปลี่ยนตัวเลข 5 ได้ตามความหนักเบา)
     const rawCalories = (Number(performedSeconds) / 60) * 5;
-    
+
     // ✅ แปลงเป็นทศนิยม 2 ตำแหน่ง (และแปลงกลับเป็น Number เพื่อไม่ให้เป็น String)
     const calories = Number(rawCalories.toFixed(2));
 
@@ -949,7 +949,7 @@ export default function WorkoutPlayer() {
 
           {/* ✅ เปลี่ยนส่วนแสดงผลวิดีโอตรงนี้ เป็น Layout ใหม่ */}
           <div className="media-content">
-            
+
             {/* 1. วิดีโอท่าออกกำลังกาย */}
             <div className="video-wrapper exercise-video">
               {current?.video || current?.imageUrl ? (
@@ -970,16 +970,16 @@ export default function WorkoutPlayer() {
 
             {/* 2. กล้องผู้ใช้ + AI Overlay */}
             <div className="video-wrapper camera-video-wrapper">
-              
+
               {/* AI Logic (ExerciseCameraManager) ซ่อนไว้ หรือแสดงทับก็ได้ */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 5 }}>
-                 <ExerciseCameraManager
-                    exerciseName={current?.name}
-                    isActive={isPlaying && !isPaused}
-                    targetReps={current?.value || 10}
-                    onRepComplete={handleRepComplete}
-                    onSetComplete={handleSetComplete}
-                 />
+                <ExerciseCameraManager
+                  exerciseName={current?.name}
+                  isActive={isPlaying && !isPaused}
+                  targetReps={current?.value || 10}
+                  onRepComplete={handleRepComplete}
+                  onSetComplete={handleSetComplete}
+                />
               </div>
 
               {/* วิดีโอกล้องจริง */}
@@ -991,9 +991,9 @@ export default function WorkoutPlayer() {
                 playsInline
                 style={{ transform: 'scaleX(-1)' }} /* กลับด้านกระจกเงาเพื่อให้ user ไม่งง */
               />
-              
+
               <div className="video-label">กล้องของคุณ</div>
-            
+
               {/* Loading / Error States ของกล้อง */}
               {cameraStatus === "loading" && (
                 <div className="wp-overlay wp-overlay--muted">
@@ -1159,14 +1159,14 @@ const Header = ({ title, current, total, progress, onBack, onGuide }) => (
   </header>
 );
 
-const Controls = ({ 
-  onPrev, 
-  onNext, 
-  onTogglePause, 
-  isPaused, 
-  canPrev, 
-  mainButtonLabel, 
-  showPlayPause 
+const Controls = ({
+  onPrev,
+  onNext,
+  onTogglePause,
+  isPaused,
+  canPrev,
+  mainButtonLabel,
+  showPlayPause
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
@@ -1180,9 +1180,9 @@ const Controls = ({
       {/* --- Buttons Area --- */}
       <div className="wp-controls-body">
         {/* ปุ่มย้อนกลับ */}
-        <button 
-          className="wp-control-btn wp-control-btn-secondary" 
-          onClick={onPrev} 
+        <button
+          className="wp-control-btn wp-control-btn-secondary"
+          onClick={onPrev}
           disabled={!canPrev}
           style={{ position: 'relative', zIndex: 10 }}
         >
@@ -1195,11 +1195,11 @@ const Controls = ({
 
         {/* ปุ่ม Play/Pause */}
         {showPlayPause && (
-          <button 
-            className={`wp-control-btn wp-control-btn-circle ${isPaused ? "play" : "pause"}`} 
-            onClick={(e) => { 
-                e.stopPropagation(); 
-                onTogglePause(); 
+          <button
+            className={`wp-control-btn wp-control-btn-circle ${isPaused ? "play" : "pause"}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePause();
             }}
             style={{ position: 'relative', zIndex: 10 }}
           >
@@ -1217,8 +1217,8 @@ const Controls = ({
         )}
 
         {/* ปุ่มถัดไป */}
-        <button 
-          className="wp-control-btn wp-control-btn-primary" 
+        <button
+          className="wp-control-btn wp-control-btn-primary"
           onClick={onNext}
           style={{ position: 'relative', zIndex: 10 }}
         >
