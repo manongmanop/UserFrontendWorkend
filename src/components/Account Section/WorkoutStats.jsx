@@ -111,11 +111,11 @@ const DashboardCards = ({ stats }) => {
                     <div className="secondary-info">
                         <div>📊 สัปดาห์นี้: {stats.caloriesWeek}</div>
                         {/* Mock goal for styling demo, or calculate if we had a caloric goal */}
-                        <div>🎯 เป้าหมาย: 1500/สัปดาห์</div>
+                        <div>🎯 เป้าหมาย: 500/สัปดาห์</div>
                     </div>
                     {/* Mock Progress */}
                     <div className="progress-bar-mini">
-                        <div className="fill" style={{ width: `${Math.min((stats.caloriesWeek / 1500) * 100, 100)}%` }}></div>
+                        <div className="fill" style={{ width: `${Math.min((stats.caloriesWeek / 500) * 100, 100)}%` }}></div>
                     </div>
                 </div>
             </div>
@@ -133,9 +133,9 @@ const DashboardCards = ({ stats }) => {
                     <div className="divider"></div>
                     <div className="secondary-info">
                         <div>📅 สัปดาห์นี้: {stats.workoutsDoneWeek} ครั้ง</div>
-                        <div className={`trend ${stats.percentageChange >= 0 ? 'positive' : 'negative'}`}>
+                        {/* <div className={`trend ${stats.percentageChange >= 0 ? 'positive' : 'negative'}`}>
                             {stats.percentageChange >= 0 ? '📈' : '📉'} {Math.abs(stats.percentageChange).toFixed(0)}% {stats.percentageChange >= 0 ? 'เพิ่มขึ้น' : 'ลดลง'}จากสัปดาห์ก่อน
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

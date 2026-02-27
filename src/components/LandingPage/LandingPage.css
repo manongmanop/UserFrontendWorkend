@@ -2,7 +2,7 @@
 /* ===== CSS VARIABLES ===== */
 :root {
   --color-dark: #0f172a;
-  --color-gray: #64748b;
+  --color-gray: #475569;
   --color-light: #f8fafc;
   --color-white: #ffffff;
   --color-accent: #2563eb;
@@ -253,7 +253,7 @@ body {
   text-align: center;
   margin: 0 auto var(--spacing-xl) auto;
   color: var(--color-white) !important;
-  background-color: var(--color-accent-light) !important;
+  background-color: var(--color-accent) !important;
   padding: 12px 40px !important;
   border-radius: 50px;
   width: -moz-fit-content;
@@ -472,7 +472,7 @@ body {
 .minimal-footer {
   padding: var(--spacing-lg);
   background: var(--color-dark);
-  color: var(--color-gray);
+  color: #cbd5e1;
   text-align: center;
   font-size: 0.9rem;
 }

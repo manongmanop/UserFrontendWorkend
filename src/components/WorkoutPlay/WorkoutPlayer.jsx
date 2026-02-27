@@ -970,13 +970,6 @@ export default function WorkoutPlayer() {
           {/* ส่วน Header บอกชื่อท่าและเวลา คงเดิมไว้ */}
           <div className="wp-exercise-header">
             <h2 className="wp-current-exercise-name">{current?.name}</h2>
-            <div className="wp-exercise-stats">
-              <div className="wp-time-remaining">
-                <span className="wp-time-number">{timeRemaining}</span>
-                <span className="wp-time-unit">วินาที</span>
-              </div>
-              <ProgressRing progress={exerciseProgress} />
-            </div>
           </div>
 
           {/* ✅ เปลี่ยนส่วนแสดงผลวิดีโอตรงนี้ เป็น Layout ใหม่ */}

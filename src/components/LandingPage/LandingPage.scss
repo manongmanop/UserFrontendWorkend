@@ -3,7 +3,7 @@
 /* ===== CSS VARIABLES ===== */
 :root {
   --color-dark: #0f172a;
-  --color-gray: #64748b;
+  --color-gray: #475569;
   --color-light: #f8fafc;
   --color-white: #ffffff;
   --color-accent: #2563eb;
@@ -112,7 +112,7 @@ body {
   text-align: center; 
   margin: 0 auto var(--spacing-xl) auto; 
   color: var(--color-white) !important; 
-  background-color: var(--color-accent-light) !important;
+  background-color: var(--color-accent) !important;
   padding: 12px 40px !important;
   border-radius: 50px;
   width: fit-content;
@@ -264,7 +264,7 @@ body {
 .minimal-cta { padding: 60px ; background: linear-gradient(135deg, #f0f9ff 0%, var(--color-light) 100%); text-align: center; }
 .cta-wrapper h2 { font-size: 2.5rem; margin-bottom: var(--spacing-lg); }
 .btn-large { padding: 16px 48px; font-size: 1.1rem; }
-.minimal-footer { padding: var(--spacing-lg); background: var(--color-dark); color: var(--color-gray); text-align: center; font-size: 0.9rem; }
+.minimal-footer { padding: var(--spacing-lg); background: var(--color-dark); color: #cbd5e1; text-align: center; font-size: 0.9rem; }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {

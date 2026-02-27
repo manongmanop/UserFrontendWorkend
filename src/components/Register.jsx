@@ -198,6 +198,12 @@ function Register() {
         </div>
 
         <div className="form-section">
+          {/* Mobile Back Button */}
+          <Link to="/login" className="mobile-back-link">
+            <MdLogin className="back-icon" />
+            กลับไปหน้าเข้าสู่ระบบ
+          </Link>
+
           <div className="form-header">
             <h2 className="form-title">สร้างบัญชีใหม่</h2>
             <p className="form-subtitle">เริ่มต้นการดูแลสุขภาพของคุณวันนี้</p>
@@ -271,7 +277,7 @@ function Register() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className={`custom-input ${confirmPassword && password === confirmPassword ? 'valid' :
-                      confirmPassword && password !== confirmPassword ? 'invalid' : ''
+                    confirmPassword && password !== confirmPassword ? 'invalid' : ''
                     }`}
                   disabled={isLoading}
                 />
@@ -323,12 +329,12 @@ function Register() {
                 {isLoading ? "กำลังสมัครสมาชิก..." : "สมัครสมาชิก"}
               </Button>
 
-              {/* <div className="login-redirect">
+              <div className="login-redirect mobile-hide-desktop-show">
                 <span>มีบัญชีอยู่แล้ว?</span>
                 <Link to="/login" className="login-link">
                   เข้าสู่ระบบ
                 </Link>
-              </div> */}
+              </div>
             </div>
           </Form>
         </div>
