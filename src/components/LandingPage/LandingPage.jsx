@@ -5,7 +5,7 @@ import "../../global.css";
 import squatImg from "../assets/squat2.jpg";
 import pushImg from "../assets/Pushup.jpg";
 import plankImg from "../assets/plank.jpg";
-import legsImg from "../assets/LegRaises.jpg";
+import legsImg from "../assets/Legraises.jpg";
 
 function LandingPage() {
   const navigate = useNavigate();
