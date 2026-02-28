@@ -159,18 +159,14 @@ const programTemplateSchema = new mongoose.Schema({
   coverImageUrl: { type: String },
   category: { type: String, enum: ['strength', 'cardio', 'flexibility', 'hiit'], index: true },
   difficulty: { type: Number, enum: [1, 2, 3], index: true },
-  totalDays: { type: Number, required: true },
+  totalMinutes: { type: Number, required: true },
   estimatedTotalCalories: { type: Number },
-  dailyRoutines: [{
-    dayNumber: { type: Number, required: true },
-    isRestDay: { type: Boolean, default: false },
-    workouts: [{
-      exerciseId: { type: mongoose.Schema.Types.ObjectId, ref: 'ExerciseV2' },
-      order: { type: Number },
-      targetType: { type: String, enum: ['reps', 'seconds'] },
-      targetValue: { type: Number, required: true },
-      restSecondsAfter: { type: Number, default: 30 }
-    }]
+  workouts: [{
+    exerciseId: { type: mongoose.Schema.Types.ObjectId, ref: 'ExerciseV2' },
+    order: { type: Number },
+    targetType: { type: String, enum: ['reps', 'seconds'] },
+    targetValue: { type: Number, required: true },
+    restSecondsAfter: { type: Number, default: 30 }
   }],
   isActive: { type: Boolean, default: true, index: true }
 }, { timestamps: true });
@@ -928,7 +924,7 @@ const workoutProgramSchema = new Schema({
 
 const WorkoutProgram = mongoose.model('WorkoutProgram', workoutProgramSchema, 'program');
 
-// WorkoutProgram Routes (Adapted backwards compatible for Frontend)
+// WorkoutProgram Routes (Adapted backwards compatible// ดึงข้อมูลทั้งหมด หรือตามหมวดหมู่
 app.get('/api/workout_programs', async (req, res) => {
   try {
     const { category } = req.query;
@@ -938,24 +934,22 @@ app.get('/api/workout_programs', async (req, res) => {
     let filter = { isActive: true };
     if (category && category !== 'ทั้งหมด') filter.category = categoryMap[category] || category;
 
-    const programs = await ProgramTemplate.find(filter).populate('dailyRoutines.workouts.exerciseId').lean();
+    const programs = await ProgramTemplate.find(filter).populate('workouts.exerciseId').lean();
 
     // Normalize Data
     const formattedPrograms = programs.map(p => {
       let oldWorkoutList = [];
-      if (p.dailyRoutines && p.dailyRoutines.length > 0) {
-        p.dailyRoutines.forEach(day => {
-          day.workouts.forEach(w => {
-            const ex = w.exerciseId || {};
-            oldWorkoutList.push({
-              _id: ex._id,
-              name: ex.name,
-              image: ex.imageUrl,
-              imageUrl: ex.imageUrl,
-              type: w.targetType || 'reps',
-              value: w.targetValue || 0,
-              muscles: ex.targetMuscles || []
-            });
+      if (p.workouts && p.workouts.length > 0) {
+        p.workouts.forEach(w => {
+          const ex = w.exerciseId || {};
+          oldWorkoutList.push({
+            _id: ex._id,
+            name: ex.name,
+            image: ex.imageUrl,
+            imageUrl: ex.imageUrl,
+            type: w.targetType || 'reps',
+            value: w.targetValue || 0,
+            muscles: ex.targetMuscles || []
           });
         });
       }
@@ -964,7 +958,7 @@ app.get('/api/workout_programs', async (req, res) => {
         _id: p._id,
         name: p.title,
         description: p.description,
-        duration: p.totalDays ? `${p.totalDays} Days` : "1 Day",
+        duration: p.totalMinutes ? `${p.totalMinutes} mins` : "1 mins",
         caloriesBurned: p.estimatedTotalCalories || 0,
         image: p.coverImageUrl,
         category: reverseCategoryMap[p.category] || p.category,
@@ -975,75 +969,72 @@ app.get('/api/workout_programs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-
-// ใน Backend - ปรับ API ให้ populate ข้อมูล exercise
 app.get("/api/workout_programs/:id", async (req, res) => {
   try {
     const program = await ProgramTemplate.findById(req.params.id)
-      .populate({ path: "dailyRoutines.workouts.exerciseId" })
+      .populate({ path: "workouts.exerciseId" })
       .lean();
     if (!program) return res.status(404).json({ message: "Program not found" });
 
     let oldWorkoutList = [];
-    if (program.dailyRoutines) {
-      program.dailyRoutines.forEach(day => {
-        day.workouts.forEach((w, order) => {
-          const ex = w.exerciseId || {};
-          oldWorkoutList.push({
-            _id: w._id || new mongoose.Types.ObjectId(),
-            order,
-            exercise: String(ex._id),
-            name: ex.name,
-            type: w.targetType || 'reps',
-            value: Number(w.targetValue || 0),
-            image: (ex.imageUrl || "").replace(/\\/g, "/"),
-            video: (ex.videoUrl || "").replace(/\\/g, "/"),
-            description: ex.description,
-            caloriesBurned: ex.baseCaloriesPerMinute,
-            muscles: ex.targetMuscles || []
-          });
+    if (program.workouts) {
+      program.workouts.forEach((w, order) => {
+        const ex = w.exerciseId || {};
+        oldWorkoutList.push({
+          _id: ex._id,
+          name: ex.name,
+          image: ex.imageUrl,
+          imageUrl: ex.imageUrl,
+          type: w.targetType || 'reps',
+          value: w.targetValue || 0,
+          muscles: ex.targetMuscles || [],
+          order: order + 1
         });
       });
     }
 
-    const image = (program.coverImageUrl || "").replace(/\\/g, "/");
     const reverseCategoryMap = { 'strength': 'ความแข็งแรง', 'cardio': 'คาร์ดิโอ', 'flexibility': 'ความยืดหยุ่น', 'hiit': 'HIIT' };
 
     res.json({
-      ...program,
+      _id: program._id,
       name: program.title,
-      duration: `${program.totalDays || 1} Days`,
-      caloriesBurned: program.estimatedTotalCalories,
+      description: program.description,
+      duration: program.totalMinutes ? `${program.totalMinutes} mins` : "1 mins",
+      caloriesBurned: program.estimatedTotalCalories || 0,
+      image: program.coverImageUrl,
       category: reverseCategoryMap[program.category] || program.category,
-      image,
       workoutList: oldWorkoutList
     });
-  } catch (err) { res.status(500).json({ message: "Server error" }); }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 app.post('/api/workout_programs', upload.single('image'), async (req, res) => {
   try {
     const { name, description, duration, caloriesBurned, category, workoutList } = req.body;
     const categoryMap = { 'ความแข็งแรง': 'strength', 'คาร์ดิโอ': 'cardio', 'ความยืดหยุ่น': 'flexibility', 'HIIT': 'hiit' };
+    const parsedCategory = categoryMap[category] || 'strength';
 
     const parsedList = workoutList ? JSON.parse(workoutList) : [];
-    const workouts = parsedList.map((item, index) => ({
-      exerciseId: item.exercise,
-      order: index + 1,
-      targetType: 'reps',
-      targetValue: item.value || 15
-    }));
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
 
-    const newProgram = new ProgramTemplate({
+    const program = new ProgramTemplate({
       title: name,
-      description: description,
-      totalDays: parseInt(duration) || 1,
-      estimatedTotalCalories: Number(caloriesBurned),
-      category: categoryMap[category] || 'strength',
-      coverImageUrl: req.file ? `/uploads/${req.file.filename}` : '',
-      dailyRoutines: [{ dayNumber: 1, workouts }]
+      description,
+      category: parsedCategory,
+      totalMinutes: Number(duration) || 0,
+      estimatedTotalCalories: Number(caloriesBurned) || 0,
+      coverImageUrl: imageUrl,
+      workouts: parsedList.map((item, index) => ({
+        exerciseId: item.exercise, // Map from old "exercise" key
+        order: index + 1,
+        targetType: 'reps', // Default backward compatibility
+        targetValue: item.value || 0,
+        restSecondsAfter: item.rest || 30
+      }))
     });
 
-    const savedProgram = await newProgram.save();
+    const savedProgram = await program.save();
     res.status(201).json(savedProgram);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -1080,23 +1071,24 @@ app.put('/api/workout_programs/:id', upload.single('image'), async (req, res) =>
   try {
     const { name, description, duration, caloriesBurned, category, workoutList } = req.body;
     const categoryMap = { 'ความแข็งแรง': 'strength', 'คาร์ดิโอ': 'cardio', 'ความยืดหยุ่น': 'flexibility', 'HIIT': 'hiit' };
+    const parsedCategory = categoryMap[category] || 'strength';
 
     const parsedList = workoutList ? JSON.parse(workoutList) : [];
     const workouts = parsedList.map((item, index) => ({
       exerciseId: item.exercise,
       order: index + 1,
       targetType: 'reps',
-      targetValue: item.value || 15
+      targetValue: item.value || 0,
+      restSecondsAfter: item.rest || 30
     }));
 
     const updateData = {
       title: name,
       description: description,
-      totalDays: parseInt(duration) || 1,
-      estimatedTotalCalories: Number(caloriesBurned),
-      category: categoryMap[category] || 'strength',
-      // keep existing if dailyRoutines already complex, but for now override day 1
-      'dailyRoutines.0.workouts': workouts
+      totalMinutes: Number(duration) || 0,
+      estimatedTotalCalories: Number(caloriesBurned) || 0,
+      category: parsedCategory,
+      workouts: workouts
     };
 
     if (req.file) {
