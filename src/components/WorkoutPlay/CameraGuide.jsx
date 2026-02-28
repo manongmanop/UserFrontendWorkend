@@ -1,7 +1,7 @@
 // CameraGuide.jsx
 import React from "react";
 import "./CameraGuide.css";
-import guideImg from "../assets/infographic.png";
+import guideImg from "../assets/infographic.webp";
 
 const CameraGuide = ({ onClose }) => {
   return (

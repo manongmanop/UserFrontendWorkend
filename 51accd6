@@ -1,0 +1,46 @@
+[33m51accd6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: reset: moving to HEAD~2
+[33mbb61b3a[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: commit: feat: Initialize React application with routing, add onboarding and workout camera guide components, and include a case-checking utility.
+[33m36be554[m HEAD@{2}: commit: feat: Add script to check import path casing and include onboarding background image.
+[33m51accd6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{3}: commit: feat: Implement initial onboarding flow with dedicated landing page, styling, and add a case-checking utility script.
+[33ma49b9b9[m HEAD@{4}: commit: feat: Implement user authentication, main website layout, and camera-guided workout player with program summary.
+[33me97a5d3[m HEAD@{5}: commit: feat: Add Pushup.jpg asset.
+[33m6a39956[m HEAD@{6}: commit: dd
+[33mf068c57[m HEAD@{7}: commit: fis syntax
+[33m5813ea2[m HEAD@{8}: commit: fix case sensitive path
+[33m01245bb[m HEAD@{9}: commit: fix lighthouse
+[33m63a5cc6[m HEAD@{10}: commit: feat: Implement core UI sections including Top, Sidebar, Body, and the WorkoutProgram model.
+[33m58b264d[m HEAD@{11}: commit: feat: add comprehensive styling for the sidebar component using SCSS, including global variables, responsive design, and interactive states.
+[33m2aecaaa[m HEAD@{12}: commit: feat: Add comprehensive styling for a sidebar component using SCSS, including global styles, layout, interactive elements, and responsive adjustments.
+[33m26d0f51[m HEAD@{13}: commit: style: Add initial styling for TopSection and Sidebar components.
+[33m5b6c7b5[m HEAD@{14}: commit: feat: implement sidebar component styling with responsive design and interactive elements.
+[33m2f7ec14[m HEAD@{15}: commit: feat: implement Detail, Account, and Sidebar sections with their respective components and styling.
+[33mfd18a2b[m HEAD@{16}: commit: feat: implement Account section UI component with styling and JSX.
+[33m29bb784[m HEAD@{17}: commit: feat: Implement core user interface components including login, registration, onboarding, landing page, and workout player.
+[33m86af07b[m HEAD@{18}: commit: feat: Implement WorkoutPlayer component with associated styling, summary, and history features.
+[33m3f71ae1[m HEAD@{19}: commit: feat: Add CORS middleware to the server.
+[33m396fae9[m HEAD@{20}: commit: feat: add AddInfo component for website information input.
+[33m840ba48[m HEAD@{21}: commit: feat: Implement user authentication features including login, registration, password management, and initial profile setup.
+[33m8ed3176[m HEAD@{22}: commit: feat: Implement Landing Page, Forgot Password, Terms of Service, and Privacy Policy components with associated styling and server updates.
+[33m1413e5b[m HEAD@{23}: commit: feat: Implement workout program detail page with an interactive modal for individual workout steps.
+[33mb6e00da[m HEAD@{24}: commit: feat: Add Detail component to display workout program information and individual workout steps in an interactive modal.
+[33m53a1994[m HEAD@{25}: commit: feat: implement workout program detail page with an interactive modal for individual exercises.
+[33m28e8e2e[m HEAD@{26}: commit: feat: Introduce new TopSection, DetailSection, and WorkoutStats UI components with their styling.
+[33m3ff6cdd[m HEAD@{27}: commit: feat: Implement initial `Body` component and `TopSection` with hero, search, categories, stats, and program card UI.
+[33md800a96[m HEAD@{28}: commit: feat: Add user workout statistics, weekly progress, and activity calendar components to the account section.
+[33m627b1a8[m HEAD@{29}: commit: feat: Implement Account section with workout statistics dashboard, weekly timeline, and activity calendar components and their styles.
+[33ma831479[m HEAD@{30}: commit: feat: Add Account component to the Account Section.
+[33mfa291f0[m HEAD@{31}: commit: feat: Add WorkoutStats component to display user workout dashboard, weekly progress, and activity calendar.
+[33mb8720ac[m HEAD@{32}: commit: feat: Implement initial styling for various frontend components and add the WorkoutStats component.
+[33m303b9e0[m HEAD@{33}: pull --tags origin main: Fast-forward
+[33m59504fa[m HEAD@{34}: reset: moving to HEAD
+[33m59504fa[m HEAD@{35}: commit: feat: add multi-step user onboarding flow and initial account section components.
+[33mbff4228[m HEAD@{36}: commit: feat: Implement the Account section component.
+[33m7e87e0d[m HEAD@{37}: commit: feat: Implement multi-step user onboarding for fitness preferences and integrate user profile API routes.
+[33m8166108[m HEAD@{38}: commit: feat: implement multi-step user onboarding flow and initial account profile setup.
+[33mf7ef598[m HEAD@{39}: commit: feat: Implement a new workout player component with camera integration, exercise tracking, progress display, and user feedback submission.
+[33m7fe611c[m HEAD@{40}: commit: feat: Add workout statistics dashboard to the account section, including animated stats, weekly progress, and a heatmap.
+[33m6c4196f[m HEAD@{41}: commit: feat: Implement user registration endpoint with password hashing using bcryptjs.
+[33m445a268[m HEAD@{42}: commit: feat: Add user workout statistics dashboard to the account section, including stat cards, weekly progress, and a heatmap, with a supporting API endpoint.
+[33m798535c[m HEAD@{43}: commit: feat: Implement real-time plank exercise tracking with AI feedback and TTS, and add new UI for account, sidebar, and workout playback.
+[33m3181635[m HEAD@{44}: pull origin main: Fast-forward
+[33m24e1f72[m HEAD@{45}: clone: from https://github.com/manongmanop/UserFrontendWorkend.git
