@@ -555,7 +555,17 @@ app.post('/api/users', async (req, res) => {
     });
 
     const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
+
+    // Convert new UserV2 format to what Frontend expects (Backward Compatible)
+    const reverseLevel = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced' };
+    const responseUser = {
+      ...savedUser.toObject(),
+      fitnessLevel: reverseLevel[savedUser.fitnessLevel] || 'Beginner',
+      workoutsDone: savedUser.stats?.totalWorkouts || 0,
+      caloriesBurned: savedUser.stats?.totalCalories || 0,
+    };
+
+    res.status(201).json(responseUser);
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ error: 'ไม่สามารถสร้างผู้ใช้ได้' });
@@ -571,6 +581,13 @@ app.put('/api/users/:uid', async (req, res) => {
     // ป้องกันการแก้ไข uid
     delete updateData.uid;
 
+    if (updateData.fitnessLevel) {
+      const levelMap = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 };
+      if (levelMap[updateData.fitnessLevel]) {
+        updateData.fitnessLevel = levelMap[updateData.fitnessLevel];
+      }
+    }
+
     const updatedUser = await UserV2.findOneAndUpdate(
       { uid },
       {
@@ -579,13 +596,21 @@ app.put('/api/users/:uid', async (req, res) => {
         }
       },
       { new: true } // คืนค่าข้อมูลใหม่หลังอัปเดต
-    );
+    ).lean();
 
     if (!updatedUser) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json(updatedUser);
+    const reverseLevel = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced' };
+    const responseUser = {
+      ...updatedUser,
+      fitnessLevel: reverseLevel[updatedUser.fitnessLevel] || 'Beginner',
+      workoutsDone: updatedUser.stats?.totalWorkouts || 0,
+      caloriesBurned: updatedUser.stats?.totalCalories || 0,
+    };
+
+    res.json(responseUser);
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ error: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้' });
@@ -597,11 +622,43 @@ app.put('/api/users/:uid', async (req, res) => {
 app.get('/api/users/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
-    const user = await UserV2.findOne({ uid });
+    let user = await UserV2.findOne({ uid }).lean();
+
+    // Auto-migrate from old User collection to UserV2
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      const oldUser = await User.findOne({ uid }).lean();
+      if (oldUser) {
+        const levelMap = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 };
+        const newUserV2 = new UserV2({
+          uid: oldUser.uid,
+          email: oldUser.email || '',
+          displayName: oldUser.displayName || '',
+          avatarUrl: oldUser.avatarUrl || '',
+          fitnessLevel: levelMap[oldUser.fitnessLevel] || 1,
+          primaryGoal: oldUser.primaryGoal || '',
+          stats: {
+            totalWorkouts: oldUser.workoutsDone || 0,
+            totalCalories: oldUser.caloriesBurned || 0,
+            totalDurationSecs: 0
+          }
+        });
+        await newUserV2.save();
+        user = newUserV2.toObject();
+      } else {
+        return res.status(404).json({ error: 'User not found' });
+      }
     }
-    res.json(user);
+
+    // Convert new UserV2 format to what Frontend expects (Backward Compatible)
+    const reverseLevel = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced' };
+    const responseUser = {
+      ...user,
+      fitnessLevel: reverseLevel[user.fitnessLevel] || 'Beginner',
+      workoutsDone: user.stats?.totalWorkouts || 0,
+      caloriesBurned: user.stats?.totalCalories || 0,
+    };
+
+    res.json(responseUser);
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้' });
