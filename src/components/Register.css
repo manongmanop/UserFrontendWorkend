@@ -601,6 +601,7 @@ body, html {
     padding: 0.5rem 1rem;
     background: rgba(39, 186, 249, 0.1);
     border-radius: 20px;
+    width: -moz-fit-content;
     width: fit-content;
     transition: var(--transition);
   }

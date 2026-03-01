@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import * as Pose from '@mediapipe/pose';
 import * as cam from '@mediapipe/camera_utils';
 
-export const usePushUpCamera = ({ 
-  videoRef, 
-  canvasRef, 
+export const usePushUpCamera = ({
+  videoRef,
+  canvasRef,
   isActive,
   targetReps = null,
   targetSets = null,
@@ -309,7 +309,7 @@ export const usePushUpCamera = ({
 
           // Auto save to database
           saveSessionData(sessionData);
-          
+
           if (onWorkoutComplete) {
             onWorkoutComplete(sessionData);
           }
@@ -536,9 +536,9 @@ export const usePushUpCamera = ({
                           angle: Math.round(angleLeft * 100) / 100,
                           timestamp: new Date().toISOString()
                         });
-                        
+
                         if (onRepComplete) onRepComplete('left', newCounter);
-                        
+
                         return newCounter;
                       });
                       isTimingLeft.current = false;
@@ -622,12 +622,18 @@ export const usePushUpCamera = ({
             if (videoRef.current) {
               const camera = new cam.Camera(videoRef.current, {
                 onFrame: async () => {
-                  await pose.send({ image: videoRef.current });
+                  if (videoRef.current && videoRef.current.readyState >= 2 && videoRef.current.videoWidth > 0) {
+                    try {
+                      await pose.send({ image: videoRef.current });
+                    } catch (e) {
+                      console.warn("Pose send error:", e);
+                    }
+                  }
                 },
                 width: 640,
                 height: 480
               });
-              
+
               cameraRef.current = camera;
               camera.start();
             }
@@ -644,7 +650,7 @@ export const usePushUpCamera = ({
     // Cleanup function
     return () => {
       console.log('🧹 Cleaning up camera...');
-      
+
       if (cameraRef.current) {
         try {
           cameraRef.current.stop();

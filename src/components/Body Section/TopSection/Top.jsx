@@ -229,8 +229,8 @@ export const Top = () => {
                         className="card-image"
                       />
                       <div className="card-badges-overlay">
-                        <span className="badge-overlay time"><AiOutlineClockCircle /> {program.duration}</span>
-                        <span className="badge-overlay calories"><BsFire /> {program.caloriesBurned}</span>
+                        <span className="badge-overlay time"><AiOutlineClockCircle /> {program.duration} นาที</span>
+                        <span className="badge-overlay calories"><BsFire /> {program.caloriesBurned} kcal</span>
                       </div>
                     </div>
 

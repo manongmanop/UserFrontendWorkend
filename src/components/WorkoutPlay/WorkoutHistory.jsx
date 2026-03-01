@@ -21,7 +21,7 @@ import {
 
 import "./WorkoutHistory.css";
 
-const API_BASE = "http://10.198.200.52:5000";
+const API_BASE = "";
 
 /* ========== Helper Functions ========== */
 const formatDuration = (totalSeconds) => {
