@@ -850,7 +850,12 @@ app.post('/api/workout_programs', upload.single('image'), async (req, res) => {
           dataStr = dataStr.replace(/^exercises:\s*/, '').trim();
         }
         try {
-          return JSON.parse(dataStr);
+          const parsed = JSON.parse(dataStr);
+          // หากส่งมาเป็น { "exercises": [...] } (แบบตัวอย่างล่าสุด) ให้ดึง array ข้างในออกมา
+          if (parsed && Array.isArray(parsed.exercises)) {
+            return parsed.exercises;
+          }
+          return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
           console.error("Error parsing workoutList:", e);
           return [];
@@ -915,7 +920,11 @@ app.put('/api/workout_programs/:id', upload.single('image'), async (req, res) =>
           dataStr = dataStr.replace(/^exercises:\s*/, '').trim();
         }
         try {
-          return JSON.parse(dataStr);
+          const parsed = JSON.parse(dataStr);
+          if (parsed && Array.isArray(parsed.exercises)) {
+            return parsed.exercises;
+          }
+          return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
           console.error("Error parsing workoutList in PUT:", e);
           return [];
