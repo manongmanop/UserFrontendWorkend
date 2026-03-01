@@ -822,12 +822,26 @@ app.get("/api/workout_programs/:id", async (req, res) => {
 });
 app.post('/api/workout_programs', upload.single('image'), async (req, res) => {
   try {
+    const categoryMap = {
+      'upper-body': 'โปรแกรมช่วงบน',
+      'lower-body': 'โปรแกรมช่วงล่าง',
+      'core': 'โปรแกรมหน้าท้อง',
+      'fat-loss': 'ลดไขมัน',
+      'muscle-gain': 'เพิ่มกล้าม',
+      'booty-legs': 'กระชับก้น & ขา'
+    };
+
+    let reqCategory = req.body.category || 'โปรแกรมช่วงบน';
+    if (categoryMap[reqCategory.toLowerCase()]) {
+      reqCategory = categoryMap[reqCategory.toLowerCase()];
+    }
+
     const newProgram = new WorkoutProgram({
       name: req.body.name,
       description: req.body.description,
       duration: req.body.duration,
       caloriesBurned: req.body.caloriesBurned,
-      category: req.body.category || 'โปรแกรมช่วงบน', // เพิ่ม category field
+      category: reqCategory, // เพิ่ม category field
       image: req.file ? `/uploads/${req.file.filename}` : '', // แก้ไขให้ใช้ URL
       workoutList: (() => {
         if (!req.body.workoutList) return [];
@@ -873,12 +887,26 @@ app.put('/api/workout_programs/:id/add-workout', async (req, res) => {
 
 app.put('/api/workout_programs/:id', upload.single('image'), async (req, res) => {
   try {
+    const categoryMap = {
+      'upper-body': 'โปรแกรมช่วงบน',
+      'lower-body': 'โปรแกรมช่วงล่าง',
+      'core': 'โปรแกรมหน้าท้อง',
+      'fat-loss': 'ลดไขมัน',
+      'muscle-gain': 'เพิ่มกล้าม',
+      'booty-legs': 'กระชับก้น & ขา'
+    };
+
+    let reqCategory = req.body.category || 'โปรแกรมช่วงบน';
+    if (categoryMap[reqCategory.toLowerCase()]) {
+      reqCategory = categoryMap[reqCategory.toLowerCase()];
+    }
+
     const updatedData = {
       name: req.body.name,
       description: req.body.description,
       duration: req.body.duration,
       caloriesBurned: req.body.caloriesBurned,
-      category: req.body.category || 'โปรแกรมช่วงบน', // เพิ่ม category field
+      category: reqCategory, // เพิ่ม category field
       image: req.file ? `/uploads/${req.file.filename}` : '', // แก้ไขให้ใช้ URL
       workoutList: (() => {
         if (!req.body.workoutList) return [];
