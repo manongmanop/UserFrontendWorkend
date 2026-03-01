@@ -13,10 +13,17 @@ import { ExerciseCameraManager } from '../../ExerciseCameraManager.jsx';
    ========================================= */
 function normalizeUrl(p) {
   if (!p) return "";
-  const s = String(p).replace(/\\/g, "/");
-  if (s.startsWith("/uploads/")) return s;
-  if (s.startsWith("uploads/")) return `/${s}`;
-  return s;
+  let s = String(p).replace(/\\/g, "/");
+  s = s.replace(/^(undefined|null)\//, "");
+  s = s.replace(/^https?:\/\/(localhost|127\.0\.0\.1|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?\//, "/");
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (s.startsWith("/uploads/") || s.startsWith("/stream/")) {
+    return API_BASE ? `${API_BASE}${s}` : s;
+  }
+  if (s.startsWith("uploads/")) {
+    return API_BASE ? `${API_BASE}/${s}` : `/${s}`;
+  }
+  return API_BASE ? `${API_BASE}/uploads/${s}` : `/uploads/${s}`;
 }
 
 function parseDurationMs(ex) {

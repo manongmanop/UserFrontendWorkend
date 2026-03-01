@@ -14,6 +14,8 @@ const API_BASE = (import.meta.env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
 export const getMediaUrl = (p) => {
   if (!p) return "";
   let s = String(p).replace(/\\/g, "/");
+  s = s.replace(/^(undefined|null)\//, "");
+  s = s.replace(/^https?:\/\/(localhost|127\.0\.0\.1|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?\//, "/");
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
   if (s.startsWith("/uploads/") || s.startsWith("/stream/")) {
     return API_BASE ? `${API_BASE}${s}` : s;
