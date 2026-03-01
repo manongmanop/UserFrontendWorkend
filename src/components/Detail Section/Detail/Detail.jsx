@@ -44,6 +44,16 @@ const formatTimeFromValue = (value) => {
 };
 
 const getDurationDisplay = (workout) => {
+  const parts = [];
+  if (workout.sets) parts.push(`${workout.sets} เซ็ต`);
+  if (workout.reps) parts.push(`${workout.reps} ครั้ง`);
+  if (workout.duration) {
+    parts.push(workout.duration < 60 ? `${workout.duration} วินาที` : `${Math.floor(workout.duration / 60)} นาที ${workout.duration % 60 !== 0 ? (workout.duration % 60) + ' วินาที' : ''}`.trim());
+  }
+  if (workout.rest) parts.push(`พัก ${workout.rest} วิ`);
+
+  if (parts.length > 0) return parts.join(' | ');
+
   if (workout.type === "time") {
     return formatTimeFromValue(workout.value);
   }
@@ -320,7 +330,15 @@ function TrainingCard() {
                       ? rawTag.split(",").map(s => s.trim()).filter(Boolean)
                       : [];
 
-                  const setRepDisplay = item.type === 'time' ? formatTimeFromValue(item.value) : `${item.value} ครั้ง`;
+                  const parts = [];
+                  if (item.sets) parts.push(`${item.sets} เซ็ต`);
+                  if (item.reps) parts.push(`${item.reps} ครั้ง`);
+                  if (item.duration) {
+                    parts.push(item.duration < 60 ? `${item.duration} วินาที` : `${Math.floor(item.duration / 60)} นาที ${item.duration % 60 !== 0 ? (item.duration % 60) + ' วินาที' : ''}`.trim());
+                  }
+                  if (item.rest) parts.push(`พัก ${item.rest} วิ`);
+
+                  const setRepDisplay = parts.length > 0 ? parts.join(' | ') : (item.type === 'time' ? formatTimeFromValue(item.value) : `${item.value} ครั้ง`);
 
                   return (
                     <div
