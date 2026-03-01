@@ -35,6 +35,13 @@ import Squat from './Squat.jsx'
 import LinkEmailPassword from "./components/LinkEmailPassword";
 import AdminRegister from './components/AdminRegister.jsx'
 
+// Admin Layout & Pages
+import AdminRoute from './auth/AdminRoute.jsx'
+import AdminLayout from './components/Admin/AdminLayout.jsx'
+import AdminDashboard from './components/Admin/Dashboard/AdminDashboard.jsx'
+import UserManagement from './components/Admin/Users/UserManagement.jsx'
+import ProgramManagement from './components/Admin/Programs/ProgramManagement.jsx'
+
 import TermsOfService from './components/Legal/TermsOfService.jsx'
 import PrivacyPolicy from './components/Legal/PrivacyPolicy.jsx'
 
@@ -75,6 +82,16 @@ const router = createBrowserRouter([
   { path: "/set-password", element: <ProtectedRoute><LinkEmailPassword /></ProtectedRoute> },
   { path: "/AdminRegister", element: <ProtectedRoute><AdminRegister /></ProtectedRoute> },
 
+  // --- Admin Routes ---
+  {
+    path: "/admin",
+    element: <AdminRoute><AdminLayout /></AdminRoute>,
+    children: [
+      { path: "dashboard", element: <AdminDashboard /> },
+      { path: "users", element: <UserManagement /> },
+      { path: "programs", element: <ProgramManagement /> }
+    ]
+  }
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(

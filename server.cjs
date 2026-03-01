@@ -507,6 +507,36 @@ app.get('/api/users/:uid', async (req, res) => {
   }
 });
 
+// GET: ดึงข้อมูลผู้ใช้งานทั้งหมด (สำหรับ Admin)
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find({}).sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching all users:', error);
+    res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลผู้ใช้งานกรุณาลองใหม่' });
+  }
+});
+
+// DELETE: ลบผู้ใช้งาน (สำหรับ Admin)
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // (Optional) ลบ WorkoutPlan หรือประวัติที่เกี่ยวข้องกับผู้ใช้นี้เพิ่มเติม
+    // await WorkoutPlan.deleteMany({ uid: deletedUser.uid });
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'ไม่สามารถลบผู้ใช้งานได้' });
+  }
+});
+
 
 // PUT: อัปเดตสถิติผู้ใช้ (ใช้เมื่อทำ workout เสร็จ)
 app.put('/api/users/:uid/stats', async (req, res) => {

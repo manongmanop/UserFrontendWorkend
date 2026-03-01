@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import axios from "axios";
 import { Smile, Meh, Frown } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
+import { collection, query, where, orderBy, limit, getDocs, setDoc, doc } from 'firebase/firestore';
+import { db } from '../../../firebase';
 import "./WorkoutPlayer.css";
 import guideImg from "../assets/infographic.webp";
 import guideImg2 from "../assets/infographic2.webp";
@@ -175,6 +177,7 @@ export default function WorkoutPlayer() {
   const pausedPhaseRef = useRef(null);
   const overlayResumeArmedRef = useRef(false);
   const [weight, setWeight] = useState(""); // State สำหรับน้ำหนัก
+  const [shouldAskWeight, setShouldAskWeight] = useState(false); // เช็คว่าควรถามน้ำหนักไหม
 
   // --- State: Workout Progress ---
   const [currentExercise, setCurrentExercise] = useState(0);
@@ -221,6 +224,60 @@ export default function WorkoutPlayer() {
   // --- Auth ---
   const { user } = useUserAuth();
   const uid = user?.uid;
+
+  // ตรวจสอบวันที่อัปเดตน้ำหนักล่าสุด
+  useEffect(() => {
+    const checkLastWeightUpdate = async () => {
+      if (!uid) {
+        console.log("checkLastWeightUpdate: No UID yet");
+        return;
+      }
+      try {
+        console.log("checkLastWeightUpdate: Querying bodyMetrics for UID:", uid);
+        const metricsRef = collection(db, 'bodyMetrics');
+        // เอา orderBy ออกเพื่อป้องกันปัญหา Error เรื่อง Firebase Index ที่ไม่ได้สร้างไว้
+        const q = query(
+          metricsRef,
+          where('userId', '==', uid)
+        );
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          console.log("checkLastWeightUpdate: No bodyMetrics found -> shouldAskWeight: true");
+          setShouldAskWeight(true); // ไม่มีประวัติเลย ให้ถาม
+        } else {
+          // ดึงข้อมูลทั้งหมดมาเรียงลำดับฝั่ง Client แทน เพื่อเลี่ยง Index Error
+          const allDocs = snapshot.docs.map(doc => doc.data());
+          allDocs.sort((a, b) => {
+            const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+            const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+            return dateB - dateA; // Descending (ใหม่สุดขึ้นก่อน)
+          });
+
+          const lastData = allDocs[0];
+          const lastDate = lastData.date?.toDate ? lastData.date.toDate() : new Date(lastData.date);
+          const now = new Date();
+          const diffTime = Math.abs(now - lastDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          console.log("checkLastWeightUpdate: Last weight update was", diffDays, "days ago. Data:", lastData);
+
+          if (diffDays >= 7) { // เปลี่ยนกลับเป็น >= 7 เมื่อทดสอบเสร็จ
+            console.log("checkLastWeightUpdate: diffDays >= 7 -> shouldAskWeight: true");
+            setShouldAskWeight(true); // เกิน 7 วันแล้ว ให้ถามใหม่
+          } else {
+            console.log("checkLastWeightUpdate: diffDays < 7 -> shouldAskWeight: false");
+            setShouldAskWeight(false);
+          }
+        }
+      } catch (err) {
+        console.error("Error checking last weight update:", err);
+        // ถ้า query พัง (เช่น ขาดสิทธิ์ ขาด index) ให้ถามน้ำหนักกันเหนียวไว้
+        setShouldAskWeight(true);
+      }
+    };
+
+    checkLastWeightUpdate();
+  }, [uid]);
 
   const activeExerciseIndexRef = useRef(-1);
   useEffect(() => {
@@ -301,7 +358,34 @@ export default function WorkoutPlayer() {
         console.log(`✅ History updated with Feedback=${level}, Weight=${weight}`);
       }
 
-      // 3. ✅ ส่ง feedback โปรแกรม (Counter)
+      // --- 3. Save Weight to Firebase if it was requested and provided ---
+      if (shouldAskWeight && weight && parseFloat(weight) > 0) {
+        const parsedWeight = parseFloat(weight);
+        try {
+          // Update User Profile
+          const userRef = doc(db, 'users', uid);
+          await setDoc(userRef, {
+            weight: parsedWeight,
+            updatedAt: new Date()
+          }, { merge: true });
+
+          // Add new bodyMetric snapshot (keeping it simple for mid-workout)
+          const metricsRef = collection(db, 'bodyMetrics');
+          const newMetric = {
+            userId: uid,
+            date: new Date(),
+            weight: parsedWeight,
+            fatPercentage: 20, // Default placeholders, will be overridden via Dashboard if needed
+            muscleMass: 30
+          };
+          await setDoc(doc(metricsRef), newMetric);
+          console.log(`✅ Firebase Weight updated to ${parsedWeight}`);
+        } catch (fbErr) {
+          console.error("❌ Failed to update Firebase weight:", fbErr);
+        }
+      }
+
+      // 4. ✅ ส่ง feedback โปรแกรม (Counter)
       await submitProgramFeedback(programId, level);
 
       setShowFeedbackModal(false);
@@ -1134,41 +1218,41 @@ export default function WorkoutPlayer() {
           <div className="wp-feedback-card" onClick={(e) => e.stopPropagation()}>
             <h2 className="wp-feedback-title">บันทึกผลการฝึก</h2>
 
-            <div className="wp-feedback-input-group" style={{ marginBottom: '20px', textAlign: 'center' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>น้ำหนักหลังออกกำลังกาย (กก.)</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="ระบุน้ำหนัก (กก.)"
-                value={weight}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  // Allow only digits
-                  if (/^\d*$/.test(val)) {
-                    setWeight(val);
-                  }
-                }}
-                onKeyPress={(e) => {
-                  // Prevent non-numeric keys (dot, hyphen, e)
-                  if (!/[0-9]/.test(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
-                style={{
-                  padding: '10px',
-                  borderRadius: '8px',
-                  border: '1px solid #444',
-                  background: '#222',
-                  color: '#fff',
-                  width: '80%',
-                  fontSize: '1.2rem',
-                  textAlign: 'center'
-                }}
-              />
-            </div>
+            {shouldAskWeight && (
+              <div className="wp-feedback-input-group" style={{ marginBottom: '20px', textAlign: 'center' }}>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>
+                  สัปดาห์นี้คุณน้ำหนักเท่าไหร่แล้ว? มาบันทึกความคืบหน้ากันเถอะ (กก.)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="ระบุน้ำหนัก (กก.)"
+                  value={weight}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^\d*$/.test(val)) setWeight(val);
+                  }}
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) e.preventDefault();
+                  }}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #444',
+                    background: '#222',
+                    color: '#fff',
+                    width: '80%',
+                    fontSize: '1.2rem',
+                    textAlign: 'center'
+                  }}
+                />
+              </div>
+            )}
 
-            <h3 className="wp-feedback-subtitle" style={{ fontSize: '1rem', color: '#aaa', marginBottom: '15px' }}>ความยากของโปรแกรมนี้</h3>
+            <h3 className="wp-feedback-subtitle" style={{ fontSize: '1rem', color: '#aaa', marginBottom: '15px' }}>
+              ความยากของโปรแกรมนี้
+            </h3>
             <div className="wp-feedback-actions">
               <button
                 className="wp-feedback-btn wp-feedback-btn--easy"
