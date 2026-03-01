@@ -861,7 +861,8 @@ export default function WorkoutPlayer() {
 
     if (prev === 0) {
       setIsResting(true);
-      startRest(0, REST_BASE_SEC);
+      const firstRest = exercises[0]?.rest > 0 ? exercises[0].rest : REST_BASE_SEC;
+      startRest(0, firstRest);
     } else {
       setCountdownAction("startNew");   // ✅ เริ่มท่าใหม่
       setIsCounting(true);
@@ -881,7 +882,8 @@ export default function WorkoutPlayer() {
       setIsPlaying(false);
       setIsCounting(false);
       setIsPaused(false);
-      startRest(0, REST_BASE_SEC);
+      const firstRest = exercises[0]?.rest > 0 ? exercises[0].rest : REST_BASE_SEC;
+      startRest(0, firstRest);
     }
   };
 
