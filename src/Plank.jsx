@@ -424,8 +424,12 @@ export const usePlankCamera = ({
             if (videoRef.current) {
               const camera = new cam.Camera(videoRef.current, {
                 onFrame: async () => {
-                  if (!isCleanedUp && poseRef.current) {
-                    await pose.send({ image: videoRef.current });
+                  if (videoRef.current && videoRef.current.readyState >= 2 && videoRef.current.videoWidth > 0) {
+                    try {
+                      await pose.send({ image: videoRef.current });
+                    } catch (e) {
+                      console.warn("Pose send error:", e);
+                    }
                   }
                 },
                 width: 640,

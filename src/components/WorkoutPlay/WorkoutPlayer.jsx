@@ -643,9 +643,9 @@ export default function WorkoutPlayer() {
     if (endingRef.current) return;
     endingRef.current = true;
 
-    try {
-      const cur = exercises[currentExercise];
+    const cur = exercises[currentExercise];
 
+    try {
       const now = Date.now();
       const startTime = exerciseStartTimeRef.current;
 
