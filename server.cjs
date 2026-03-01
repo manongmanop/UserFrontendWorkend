@@ -742,8 +742,8 @@ const workoutProgramSchema = new Schema({
   image: String,
   category: {
     type: String,
-    enum: ['ความแข็งแรง', 'คาร์ดิโอ', 'ความยืดหยุ่น', 'HIIT'],
-    default: 'ความแข็งแรง'
+    enum: ['โปรแกรมช่วงบน', 'โปรแกรมช่วงล่าง', 'โปรแกรมหน้าท้อง', 'ลดไขมัน', 'เพิ่มกล้าม', 'กระชับก้น & ขา'],
+    default: 'โปรแกรมช่วงบน'
   },
   DataFeedback: {
     easy: { type: Number, default: 0 },
@@ -753,7 +753,6 @@ const workoutProgramSchema = new Schema({
   workoutList: [
     {
       exercise: { type: mongoose.Schema.Types.ObjectId, ref: "Exercise", required: true },
-      sets: { type: Number, default: 1 },
       reps: { type: Number, default: 0 },
       duration: { type: Number, default: 0 },
       rest: { type: Number, default: 0 }
@@ -828,9 +827,21 @@ app.post('/api/workout_programs', upload.single('image'), async (req, res) => {
       description: req.body.description,
       duration: req.body.duration,
       caloriesBurned: req.body.caloriesBurned,
-      category: req.body.category || 'ความแข็งแรง', // เพิ่ม category field
+      category: req.body.category || 'โปรแกรมช่วงบน', // เพิ่ม category field
       image: req.file ? `/uploads/${req.file.filename}` : '', // แก้ไขให้ใช้ URL
-      workoutList: req.body.workoutList ? JSON.parse(req.body.workoutList) : []
+      workoutList: (() => {
+        if (!req.body.workoutList) return [];
+        let dataStr = typeof req.body.workoutList === 'string' ? req.body.workoutList.trim() : JSON.stringify(req.body.workoutList);
+        if (dataStr.startsWith('exercises:')) {
+          dataStr = dataStr.replace(/^exercises:\s*/, '').trim();
+        }
+        try {
+          return JSON.parse(dataStr);
+        } catch (e) {
+          console.error("Error parsing workoutList:", e);
+          return [];
+        }
+      })()
     });
 
     const savedProgram = await newProgram.save();
@@ -867,9 +878,21 @@ app.put('/api/workout_programs/:id', upload.single('image'), async (req, res) =>
       description: req.body.description,
       duration: req.body.duration,
       caloriesBurned: req.body.caloriesBurned,
-      category: req.body.category || 'ความแข็งแรง', // เพิ่ม category field
+      category: req.body.category || 'โปรแกรมช่วงบน', // เพิ่ม category field
       image: req.file ? `/uploads/${req.file.filename}` : '', // แก้ไขให้ใช้ URL
-      workoutList: req.body.workoutList ? JSON.parse(req.body.workoutList) : [],
+      workoutList: (() => {
+        if (!req.body.workoutList) return [];
+        let dataStr = typeof req.body.workoutList === 'string' ? req.body.workoutList.trim() : JSON.stringify(req.body.workoutList);
+        if (dataStr.startsWith('exercises:')) {
+          dataStr = dataStr.replace(/^exercises:\s*/, '').trim();
+        }
+        try {
+          return JSON.parse(dataStr);
+        } catch (e) {
+          console.error("Error parsing workoutList in PUT:", e);
+          return [];
+        }
+      })(),
     };
 
     if (req.file) {
