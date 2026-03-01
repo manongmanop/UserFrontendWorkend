@@ -20,7 +20,9 @@ function normalizeUrl(p) {
 }
 
 function parseDurationMs(ex) {
-  return 50 * 1000;
+  if (ex.duration && ex.duration > 0) return ex.duration * 1000;
+  if (ex.type === 'time' && ex.value > 0) return ex.value * 60 * 1000;
+  return 60 * 1000;
 }
 
 /* =========================================
@@ -671,7 +673,8 @@ export default function WorkoutPlayer() {
     setIsPaused(false);
 
     if (currentExercise < exercises.length - 1) {
-      startRest(currentExercise + 1, REST_BASE_SEC);
+      const currentRest = cur?.rest > 0 ? cur.rest : REST_BASE_SEC;
+      startRest(currentExercise + 1, currentRest);
     } else {
       setIsCounting(false);
       try { await finishSession(); } catch (e) { }
@@ -969,7 +972,19 @@ export default function WorkoutPlayer() {
         <main className="wp-main">
           {/* ส่วน Header บอกชื่อท่าและเวลา คงเดิมไว้ */}
           <div className="wp-exercise-header">
-            <h2 className="wp-current-exercise-name">{current?.name}</h2>
+            <h2 className="wp-current-exercise-name">
+              {current?.name}
+              {current?.sets || current?.reps || current?.duration || current?.rest ? (
+                <div style={{ fontSize: "0.6em", fontWeight: "normal", opacity: 0.8, marginTop: "4px" }}>
+                  {[
+                    current?.sets ? `${current.sets} เซ็ต` : null,
+                    current?.reps ? `${current.reps} ครั้ง` : null,
+                    current?.duration ? (current.duration < 60 ? `${current.duration} วินาที` : `${Math.floor(current.duration / 60)} นาที ${current.duration % 60 !== 0 ? (current.duration % 60) + ' วินาที' : ''}`.trim()) : null,
+                    current?.rest ? `พัก ${current.rest} วิ` : null
+                  ].filter(Boolean).join(" | ")}
+                </div>
+              ) : null}
+            </h2>
           </div>
 
           {/* ✅ เปลี่ยนส่วนแสดงผลวิดีโอตรงนี้ เป็น Layout ใหม่ */}
@@ -1005,7 +1020,7 @@ export default function WorkoutPlayer() {
                 <ExerciseCameraManager
                   exerciseName={current?.name}
                   isActive={isPlaying && !isPaused}
-                  targetReps={current?.value || 10}
+                  targetReps={current?.reps || current?.value || 10}
                   onRepComplete={handleRepComplete}
                   onSetComplete={handleSetComplete}
                 />
@@ -1035,7 +1050,19 @@ export default function WorkoutPlayer() {
         <main className="wp-main">
           <div className="wp-scroll-area">
             <div className="wp-exercise-header">
-              <h2 className="wp-current-exercise-name">{exercises[nextIndexRef.current]?.name}</h2>
+              <h2 className="wp-current-exercise-name">
+                {exercises[nextIndexRef.current]?.name}
+                {exercises[nextIndexRef.current]?.sets || exercises[nextIndexRef.current]?.reps || exercises[nextIndexRef.current]?.duration || exercises[nextIndexRef.current]?.rest ? (
+                  <div style={{ fontSize: "0.6em", fontWeight: "normal", opacity: 0.8, marginTop: "4px" }}>
+                    {[
+                      exercises[nextIndexRef.current]?.sets ? `${exercises[nextIndexRef.current].sets} เซ็ต` : null,
+                      exercises[nextIndexRef.current]?.reps ? `${exercises[nextIndexRef.current].reps} ครั้ง` : null,
+                      exercises[nextIndexRef.current]?.duration ? (exercises[nextIndexRef.current].duration < 60 ? `${exercises[nextIndexRef.current].duration} วินาที` : `${Math.floor(exercises[nextIndexRef.current].duration / 60)} นาที ${exercises[nextIndexRef.current].duration % 60 !== 0 ? (exercises[nextIndexRef.current].duration % 60) + ' วินาที' : ''}`.trim()) : null,
+                      exercises[nextIndexRef.current]?.rest ? `พัก ${exercises[nextIndexRef.current].rest} วิ` : null
+                    ].filter(Boolean).join(" | ")}
+                  </div>
+                ) : null}
+              </h2>
               <div className="wp-exercise-stats">
                 <div className="wp-rest-timer-row">
                   <div className="wp-time-remaining">

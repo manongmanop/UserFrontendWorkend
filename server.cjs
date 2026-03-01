@@ -753,6 +753,10 @@ const workoutProgramSchema = new Schema({
   workoutList: [
     {
       exercise: { type: mongoose.Schema.Types.ObjectId, ref: "Exercise", required: true },
+      sets: { type: Number, default: 1 },
+      reps: { type: Number, default: 0 },
+      duration: { type: Number, default: 0 },
+      rest: { type: Number, default: 0 }
     }
   ]
 });
@@ -777,7 +781,11 @@ app.get('/api/workout_programs', async (req, res) => {
         imageUrl: item.exercise?.imageUrl,
         type: item.exercise?.type,
         value: item.exercise?.value,
-        muscles: item.exercise?.muscles // ✅ Ensure muscles is passed to frontend
+        muscles: item.exercise?.muscles, // ✅ Ensure muscles is passed to frontend
+        sets: item.sets,
+        reps: item.reps,
+        duration: item.duration,
+        rest: item.rest
       }))
     }));
     res.json(formattedPrograms);
@@ -802,7 +810,11 @@ app.get("/api/workout_programs/:id", async (req, res) => {
         image: (ex.image || "").replace(/\\/g, "/"),
         video: (ex.video || "").replace(/\\/g, "/"),
         description: ex.description, tips: ex.tips, caloriesBurned: ex.caloriesBurned,
-        muscles: ex.muscles // ✅ Ensure muscles is passed to frontend
+        muscles: ex.muscles, // ✅ Ensure muscles is passed to frontend
+        sets: item.sets,
+        reps: item.reps,
+        duration: item.duration,
+        rest: item.rest
       };
     });
     const image = (program.image || "").replace(/\\/g, "/");
