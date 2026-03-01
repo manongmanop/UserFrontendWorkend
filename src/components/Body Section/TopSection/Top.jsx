@@ -6,6 +6,7 @@ import { BsLightning, BsFire, BsArrowRight } from "react-icons/bs";
 import { useUserAuth } from "../../../context/UserAuthContext";
 import { doc, getDoc } from 'firebase/firestore'; // เพิ่ม import สำหรับ Firestore
 import { db } from '../../../../firebase'; // ต้องเพิ่ม import ตัวนี้ด้วย
+import { getMediaUrl } from "../../Detail Section/Detail/Detail.jsx";
 import "./top.css";
 import "../../style/global.css";
 export const Top = () => {
@@ -221,7 +222,7 @@ export const Top = () => {
                       <img
                         src={
                           program?.image
-                            ? `/${program.image.replace(/\\/g, "/")}`
+                            ? getMediaUrl(program.image)
                             : "/default.jpg"
                         }
                         alt={program?.name}
