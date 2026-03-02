@@ -3,8 +3,7 @@ import axios from "axios";
 import { Smile, Meh, Frown } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./WorkoutPlayer.css";
-import guideImg from "../assets/infographic.png";
-import guideImg2 from "../assets/infographic2.png";
+// Removed asset imports, relying on public folder
 import { useUserAuth } from "../../context/UserAuthContext.jsx";
 const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
 import { ExerciseCameraManager } from '../../ExerciseCameraManager.jsx';
@@ -93,7 +92,8 @@ function CameraGuide({ mode = "gate", images = [], onAccept, onClose }) {
             {safeImages.length > 0 && (
               <div className="guide-gallery">
                 <div className="guide-main">
-                  <img className="guide-image" src={safeImages[idx]} alt={`Guide ${idx + 1}`} onClick={() => setPreview(idx)} onError={(e) => e.currentTarget.style.display = "none"} />
+                  <img src="/infographic.png" alt="การจัดวางกล้อง 1" className="guide-image" />
+                  <img src="/infographic2.png" alt="การจัดวางกล้อง 2" className="guide-image" />
                   {hasMany && <><button className="guide-nav guide-nav--left" onClick={() => go(-1)}>‹</button><button className="guide-nav guide-nav--right" onClick={() => go(1)}>›</button></>}
                 </div>
                 {hasMany && <div className="guide-thumbs">{safeImages.map((src, i) => (<button key={i} className={`guide-thumb ${i === idx ? "is-active" : ""}`} onClick={() => setIdx(i)}><img src={src} alt="" /></button>))}</div>}

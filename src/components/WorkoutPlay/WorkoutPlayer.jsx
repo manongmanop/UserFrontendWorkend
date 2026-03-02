@@ -5,8 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { collection, query, where, orderBy, limit, getDocs, setDoc, doc } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import "./WorkoutPlayer.css";
-import guideImg from "../assets/infographic.webp";
-import guideImg2 from "../assets/infographic2.webp";
+// Removed asset imports, relying on public folder
 import { useUserAuth } from "../../context/UserAuthContext.jsx";
 const API_BASE = import.meta.env?.VITE_API_BASE_URL || "";
 import { ExerciseCameraManager } from '../../ExerciseCameraManager.jsx';

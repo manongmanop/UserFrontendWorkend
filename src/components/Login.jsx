@@ -51,7 +51,7 @@ function Login() {
       if (adminSnap.exists()) {
         Swal.close();
         setIsLoading(false);
-        return navigate("/homeadmin");
+        return navigate("/admin/dashboard");
       }
 
       // ถ้าไม่ใช่ admin → ไปเช็ค users ปกติ

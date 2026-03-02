@@ -51,6 +51,7 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/AdminRegister", element: <AdminRegister /> },
   { path: "/terms", element: <TermsOfService /> },
   { path: "/privacy", element: <PrivacyPolicy /> },
 
@@ -80,7 +81,6 @@ const router = createBrowserRouter([
   // Onboarding
   { path: "/onboarding", element: <ProtectedRoute><Onboarding /></ProtectedRoute> },
   { path: "/set-password", element: <ProtectedRoute><LinkEmailPassword /></ProtectedRoute> },
-  { path: "/AdminRegister", element: <ProtectedRoute><AdminRegister /></ProtectedRoute> },
 
   // --- Admin Routes ---
   {

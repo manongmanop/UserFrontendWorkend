@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import './App.css'
 import { Link } from 'react-router-dom'
-import exerciseImg from './components/assets/Profile1.jpg';
+// Profile image now loaded from public folder
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <div className="welcome-container">
-      <img src={exerciseImg} alt="Exercise" className="exercise-image" />
+      <img src="/Profile1.jpg" alt="Exercise Example" className="exercise-image" />
 
       <h2>
         WHEREVER YOU ARE <span className="highlight">HEALTH</span> IS NUMBER ONE
